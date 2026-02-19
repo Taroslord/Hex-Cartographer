@@ -3,8 +3,8 @@
     "name": "Hex Cartographer",
     "version": "1.0.0",
     "minAppVersion": "1.0.0",
-    "description": "Hex Cartographer is a visual hex map editor for Obsidian. Create fantasy world maps in markdown-like format with custom SVG symbols, terrain, rivers, roads, and text annotations. Features color palettes and pattern tools. Perfect for RPG campaigns, novel writing, and worldbuilding.",
+    "description": "A visual hex map editor. Create fantasy world maps with custom SVG symbols, terrain, rivers, roads, and text annotations. Features color palettes and pattern tools. Perfect for RPG campaigns, novel writing, and worldbuilding.",
     "author": "Christoph Werner",
-    "authorUrl": "https://github.com/Taroslord/Hex-Cartographer",
+    "authorUrl": "https://github.com/Taroslord",
     "isDesktopOnly": false
 }
