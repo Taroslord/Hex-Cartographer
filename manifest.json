@@ -1,7 +1,7 @@
 {
     "id": "hex-cartographer",
     "name": "Hex Cartographer",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "minAppVersion": "1.0.0",
     "description": "A visual hex map editor. Create fantasy world maps with custom SVG symbols, terrain, rivers, roads, and text annotations. Features color palettes and pattern tools. Perfect for RPG campaigns, novel writing, and worldbuilding.",
     "author": "Christoph Werner",

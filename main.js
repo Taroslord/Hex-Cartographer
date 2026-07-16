@@ -1,4 +1,4 @@
-const { Plugin, PluginSettingTab, Setting, TFile, Notice, Modal, ItemView, setIcon } = require('obsidian');
+const { Plugin, PluginSettingTab, Setting, TFile, Notice, Modal, Menu, FuzzySuggestModal, ItemView, setIcon } = require('obsidian');
 
 // === Farbpaletten ===
 const DEFAULT_PALETTE  = ['#3295D2', '#6CC261', '#DDC88D', '#9c9090', '#CD6155', '#FFD700', '#000000', '#FFFFFF'];
@@ -50,6 +50,53 @@ const ACTIVE_BOX_SHADOW = `0 0 8px ${ACTIVE_COLOR}66`;
 const ACTIVE_BORDER = `3px solid ${ACTIVE_COLOR}`;
 const PICKER_ACTIVE_BG = ACTIVE_COLOR;
 const BUTTON_BG_DEFAULT = '#ffffff';
+
+// === User-Assets (eigene Texturen & Symbole aus Vault-Ordnern) ===
+// Jede Kategorie hat einen eigenen Ordner. Die Kategorie steckt im Key
+// (`user:veg:Wald/eiche`), weil beim Zeichnen nur `hex.symbol` bzw. `hex.texture`
+// vorliegt — ohne sie wäre nicht entscheidbar, aus welchem Ordner ein Key stammt.
+// `id` wird in Kartendateien gespeichert und darf sich nicht mehr ändern.
+// `group` verweist auf die Werkzeuggruppe in toolConfigs (historische Namen).
+// `labelKey` ist derselbe Schlüssel wie der Name der Werkzeuggruppe, damit
+// Einstellung und Toolbar-Tooltip identisch heißen.
+const USER_ASSET_CATEGORIES = [
+    { id: 'tex',      settingKey: 'userTexturePath',    kind: 'texture' },
+    { id: 'extras',   settingKey: 'userExtrasPath',     kind: 'symbol', group: 'grass',    labelKey: 'tool.extras' },
+    { id: 'veg',      settingKey: 'userVegetationPath', kind: 'symbol', group: 'tree',     labelKey: 'tool.vegetation' },
+    { id: 'mountain', settingKey: 'userMountainPath',   kind: 'symbol', group: 'mountain', labelKey: 'tool.mountain' },
+    { id: 'building', settingKey: 'userBuildingPath',   kind: 'symbol', group: 'building', labelKey: 'tool.building' },
+];
+const TEXTURE_CATEGORY = 'tex';
+const USER_ASSET_PREFIX = 'user:';
+const USER_ASSET_EXTENSIONS = ['svg', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'avif'];
+// Kürzeste Kante, auf die eingelesene Grafiken heruntergerechnet werden.
+// Begründung: gridSize ist fest 30 und MAX_ZOOM ist 4, eine Wabe wird also nie
+// größer als 208x240 px. Beim Cover-Fit füllt die relativ kleinere Bildseite die
+// Wabe — 256 deckt die nötigen 240 px ab, alles darüber wäre nur Speicher.
+// Die längere Seite wird beim Cover-Fit ohnehin abgeschnitten.
+const USER_ASSET_MAX_SHORT_SIDE = 256;
+// Obergrenze fürs Nachladen beim Export. Deckelt den Speicher, falls jemand mit
+// extremer Auflösung exportiert; die Quelldatei bleibt ohnehin die echte Grenze.
+const USER_ASSET_EXPORT_MAX_SHORT_SIDE = 2048;
+const USER_ASSET_MAX_FILES = 500;
+// Wartezeit nach der letzten Dateiänderung, bevor ein Ordner neu gescannt wird.
+const ASSET_WATCH_DEBOUNCE = 400;
+// Anteil der Waben-Bounding-Box, den ein User-Symbol maximal einnimmt.
+const USER_SYMBOL_FIT = 0.8;
+// Überstand der Textur über den Farb-Untergrund. Nötig, weil der Farb-Fill eine
+// antialiaste (weiche) Kante hat, das Textur-clip() aber hart abschneidet — ohne
+// den Überstand lugt bei ausgeblendeten Rahmen ein 1px-Farbrand hervor.
+const TEXTURE_EDGE_BLEED = 1;
+// Zeichenebenen der System-Symbole (unten → oben). User-Symbole liegen darüber,
+// direkt vor den Grenzen — siehe drawMapLayers().
+const SYMBOL_LAYER_VEGETATION = ['swamp', 'grass', 'bush', 'tree', 'pine', 'palm'];
+const SYMBOL_LAYER_TERRAIN = ['hill', 'mountain'];
+const SYMBOL_LAYER_EXTRAS = ['question', 'exclamation', 'cross', 'dot', 'shield', 'pirateskull'];
+const SYMBOL_LAYER_BUILDINGS = ['tent', 'house', 'village', 'town', 'castle', 'harbor', 'monastery', 'tower', 'ruins', 'cave', 'oasis'];
+
+function isUserAssetKey(key) {
+    return typeof key === 'string' && key.startsWith(USER_ASSET_PREFIX);
+}
 
 // === Symbol-Konfiguration (Größe/Position pro Symbol) ===
 const SVG_SYMBOL_CONFIG = {
@@ -213,6 +260,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Zeigt ein Fadenkreuz im Zentrum der Karte an.',
         'settings.hideHexBorders': 'Waben-Rahmen ausblenden',
         'settings.hideHexBordersDesc': 'Blendet die grauen Rahmenlinien zwischen den Waben aus.',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': 'Eigene Grafiken',
+        'settings.userAssetPreview': 'Grafikvorschau',
+        'settings.userAssetPreviewDesc': 'Zeigt im Rechtsklick-Menü Vorschaubilder der eigenen Grafiken statt nur der Namen.',
+        'settings.userAssetsDesc': 'Jede Kategorie hat ihren eigenen Ordner im Vault. Bleibt ein Feld leer, verwendet die Kategorie weiterhin die mitgelieferten Grafiken. Unterstützt werden SVG, PNG, JPG, WEBP, GIF und AVIF; Unterordner werden zu Untermenüs. Formate mit Transparenz eignen sich besonders für Symbole, weil dann die Farbe oder Textur der Wabe sichtbar bleibt. Eigene Grafiken lassen sich nicht einfärben — Ausnahme sind SVGs, die aus einem einzelnen Pfad bestehen.',
+        'settings.userAssetsPlaceholder': 'z. B. Assets/HexGrafiken',
+        'settings.userAssetsBrowse': 'Ordner auswählen',
+        'settings.userAssetsClear': 'Pfad leeren',
+        'settings.folderPickerPlaceholder': 'Ordner suchen …',
+        'settings.userAssetsFound': '{n} Grafiken gefunden.',
+        'settings.userAssetsNotFound': 'Ordner nicht gefunden oder ohne unterstützte Grafiken.',
+        'settings.userAssetsTruncated': 'Nur die ersten {max} werden geladen.',
+        'settings.userTexturePath': 'Ordner für Waben-Texturen',
+        'settings.userTexturePathDesc': 'Vault-relativer Pfad. Leer lassen, um nur Farben zu verwenden.',
+        'settings.userSymbolPathFor': 'Ordner für Symbole: {name}',
+        'settings.userSymbolPathDesc': 'Vault-relativer Pfad. Leer lassen, um nur die mitgelieferten Symbole zu verwenden.',
+        'menu.system': 'System',
+        'menu.color': 'Farbe',
+        'notice.assetMissing': 'Grafik nicht gefunden: {name}',
         'settings.hexNumbering': 'Waben nummerieren',
         'settings.hexNumberingDesc': 'Die Waben werden mit Zahlen versehen und nummeriert.',
         'settings.hexNumberingHorizontal': 'Horizontale Zählung',
@@ -248,10 +315,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': 'Farbe wählen und auf Waben klicken zum Einfärben.',
         'guide.hexcolor.eyedropper': 'Farbpipette: Farbe auf der Karte aufnehmen.',
         'guide.hexcolor.palette': 'Rechtsklick auf Palettenplatz = Farbe neu setzen.',
+        'guide.hexcolor.texture': 'Rechtsklick auf den Waben-Button = Farbe oder eigene Textur wählen. Erscheint nur, wenn in den Einstellungen ein Texturordner angegeben ist.',
         'guide.symbols': 'Symbole',
         'guide.symbols.groups': 'Werkzeuggruppe wählen (Extras, Vegetation, Berg, Gebäude).',
         'guide.symbols.variant': 'Rechtsklick = Auswahl der Symbolvariante.',
         'guide.symbols.colors': 'Die aktuelle Master-Farbe bestimmt die Symbolfarbe.',
+        'guide.symbols.userSymbols': 'Eigene Symbole erscheinen im Rechtsklick-Menü unterhalb von "System", benannt nach deinem Ordner.',
         'guide.drawing': 'Zeichenmodi',
         'guide.drawing.pen': 'Zum Zeichnen klicken oder ziehen.',
         'guide.drawing.fill': 'Fläche mit aktiver Farbe oder Symbol füllen.',
@@ -434,6 +503,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Displays a crosshair at the center of the map.',
         'settings.hideHexBorders': 'Hide hex borders',
         'settings.hideHexBordersDesc': 'Hides the gray border lines between hexes.',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': 'Custom graphics',
+        'settings.userAssetPreview': 'Graphic preview',
+        'settings.userAssetPreviewDesc': 'Shows thumbnail previews of your graphics in the right-click menu instead of just the names.',
+        'settings.userAssetsDesc': 'Each category has its own folder inside your vault. Leave a field empty and that category keeps using the built-in graphics. SVG, PNG, JPG, WEBP, GIF and AVIF are supported; subfolders become submenus. Formats with transparency work best for symbols, because the hex color or texture stays visible behind them. Custom graphics cannot be recolored — except SVGs made of a single path.',
+        'settings.userAssetsPlaceholder': 'e.g. Assets/HexGraphics',
+        'settings.userAssetsBrowse': 'Choose folder',
+        'settings.userAssetsClear': 'Clear path',
+        'settings.folderPickerPlaceholder': 'Search folders …',
+        'settings.userAssetsFound': '{n} graphics found.',
+        'settings.userAssetsNotFound': 'Folder not found or contains no supported graphics.',
+        'settings.userAssetsTruncated': 'Only the first {max} are loaded.',
+        'settings.userTexturePath': 'Hex texture folder',
+        'settings.userTexturePathDesc': 'Vault-relative path. Leave empty to use colors only.',
+        'settings.userSymbolPathFor': 'Symbol folder: {name}',
+        'settings.userSymbolPathDesc': 'Vault-relative path. Leave empty to use the built-in symbols only.',
+        'menu.system': 'System',
+        'menu.color': 'Color',
+        'notice.assetMissing': 'Graphic not found: {name}',
         'settings.hexNumbering': 'Number hexes',
         'settings.hexNumberingDesc': 'Hexes are labeled with numbers.',
         'settings.hexNumberingHorizontal': 'Horizontal counting',
@@ -469,10 +558,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': 'Choose a color and click hexes to paint them.',
         'guide.hexcolor.eyedropper': 'Color eyedropper: Pick a color from the map.',
         'guide.hexcolor.palette': 'Right-click a palette slot = Set new color.',
+        'guide.hexcolor.texture': 'Right-click the hex button = Choose a color or your own texture. Only appears once a texture folder is set in the settings.',
         'guide.symbols': 'Symbols',
         'guide.symbols.groups': 'Choose a tool group (Extras, Vegetation, Mountain, Building).',
         'guide.symbols.variant': 'Right-click = Select symbol variant.',
         'guide.symbols.colors': 'The current master color determines the symbol color.',
+        'guide.symbols.userSymbols': 'Your own symbols appear in the right-click menu below "System", named after your folder.',
         'guide.drawing': 'Drawing Modes',
         'guide.drawing.pen': 'Click or drag to draw.',
         'guide.drawing.fill': 'Fill area with active color or symbol.',
@@ -633,6 +724,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': '在地图中心显示十字准线。',
         'settings.hideHexBorders': '隐藏六边形边框',
         'settings.hideHexBordersDesc': '隐藏六边形之间的灰色边框线。',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': '自定义图形',
+        'settings.userAssetPreview': '图形预览',
+        'settings.userAssetPreviewDesc': '在右键菜单中显示自定义图形的缩略图预览，而不仅是名称。',
+        'settings.userAssetsDesc': '每个类别在库中都有自己的文件夹。留空则该类别继续使用内置图形。支持 SVG、PNG、JPG、WEBP、GIF 和 AVIF；子文件夹将成为子菜单。带透明度的格式最适合用作符号，因为六边形的颜色或纹理仍可透出。自定义图形无法重新着色——由单个路径构成的 SVG 除外。',
+        'settings.userAssetsPlaceholder': '例如 Assets/HexGraphics',
+        'settings.userAssetsBrowse': '选择文件夹',
+        'settings.userAssetsClear': '清除路径',
+        'settings.folderPickerPlaceholder': '搜索文件夹 …',
+        'settings.userAssetsFound': '找到 {n} 个图形。',
+        'settings.userAssetsNotFound': '未找到文件夹，或其中没有支持的图形。',
+        'settings.userAssetsTruncated': '仅加载前 {max} 个。',
+        'settings.userTexturePath': '六边形纹理文件夹',
+        'settings.userTexturePathDesc': '相对于库的路径。留空则仅使用颜色。',
+        'settings.userSymbolPathFor': '符号文件夹：{name}',
+        'settings.userSymbolPathDesc': '相对于库的路径。留空则仅使用内置符号。',
+        'menu.system': '系统',
+        'menu.color': '颜色',
+        'notice.assetMissing': '未找到图形：{name}',
         'settings.hexNumbering': '六边形编号',
         'settings.hexNumberingDesc': '六边形将标注数字。',
         'settings.hexNumberingHorizontal': '水平计数',
@@ -666,10 +777,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': '选择颜色并点击六角格进行着色。',
         'guide.hexcolor.eyedropper': '取色器：从地图上采集颜色。',
         'guide.hexcolor.palette': '右键点击调色板位置 = 设置新颜色。',
+        'guide.hexcolor.texture': '右键点击六边形按钮 = 选择颜色或自定义纹理。仅在设置中指定了纹理文件夹后才会出现。',
         'guide.symbols': '符号',
         'guide.symbols.groups': '选择工具组（其他、植被、山脉、建筑）。',
         'guide.symbols.variant': '右键点击 = 选择符号变体。',
         'guide.symbols.colors': '当前主颜色决定符号颜色。',
+        'guide.symbols.userSymbols': '自定义符号会显示在右键菜单中“系统”的下方，以你的文件夹命名。',
         'guide.drawing': '绘制模式',
         'guide.drawing.pen': '点击或拖动进行绘制。',
         'guide.drawing.fill': '用当前颜色或符号填充区域。',
@@ -826,6 +939,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Отображает перекрестие в центре карты.',
         'settings.hideHexBorders': 'Скрыть границы шестиугольников',
         'settings.hideHexBordersDesc': 'Скрывает серые линии границ между шестиугольниками.',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': 'Собственная графика',
+        'settings.userAssetPreview': 'Предпросмотр графики',
+        'settings.userAssetPreviewDesc': 'Показывает миниатюры собственной графики в контекстном меню вместо одних лишь имён.',
+        'settings.userAssetsDesc': 'У каждой категории своя папка в хранилище. Если поле пустое, категория продолжает использовать встроенную графику. Поддерживаются SVG, PNG, JPG, WEBP, GIF и AVIF; вложенные папки становятся подменю. Форматы с прозрачностью лучше всего подходят для символов, так как цвет или текстура соты остаются видимыми. Собственную графику нельзя перекрасить — кроме SVG из одного контура.',
+        'settings.userAssetsPlaceholder': 'напр. Assets/HexGraphics',
+        'settings.userAssetsBrowse': 'Выбрать папку',
+        'settings.userAssetsClear': 'Очистить путь',
+        'settings.folderPickerPlaceholder': 'Поиск папок …',
+        'settings.userAssetsFound': 'Найдено графики: {n}.',
+        'settings.userAssetsNotFound': 'Папка не найдена или не содержит поддерживаемой графики.',
+        'settings.userAssetsTruncated': 'Загружаются только первые {max}.',
+        'settings.userTexturePath': 'Папка текстур сот',
+        'settings.userTexturePathDesc': 'Путь относительно хранилища. Оставьте пустым, чтобы использовать только цвета.',
+        'settings.userSymbolPathFor': 'Папка символов: {name}',
+        'settings.userSymbolPathDesc': 'Путь относительно хранилища. Оставьте пустым, чтобы использовать только встроенные символы.',
+        'menu.system': 'Система',
+        'menu.color': 'Цвет',
+        'notice.assetMissing': 'Графика не найдена: {name}',
         'settings.hexNumbering': 'Нумерация шестиугольников',
         'settings.hexNumberingDesc': 'Шестиугольники помечаются цифрами.',
         'settings.hexNumberingHorizontal': 'Горизонтальный счёт',
@@ -859,10 +992,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': 'Выберите цвет и нажмите на соты для окрашивания.',
         'guide.hexcolor.eyedropper': 'Пипетка: захватить цвет с карты.',
         'guide.hexcolor.palette': 'Правый клик по месту в палитре = Задать новый цвет.',
+        'guide.hexcolor.texture': 'Правый клик по кнопке соты = Выбрать цвет или собственную текстуру. Появляется только после указания папки текстур в настройках.',
         'guide.symbols': 'Символы',
         'guide.symbols.groups': 'Выберите группу инструментов (Прочее, Растительность, Горы, Здания).',
         'guide.symbols.variant': 'Правый клик = Выбор варианта символа.',
         'guide.symbols.colors': 'Текущий основной цвет определяет цвет символа.',
+        'guide.symbols.userSymbols': 'Собственные символы появляются в контекстном меню под «Система», с именем вашей папки.',
         'guide.drawing': 'Режимы рисования',
         'guide.drawing.pen': 'Нажмите или перетащите для рисования.',
         'guide.drawing.fill': 'Заполнить область активным цветом или символом.',
@@ -1019,6 +1154,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'マップの中心に十字線を表示します。',
         'settings.hideHexBorders': '六角形の枠線を非表示',
         'settings.hideHexBordersDesc': '六角形間のグレーの枠線を非表示にします。',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': 'カスタム画像',
+        'settings.userAssetPreview': '画像プレビュー',
+        'settings.userAssetPreviewDesc': '右クリックメニューで、名前だけでなくカスタム画像のサムネイルを表示します。',
+        'settings.userAssetsDesc': '各カテゴリは保管庫内にそれぞれ独自のフォルダを持ちます。空欄のままにすると、そのカテゴリは内蔵画像を使い続けます。SVG、PNG、JPG、WEBP、GIF、AVIF に対応し、サブフォルダはサブメニューになります。透過に対応した形式はヘックスの色やテクスチャが透けて見えるため、シンボルに最適です。カスタム画像は着色できません（単一パスの SVG を除く）。',
+        'settings.userAssetsPlaceholder': '例: Assets/HexGraphics',
+        'settings.userAssetsBrowse': 'フォルダを選択',
+        'settings.userAssetsClear': 'パスをクリア',
+        'settings.folderPickerPlaceholder': 'フォルダを検索 …',
+        'settings.userAssetsFound': '{n} 個の画像が見つかりました。',
+        'settings.userAssetsNotFound': 'フォルダが見つからないか、対応する画像がありません。',
+        'settings.userAssetsTruncated': '最初の {max} 個のみ読み込まれます。',
+        'settings.userTexturePath': 'ヘックステクスチャのフォルダ',
+        'settings.userTexturePathDesc': '保管庫からの相対パス。空欄にすると色のみを使用します。',
+        'settings.userSymbolPathFor': 'シンボルのフォルダ: {name}',
+        'settings.userSymbolPathDesc': '保管庫からの相対パス。空欄にすると内蔵シンボルのみを使用します。',
+        'menu.system': 'システム',
+        'menu.color': '色',
+        'notice.assetMissing': '画像が見つかりません: {name}',
         'settings.hexNumbering': 'ヘクスに番号を付ける',
         'settings.hexNumberingDesc': '各ヘクスに番号を表示します。',
         'settings.hexNumberingHorizontal': '水平カウント',
@@ -1052,10 +1207,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': '色を選んでヘックスをクリックして着色。',
         'guide.hexcolor.eyedropper': 'スポイト：マップから色を取得。',
         'guide.hexcolor.palette': 'パレット枠を右クリック = 色を変更。',
+        'guide.hexcolor.texture': 'ヘックスボタンを右クリック = 色またはカスタムテクスチャを選択。設定でテクスチャフォルダを指定した場合のみ表示されます。',
         'guide.symbols': 'シンボル',
         'guide.symbols.groups': 'ツールグループを選択（その他、植生、山、建物）。',
         'guide.symbols.variant': '右クリック = シンボルバリエーションの選択。',
         'guide.symbols.colors': '現在のマスターカラーがシンボルの色を決定します。',
+        'guide.symbols.userSymbols': 'カスタムシンボルは右クリックメニューの「システム」の下に、フォルダ名で表示されます。',
         'guide.drawing': '描画モード',
         'guide.drawing.pen': 'クリックまたはドラッグで描画。',
         'guide.drawing.fill': 'アクティブな色またはシンボルで領域を塗りつぶし。',
@@ -1212,6 +1369,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Affiche un réticule au centre de la carte.',
         'settings.hideHexBorders': 'Masquer les bordures des hexagones',
         'settings.hideHexBordersDesc': 'Masque les lignes grises entre les hexagones.',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': 'Graphiques personnalisés',
+        'settings.userAssetPreview': 'Aperçu graphique',
+        'settings.userAssetPreviewDesc': 'Affiche des miniatures de vos graphiques dans le menu contextuel au lieu des seuls noms.',
+        'settings.userAssetsDesc': 'Chaque catégorie possède son propre dossier dans le coffre. Si un champ reste vide, la catégorie continue d\'utiliser les graphiques fournis. SVG, PNG, JPG, WEBP, GIF et AVIF sont pris en charge ; les sous-dossiers deviennent des sous-menus. Les formats avec transparence conviennent particulièrement aux symboles, car la couleur ou la texture de l\'hexagone reste visible. Les graphiques personnalisés ne peuvent pas être recolorés — sauf les SVG composés d\'un seul tracé.',
+        'settings.userAssetsPlaceholder': 'p. ex. Assets/HexGraphics',
+        'settings.userAssetsBrowse': 'Choisir un dossier',
+        'settings.userAssetsClear': 'Effacer le chemin',
+        'settings.folderPickerPlaceholder': 'Rechercher des dossiers …',
+        'settings.userAssetsFound': '{n} graphiques trouvés.',
+        'settings.userAssetsNotFound': 'Dossier introuvable ou sans graphiques pris en charge.',
+        'settings.userAssetsTruncated': 'Seuls les {max} premiers sont chargés.',
+        'settings.userTexturePath': 'Dossier des textures d\'hexagone',
+        'settings.userTexturePathDesc': 'Chemin relatif au coffre. Laisser vide pour n\'utiliser que des couleurs.',
+        'settings.userSymbolPathFor': 'Dossier des symboles : {name}',
+        'settings.userSymbolPathDesc': 'Chemin relatif au coffre. Laisser vide pour n\'utiliser que les symboles fournis.',
+        'menu.system': 'Système',
+        'menu.color': 'Couleur',
+        'notice.assetMissing': 'Graphique introuvable : {name}',
         'settings.hexNumbering': 'Numéroter les hexagones',
         'settings.hexNumberingDesc': 'Les hexagones sont numérotés.',
         'settings.hexNumberingHorizontal': 'Comptage horizontal',
@@ -1245,10 +1422,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': 'Choisir une couleur et cliquer sur les hexagones pour les colorier.',
         'guide.hexcolor.eyedropper': 'Pipette : Capturer une couleur sur la carte.',
         'guide.hexcolor.palette': 'Clic droit sur un emplacement de palette = Définir une nouvelle couleur.',
+        'guide.hexcolor.texture': 'Clic droit sur le bouton hexagone = Choisir une couleur ou votre propre texture. N\'apparaît qu\'une fois un dossier de textures défini dans les paramètres.',
         'guide.symbols': 'Symboles',
         'guide.symbols.groups': 'Choisir un groupe d\'outils (Extras, Végétation, Montagne, Bâtiment).',
         'guide.symbols.variant': 'Clic droit = Choisir la variante du symbole.',
         'guide.symbols.colors': 'La couleur principale actuelle détermine la couleur du symbole.',
+        'guide.symbols.userSymbols': 'Vos propres symboles apparaissent dans le menu contextuel sous « Système », au nom de votre dossier.',
         'guide.drawing': 'Modes de dessin',
         'guide.drawing.pen': 'Cliquer ou glisser pour dessiner.',
         'guide.drawing.fill': 'Remplir une zone avec la couleur ou le symbole actif.',
@@ -1405,6 +1584,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Exibe um retículo no centro do mapa.',
         'settings.hideHexBorders': 'Ocultar bordas dos hexágonos',
         'settings.hideHexBordersDesc': 'Oculta as linhas de borda cinzas entre os hexágonos.',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': 'Gráficos personalizados',
+        'settings.userAssetPreview': 'Pré-visualização gráfica',
+        'settings.userAssetPreviewDesc': 'Mostra miniaturas dos seus gráficos no menu de contexto em vez de apenas os nomes.',
+        'settings.userAssetsDesc': 'Cada categoria tem a sua própria pasta no cofre. Se deixar um campo vazio, essa categoria continua a usar os gráficos incluídos. São suportados SVG, PNG, JPG, WEBP, GIF e AVIF; as subpastas tornam-se submenus. Formatos com transparência são ideais para símbolos, pois a cor ou textura do hexágono continua visível. Gráficos personalizados não podem ser recoloridos — exceto SVGs compostos por um único traçado.',
+        'settings.userAssetsPlaceholder': 'ex.: Assets/HexGraphics',
+        'settings.userAssetsBrowse': 'Escolher pasta',
+        'settings.userAssetsClear': 'Limpar caminho',
+        'settings.folderPickerPlaceholder': 'Procurar pastas …',
+        'settings.userAssetsFound': '{n} gráficos encontrados.',
+        'settings.userAssetsNotFound': 'Pasta não encontrada ou sem gráficos suportados.',
+        'settings.userAssetsTruncated': 'Apenas os primeiros {max} são carregados.',
+        'settings.userTexturePath': 'Pasta de texturas de hexágono',
+        'settings.userTexturePathDesc': 'Caminho relativo ao cofre. Deixe vazio para usar apenas cores.',
+        'settings.userSymbolPathFor': 'Pasta de símbolos: {name}',
+        'settings.userSymbolPathDesc': 'Caminho relativo ao cofre. Deixe vazio para usar apenas os símbolos incluídos.',
+        'menu.system': 'Sistema',
+        'menu.color': 'Cor',
+        'notice.assetMissing': 'Gráfico não encontrado: {name}',
         'settings.hexNumbering': 'Numerar hexágonos',
         'settings.hexNumberingDesc': 'Os hexágonos são numerados.',
         'settings.hexNumberingHorizontal': 'Contagem horizontal',
@@ -1438,10 +1637,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': 'Escolher cor e clicar nos hexágonos para colorir.',
         'guide.hexcolor.eyedropper': 'Conta-gotas: Capturar cor do mapa.',
         'guide.hexcolor.palette': 'Clique direito no espaço da paleta = Definir nova cor.',
+        'guide.hexcolor.texture': 'Clique direito no botão do hexágono = Escolher uma cor ou a sua própria textura. Só aparece depois de definir uma pasta de texturas nas definições.',
         'guide.symbols': 'Símbolos',
         'guide.symbols.groups': 'Escolher grupo de ferramentas (Extras, Vegetação, Montanha, Edifício).',
         'guide.symbols.variant': 'Clique direito = Escolher variante do símbolo.',
         'guide.symbols.colors': 'A cor principal atual determina a cor do símbolo.',
+        'guide.symbols.userSymbols': 'Os seus símbolos aparecem no menu de contexto abaixo de "Sistema", com o nome da sua pasta.',
         'guide.drawing': 'Modos de desenho',
         'guide.drawing.pen': 'Clicar ou arrastar para desenhar.',
         'guide.drawing.fill': 'Preencher área com a cor ou símbolo ativo.',
@@ -1598,6 +1799,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': '지도 중심에 십자선을 표시합니다.',
         'settings.hideHexBorders': '육각형 테두리 숨기기',
         'settings.hideHexBordersDesc': '육각형 사이의 회색 테두리 선을 숨깁니다.',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': '사용자 그래픽',
+        'settings.userAssetPreview': '그래픽 미리보기',
+        'settings.userAssetPreviewDesc': '우클릭 메뉴에서 이름 대신 사용자 그래픽의 미리보기 썸네일을 표시합니다.',
+        'settings.userAssetsDesc': '각 카테고리는 보관함 안에 고유한 폴더를 가집니다. 비워 두면 해당 카테고리는 기본 제공 그래픽을 계속 사용합니다. SVG, PNG, JPG, WEBP, GIF, AVIF를 지원하며 하위 폴더는 하위 메뉴가 됩니다. 투명도를 지원하는 형식은 헥스의 색상이나 텍스처가 비쳐 보이므로 심볼에 특히 적합합니다. 사용자 그래픽은 색을 바꿀 수 없습니다 — 단일 경로로 된 SVG는 예외입니다.',
+        'settings.userAssetsPlaceholder': '예: Assets/HexGraphics',
+        'settings.userAssetsBrowse': '폴더 선택',
+        'settings.userAssetsClear': '경로 지우기',
+        'settings.folderPickerPlaceholder': '폴더 검색 …',
+        'settings.userAssetsFound': '그래픽 {n}개를 찾았습니다.',
+        'settings.userAssetsNotFound': '폴더를 찾을 수 없거나 지원되는 그래픽이 없습니다.',
+        'settings.userAssetsTruncated': '처음 {max}개만 불러옵니다.',
+        'settings.userTexturePath': '헥스 텍스처 폴더',
+        'settings.userTexturePathDesc': '보관함 기준 상대 경로. 비워 두면 색상만 사용합니다.',
+        'settings.userSymbolPathFor': '심볼 폴더: {name}',
+        'settings.userSymbolPathDesc': '보관함 기준 상대 경로. 비워 두면 기본 제공 심볼만 사용합니다.',
+        'menu.system': '시스템',
+        'menu.color': '색상',
+        'notice.assetMissing': '그래픽을 찾을 수 없습니다: {name}',
         'settings.hexNumbering': '헥스 번호 매기기',
         'settings.hexNumberingDesc': '헥스에 번호를 표시합니다.',
         'settings.hexNumberingHorizontal': '가로 카운트',
@@ -1631,10 +1852,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': '색상을 선택하고 헥스 셀을 클릭하여 색칠합니다.',
         'guide.hexcolor.eyedropper': '스포이트: 지도에서 색상을 캡처합니다.',
         'guide.hexcolor.palette': '팔레트 자리 우클릭 = 새 색상 설정.',
+        'guide.hexcolor.texture': '헥스 버튼 우클릭 = 색상 또는 사용자 텍스처 선택. 설정에서 텍스처 폴더를 지정해야 표시됩니다.',
         'guide.symbols': '기호',
         'guide.symbols.groups': '도구 그룹 선택 (기타, 식생, 산, 건물).',
         'guide.symbols.variant': '우클릭 = 기호 변형 선택.',
         'guide.symbols.colors': '현재 마스터 색상이 기호 색상을 결정합니다.',
+        'guide.symbols.userSymbols': '사용자 심볼은 우클릭 메뉴에서 "시스템" 아래에 폴더 이름으로 표시됩니다.',
         'guide.drawing': '그리기 모드',
         'guide.drawing.pen': '클릭 또는 드래그하여 그립니다.',
         'guide.drawing.fill': '활성 색상 또는 기호로 영역을 채웁니다.',
@@ -1791,6 +2014,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Muestra una retícula en el centro del mapa.',
         'settings.hideHexBorders': 'Ocultar bordes de hexágonos',
         'settings.hideHexBordersDesc': 'Oculta las líneas grises entre los hexágonos.',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': 'Gráficos propios',
+        'settings.userAssetPreview': 'Vista previa de gráficos',
+        'settings.userAssetPreviewDesc': 'Muestra miniaturas de tus gráficos en el menú contextual en lugar de solo los nombres.',
+        'settings.userAssetsDesc': 'Cada categoría tiene su propia carpeta en el almacén. Si dejas un campo vacío, esa categoría sigue usando los gráficos incluidos. Se admiten SVG, PNG, JPG, WEBP, GIF y AVIF; las subcarpetas se convierten en submenús. Los formatos con transparencia son ideales para símbolos, ya que el color o la textura del hexágono sigue visible. Los gráficos propios no se pueden recolorear, salvo los SVG formados por un único trazado.',
+        'settings.userAssetsPlaceholder': 'p. ej. Assets/HexGraphics',
+        'settings.userAssetsBrowse': 'Elegir carpeta',
+        'settings.userAssetsClear': 'Borrar ruta',
+        'settings.folderPickerPlaceholder': 'Buscar carpetas …',
+        'settings.userAssetsFound': '{n} gráficos encontrados.',
+        'settings.userAssetsNotFound': 'Carpeta no encontrada o sin gráficos compatibles.',
+        'settings.userAssetsTruncated': 'Solo se cargan los primeros {max}.',
+        'settings.userTexturePath': 'Carpeta de texturas de hexágono',
+        'settings.userTexturePathDesc': 'Ruta relativa al almacén. Déjalo vacío para usar solo colores.',
+        'settings.userSymbolPathFor': 'Carpeta de símbolos: {name}',
+        'settings.userSymbolPathDesc': 'Ruta relativa al almacén. Déjalo vacío para usar solo los símbolos incluidos.',
+        'menu.system': 'Sistema',
+        'menu.color': 'Color',
+        'notice.assetMissing': 'Gráfico no encontrado: {name}',
         'settings.hexNumbering': 'Numerar hexágonos',
         'settings.hexNumberingDesc': 'Los hexágonos se numeran.',
         'settings.hexNumberingHorizontal': 'Conteo horizontal',
@@ -1824,10 +2067,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': 'Elegir color y hacer clic en celdas para colorearlas.',
         'guide.hexcolor.eyedropper': 'Cuentagotas: Capturar color del mapa.',
         'guide.hexcolor.palette': 'Clic derecho en lugar de paleta = Cambiar color.',
+        'guide.hexcolor.texture': 'Clic derecho en el botón del hexágono = Elegir un color o tu propia textura. Solo aparece si has indicado una carpeta de texturas en los ajustes.',
         'guide.symbols': 'Símbolos',
         'guide.symbols.groups': 'Elegir grupo de herramientas (Extras, Vegetación, Montaña, Edificio).',
         'guide.symbols.variant': 'Clic derecho = Selección de variante de símbolo.',
         'guide.symbols.colors': 'El color maestro actual determina el color del símbolo.',
+        'guide.symbols.userSymbols': 'Tus propios símbolos aparecen en el menú contextual debajo de «Sistema», con el nombre de tu carpeta.',
         'guide.drawing': 'Modos de dibujo',
         'guide.drawing.pen': 'Clic o arrastrar para dibujar.',
         'guide.drawing.fill': 'Rellenar área con color o símbolo activo.',
@@ -1984,6 +2229,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Wyświetla celownik w centrum mapy.',
         'settings.hideHexBorders': 'Ukryj obramowania sześciokątów',
         'settings.hideHexBordersDesc': 'Ukrywa szare linie obramowań między sześciokątami.',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': 'Własna grafika',
+        'settings.userAssetPreview': 'Podgląd grafiki',
+        'settings.userAssetPreviewDesc': 'Pokazuje w menu kontekstowym miniatury własnej grafiki zamiast samych nazw.',
+        'settings.userAssetsDesc': 'Każda kategoria ma własny folder w sejfie. Puste pole oznacza, że kategoria nadal korzysta z wbudowanej grafiki. Obsługiwane są SVG, PNG, JPG, WEBP, GIF i AVIF; podfoldery stają się podmenu. Formaty z przezroczystością najlepiej sprawdzają się jako symbole, ponieważ kolor lub tekstura komórki pozostaje widoczna. Własnej grafiki nie można przekolorować — z wyjątkiem SVG złożonych z jednej ścieżki.',
+        'settings.userAssetsPlaceholder': 'np. Assets/HexGraphics',
+        'settings.userAssetsBrowse': 'Wybierz folder',
+        'settings.userAssetsClear': 'Wyczyść ścieżkę',
+        'settings.folderPickerPlaceholder': 'Szukaj folderów …',
+        'settings.userAssetsFound': 'Znaleziono grafik: {n}.',
+        'settings.userAssetsNotFound': 'Nie znaleziono folderu lub nie zawiera obsługiwanej grafiki.',
+        'settings.userAssetsTruncated': 'Ładowanych jest tylko pierwszych {max}.',
+        'settings.userTexturePath': 'Folder tekstur komórek',
+        'settings.userTexturePathDesc': 'Ścieżka względem sejfu. Pozostaw puste, aby używać tylko kolorów.',
+        'settings.userSymbolPathFor': 'Folder symboli: {name}',
+        'settings.userSymbolPathDesc': 'Ścieżka względem sejfu. Pozostaw puste, aby używać tylko wbudowanych symboli.',
+        'menu.system': 'System',
+        'menu.color': 'Kolor',
+        'notice.assetMissing': 'Nie znaleziono grafiki: {name}',
         'settings.hexNumbering': 'Numeruj sześciokąty',
         'settings.hexNumberingDesc': 'Sześciokąty są oznaczane numerami.',
         'settings.hexNumberingHorizontal': 'Liczenie poziome',
@@ -2017,10 +2282,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': 'Wybierz kolor i kliknij na komórki, aby je pokolorować.',
         'guide.hexcolor.eyedropper': 'Pipeta: Pobierz kolor z mapy.',
         'guide.hexcolor.palette': 'Prawy przycisk na miejsce palety = Ustaw nowy kolor.',
+        'guide.hexcolor.texture': 'Prawy klik na przycisk komórki = Wybierz kolor lub własną teksturę. Pojawia się dopiero po wskazaniu folderu tekstur w ustawieniach.',
         'guide.symbols': 'Symbole',
         'guide.symbols.groups': 'Wybierz grupę narzędzi (Dodatki, Roślinność, Góra, Budynek).',
         'guide.symbols.variant': 'Prawy przycisk = Wybór wariantu symbolu.',
         'guide.symbols.colors': 'Aktualny kolor główny określa kolor symbolu.',
+        'guide.symbols.userSymbols': 'Własne symbole pojawiają się w menu kontekstowym pod pozycją „System”, pod nazwą Twojego folderu.',
         'guide.drawing': 'Tryby rysowania',
         'guide.drawing.pen': 'Kliknij lub przeciągnij, aby rysować.',
         'guide.drawing.fill': 'Wypełnij obszar aktywnym kolorem lub symbolem.',
@@ -2177,6 +2444,26 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Mostra un mirino al centro della mappa.',
         'settings.hideHexBorders': 'Nascondi bordi esagoni',
         'settings.hideHexBordersDesc': 'Nasconde le linee grigie tra gli esagoni.',
+
+        // Eigene Grafiken (User-Assets)
+        'settings.userAssets': 'Grafica personalizzata',
+        'settings.userAssetPreview': 'Anteprima grafica',
+        'settings.userAssetPreviewDesc': 'Mostra le anteprime delle tue grafiche nel menu contestuale invece dei soli nomi.',
+        'settings.userAssetsDesc': 'Ogni categoria ha una propria cartella nel vault. Se lasci un campo vuoto, quella categoria continua a usare la grafica inclusa. Sono supportati SVG, PNG, JPG, WEBP, GIF e AVIF; le sottocartelle diventano sottomenu. I formati con trasparenza sono ideali per i simboli, perché il colore o la trama dell\'esagono resta visibile. La grafica personalizzata non può essere ricolorata, tranne gli SVG composti da un solo tracciato.',
+        'settings.userAssetsPlaceholder': 'es. Assets/HexGraphics',
+        'settings.userAssetsBrowse': 'Scegli cartella',
+        'settings.userAssetsClear': 'Cancella percorso',
+        'settings.folderPickerPlaceholder': 'Cerca cartelle …',
+        'settings.userAssetsFound': '{n} grafiche trovate.',
+        'settings.userAssetsNotFound': 'Cartella non trovata o senza grafiche supportate.',
+        'settings.userAssetsTruncated': 'Vengono caricate solo le prime {max}.',
+        'settings.userTexturePath': 'Cartella texture esagoni',
+        'settings.userTexturePathDesc': 'Percorso relativo al vault. Lascia vuoto per usare solo i colori.',
+        'settings.userSymbolPathFor': 'Cartella simboli: {name}',
+        'settings.userSymbolPathDesc': 'Percorso relativo al vault. Lascia vuoto per usare solo i simboli inclusi.',
+        'menu.system': 'Sistema',
+        'menu.color': 'Colore',
+        'notice.assetMissing': 'Grafica non trovata: {name}',
         'settings.hexNumbering': 'Numera esagoni',
         'settings.hexNumberingDesc': 'Gli esagoni vengono numerati.',
         'settings.hexNumberingHorizontal': 'Conteggio orizzontale',
@@ -2210,10 +2497,12 @@ const TRANSLATIONS = {
         'guide.hexcolor.paint': 'Scegli colore e clicca sulle celle per colorarle.',
         'guide.hexcolor.eyedropper': 'Contagocce: Acquisisci colore dalla mappa.',
         'guide.hexcolor.palette': 'Clic destro su posto tavolozza = Imposta nuovo colore.',
+        'guide.hexcolor.texture': 'Clic destro sul pulsante esagono = Scegli un colore o una texture personale. Compare solo dopo aver indicato una cartella texture nelle impostazioni.',
         'guide.symbols': 'Simboli',
         'guide.symbols.groups': 'Scegli gruppo strumenti (Extra, Vegetazione, Montagna, Edificio).',
         'guide.symbols.variant': 'Clic destro = Selezione variante simbolo.',
         'guide.symbols.colors': 'Il colore principale corrente determina il colore del simbolo.',
+        'guide.symbols.userSymbols': 'I tuoi simboli compaiono nel menu contestuale sotto "Sistema", con il nome della tua cartella.',
         'guide.drawing': 'Modalità di disegno',
         'guide.drawing.pen': 'Clicca o trascina per disegnare.',
         'guide.drawing.fill': 'Riempi area con colore o simbolo attivo.',
@@ -2315,7 +2604,295 @@ function hsbToRgb(h, s, b) {
 function hsbToHex(h, s, b) { const rgb = hsbToRgb(h, s, b); return rgbToHex(rgb.r, rgb.g, rgb.b); }
 function hexToHsb(hex) { const rgb = hexToRgb(hex); return rgbToHsb(rgb.r, rgb.g, rgb.b); }
 
+// === Registry für User-Grafiken ===
+// Scannt den Ordner einer Kategorie rekursiv und hält die gefundenen Grafiken
+// bereit. Keys sind relativ zum Wurzelordner (`user:veg:Wald/eiche`), damit ein
+// Umbenennen des Wurzelordners bestehende Karten nicht zerstört.
+class UserAssetRegistry {
+    // kind: 'symbol' erlaubt einfärbbare Einzelpfad-SVGs, 'texture' rastert immer —
+    // Texturen werden nie eingefärbt und brauchen deshalb stets ein Bild.
+    constructor(app, category) {
+        this.app = app;
+        this.category = category.id;
+        this.kind = category.kind;
+        this.keyPrefix = USER_ASSET_PREFIX + category.id + ':';
+        this.assets = new Map();
+        this.tree = null;
+        this.rootPath = '';
+        this.rootName = '';
+        this.truncated = false;
+        this.generation = 0;
+    }
+
+    get isActive() {
+        return !!this.rootPath && this.assets.size > 0;
+    }
+
+    get(key) {
+        return this.assets.get(key);
+    }
+
+    async load(rootPath) {
+        const normalized = (rootPath || '').trim().replace(/^\/+|\/+$/g, '');
+        // Wird während des Ladens erneut geladen (z. B. Pfad schnell zweimal geändert),
+        // verwirft der ältere Lauf seine Ergebnisse.
+        const gen = ++this.generation;
+
+        this.rootPath = normalized;
+        this.assets.clear();
+        this.tree = null;
+        this.truncated = false;
+
+        if (!normalized) return;
+
+        this.rootName = normalized.split('/').pop();
+        this.tree = { name: this.rootName, folders: [], assets: [] };
+
+        const files = [];
+        await this.collectFiles(normalized, files);
+        if (gen !== this.generation) return;
+
+        files.sort((a, b) => a.relPath.localeCompare(b.relPath, undefined, { numeric: true, sensitivity: 'base' }));
+
+        if (files.length > USER_ASSET_MAX_FILES) {
+            this.truncated = true;
+            files.length = USER_ASSET_MAX_FILES;
+        }
+
+        // Nur Metadaten aufbauen — kein Lesen, kein Dekodieren. Das passiert erst
+        // in ensure(), sonst läge ein ganzer Ordner im Speicher, obwohl die Karte
+        // vielleicht nur drei Grafiken benutzt.
+        for (const file of files) {
+            const asset = this.makeAsset(file);
+            this.assets.set(asset.key, asset);
+            this.insertIntoTree(asset);
+        }
+    }
+
+    makeAsset(file) {
+        return {
+            key: this.keyPrefix + file.relPath.slice(0, file.relPath.lastIndexOf('.')),
+            label: file.label,
+            relPath: file.relPath,
+            relDir: file.relDir,
+            filePath: file.filePath,
+            ext: file.ext,
+            decoded: false,
+            failed: false,
+        };
+    }
+
+    // Dekodiert eine Grafik bei Bedarf. Mehrfachaufrufe teilen sich denselben
+    // Vorgang; einmal Dekodiertes bleibt im Speicher.
+    ensure(key) {
+        const asset = this.assets.get(key);
+        if (!asset) return Promise.resolve(null);
+        if (asset.decoded || asset.failed) return Promise.resolve(asset);
+        if (asset.loading) return asset.loading;
+
+        const gen = this.generation;
+        asset.loading = (async () => {
+            try {
+                const data = asset.ext === 'svg'
+                    ? await this.loadSvg(asset)
+                    : { colorable: false, image: await this.loadBitmap(this.app.vault.adapter.getResourcePath(asset.filePath)) };
+
+                // Zwischenzeitlich neu gescannt -> Ergebnis verwerfen.
+                if (gen !== this.generation) return asset;
+
+                if (!data || (!data.image && !data.pathData)) {
+                    asset.failed = true;
+                } else {
+                    Object.assign(asset, data);
+                    asset.decoded = true;
+                }
+            } catch (e) {
+                console.warn(`Hex Cartographer: could not load user asset ${asset.filePath}`, e);
+                asset.failed = true;
+            } finally {
+                asset.loading = null;
+            }
+            return asset;
+        })();
+
+        return asset.loading;
+    }
+
+    async collectFiles(folder, out) {
+        let listing;
+        try {
+            listing = await this.app.vault.adapter.list(folder);
+        } catch (e) {
+            return; // Ordner existiert nicht oder ist nicht lesbar
+        }
+        if (!listing) return;
+
+        for (const filePath of listing.files || []) {
+            const filename = filePath.split('/').pop();
+            const dot = filename.lastIndexOf('.');
+            if (dot <= 0) continue;
+            const ext = filename.slice(dot + 1).toLowerCase();
+            if (!USER_ASSET_EXTENSIONS.includes(ext)) continue;
+
+            const relPath = filePath.slice(this.rootPath.length + 1);
+            out.push({
+                filePath,
+                ext,
+                relPath,
+                relDir: relPath.includes('/') ? relPath.slice(0, relPath.lastIndexOf('/')) : '',
+                label: filename.slice(0, dot)
+            });
+        }
+
+        for (const sub of listing.folders || []) {
+            await this.collectFiles(sub, out);
+        }
+    }
+
+    // Dekodiert eine Grafik einmalig in höherer Auflösung, ohne den Cache zu
+    // verändern — für den Export. Liefert null, wenn die Grafik gar kein Bild hat
+    // (einfärbbare SVGs sind Vektoren und skalieren ohnehin verlustfrei).
+    // Die Quelldatei begrenzt das Ergebnis: downscale() vergrößert nie.
+    async decodeAt(key, shortSideCap) {
+        const asset = this.assets.get(key);
+        if (!asset || asset.failed) return null;
+        if (asset.decoded && !asset.image) return null; // einfärbbares SVG
+
+        try {
+            if (asset.ext === 'svg') {
+                // Nur nicht-einfärbbare SVGs brauchen ein größeres Rasterbild.
+                if (asset.decoded && asset.colorable) return null;
+                return await this.loadSvg(asset, shortSideCap).then(d => (d && d.image) || null);
+            }
+            return await this.loadBitmap(this.app.vault.adapter.getResourcePath(asset.filePath), shortSideCap);
+        } catch (e) {
+            console.warn(`Hex Cartographer: could not load user asset at high resolution ${asset.filePath}`, e);
+            return null;
+        }
+    }
+
+    // Ein SVG ist nur dann einfärbbar, wenn es aus genau einem <path> und sonst
+    // keiner Form besteht — nur das kann der Path2D-Renderpfad darstellen.
+    // Alles andere wird gerastert und wie eine Bitmap behandelt. Texturen werden
+    // nie eingefärbt und deshalb immer gerastert.
+    async loadSvg(asset, cap = USER_ASSET_MAX_SHORT_SIDE) {
+        const content = await this.app.vault.adapter.read(asset.filePath);
+        const doc = new DOMParser().parseFromString(content, 'image/svg+xml');
+        if (doc.querySelector('parsererror')) return null;
+
+        const svg = doc.querySelector('svg');
+        if (!svg) return null;
+
+        let viewBoxWidth = 100;
+        let viewBoxHeight = 100;
+        const viewBox = svg.getAttribute('viewBox');
+        if (viewBox) {
+            const parts = viewBox.trim().split(/[\s,]+/).map(parseFloat);
+            if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+                viewBoxWidth = parts[2];
+                viewBoxHeight = parts[3];
+            }
+        }
+
+        if (this.kind === 'symbol') {
+            const shapes = svg.querySelectorAll('path, circle, rect, ellipse, line, polyline, polygon, text, image, use');
+            const paths = svg.querySelectorAll('path');
+            if (shapes.length === 1 && paths.length === 1) {
+                const pathData = paths[0].getAttribute('d');
+                const stroke = paths[0].getAttribute('stroke');
+                if (pathData && (!stroke || stroke === 'none')) {
+                    return { colorable: true, pathData, viewBoxWidth, viewBoxHeight };
+                }
+            }
+        }
+
+        const image = await this.rasterizeSvg(svg, viewBoxWidth, viewBoxHeight, cap);
+        if (!image) return null;
+        return { colorable: false, image };
+    }
+
+    // Chromium rendert ein <img> mit SVG ohne intrinsische Größe unzuverlässig,
+    // deshalb werden width/height vor dem Laden aus der viewBox gesetzt.
+    async rasterizeSvg(svgEl, vbWidth, vbHeight, cap = USER_ASSET_MAX_SHORT_SIDE) {
+        // Wie bei Bitmaps: die kürzere Seite bestimmt die Auflösung.
+        const ratio = vbHeight / vbWidth;
+        let width, height;
+        if (ratio >= 1) { // hoch -> Breite ist die kurze Seite
+            width = cap;
+            height = Math.max(1, Math.round(cap * ratio));
+        } else {
+            height = cap;
+            width = Math.max(1, Math.round(cap / ratio));
+        }
+
+        const clone = svgEl.cloneNode(true);
+        clone.setAttribute('width', String(width));
+        clone.setAttribute('height', String(height));
+        if (!clone.getAttribute('viewBox')) {
+            clone.setAttribute('viewBox', `0 0 ${vbWidth} ${vbHeight}`);
+        }
+
+        const serialized = new XMLSerializer().serializeToString(clone);
+        const url = URL.createObjectURL(new Blob([serialized], { type: 'image/svg+xml' }));
+        try {
+            return await this.loadBitmap(url, null); // bereits in Zielgröße gerastert
+        } finally {
+            URL.revokeObjectURL(url);
+        }
+    }
+
+    // cap: Zielgröße der kurzen Seite, oder null/0 zum Übernehmen wie geladen.
+    loadBitmap(src, cap = USER_ASSET_MAX_SHORT_SIDE) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(cap ? this.downscale(img, cap) : img);
+            img.onerror = () => resolve(null);
+            img.src = src;
+        });
+    }
+
+    // Auf die KÜRZERE Seite begrenzen, nicht auf die längere: Beim Cover-Fit füllt
+    // die relativ kleinere Bildseite die Wabe, sie bestimmt also die sichtbare
+    // Auflösung. Die längere Seite wird ohnehin abgeschnitten.
+    // Vergrößert nie — die Quelldatei ist die Obergrenze.
+    downscale(img, cap = USER_ASSET_MAX_SHORT_SIDE) {
+        const w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) return null;
+
+        const shortSide = Math.min(w, h);
+        if (shortSide <= cap) return img;
+
+        const scale = cap / shortSide;
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(w * scale));
+        canvas.height = Math.max(1, Math.round(h * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        return canvas;
+    }
+
+    insertIntoTree(asset) {
+        let node = this.tree;
+        if (asset.relDir) {
+            for (const part of asset.relDir.split('/')) {
+                let child = node.folders.find(f => f.name === part);
+                if (!child) {
+                    child = { name: part, folders: [], assets: [] };
+                    node.folders.push(child);
+                }
+                node = child;
+            }
+        }
+        node.assets.push(asset);
+    }
+}
+
 const DEFAULT_SETTINGS = {
+    userAssetPreview: false,
+    userTexturePath: '',
+    userExtrasPath: '',
+    userVegetationPath: '',
+    userMountainPath: '',
+    userBuildingPath: '',
     exportWidth: 1024,
     showCrosshair: true,
     hideHexBorders: false,
@@ -2334,6 +2911,17 @@ class HexCartographerPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
         currentLanguage = getObsidianLanguage();
+
+        this.userAssets = new Map();
+        for (const category of USER_ASSET_CATEGORIES) {
+            this.userAssets.set(category.id, new UserAssetRegistry(this.app, category));
+        }
+        this.userAssetsPromise = Promise.all(
+            USER_ASSET_CATEGORIES.map(c => this.userAssets.get(c.id).load(this.settings[c.settingKey]))
+        );
+
+        this.registerAssetWatcher();
+
         this.addSettingTab(new HexCartographerSettingTab(this.app, this));
 
         this.registerView('hex-cartographer', (leaf) => new HexCartographerView(leaf, this));
@@ -2618,6 +3206,167 @@ class HexCartographerPlugin extends Plugin {
     async saveSettings() {
         await this.saveData(this.settings);
     }
+
+    getRegistry(categoryId) {
+        return this.userAssets.get(categoryId);
+    }
+
+    // Registry für eine Werkzeuggruppe (grass/tree/mountain/building).
+    getRegistryForGroup(groupId) {
+        const category = USER_ASSET_CATEGORIES.find(c => c.group === groupId);
+        return category ? this.userAssets.get(category.id) : null;
+    }
+
+    // Registry, zu der ein Key gehört — Kategorie steckt im Key selbst.
+    getRegistryForKey(key) {
+        if (!isUserAssetKey(key)) return null;
+        const rest = key.slice(USER_ASSET_PREFIX.length);
+        const sep = rest.indexOf(':');
+        if (sep < 0) return null;
+        return this.userAssets.get(rest.slice(0, sep)) || null;
+    }
+
+    // Löst `user:<kat>:<pfad>` auf. Liefert Metadaten; das Bild ist erst nach
+    // ensureUserAssets() vorhanden.
+    getUserAsset(key) {
+        const registry = this.getRegistryForKey(key);
+        return (registry && registry.get(key)) || null;
+    }
+
+    // Dekodiert die genannten Grafiken. Wird aufgerufen, bevor gezeichnet wird,
+    // damit nie ein Platzhalter aufblitzt.
+    async ensureUserAssets(keys) {
+        const todo = [];
+        for (const key of new Set(keys)) {
+            const registry = this.getRegistryForKey(key);
+            if (registry) todo.push(registry.ensure(key));
+        }
+        if (todo.length) await Promise.all(todo);
+    }
+
+    // Führt fn() aus, während die genannten Grafiken in Export-Auflösung vorliegen,
+    // und gibt den Mehrspeicher danach wieder frei. Nötig, weil im Betrieb nur eine
+    // bildschirmgroße Fassung (256 px kurze Seite) im Speicher liegt.
+    // Einfärbbare SVGs bleiben unangetastet — die skalieren als Vektor verlustfrei.
+    async withExportResolution(keys, shortSideCap, fn) {
+        if (!(shortSideCap > USER_ASSET_MAX_SHORT_SIDE)) return fn();
+
+        const cap = Math.min(Math.round(shortSideCap), USER_ASSET_EXPORT_MAX_SHORT_SIDE);
+        const restore = [];
+        try {
+            for (const key of new Set(keys)) {
+                const registry = this.getRegistryForKey(key);
+                if (!registry) continue;
+                const asset = registry.get(key);
+                if (!asset || !asset.image) continue; // nicht dekodiert oder Vektor
+
+                const hiRes = await registry.decodeAt(key, cap);
+                if (!hiRes) continue;
+                restore.push([asset, asset.image]);
+                asset.image = hiRes;
+            }
+            return await fn();
+        } finally {
+            for (const [asset, image] of restore) asset.image = image;
+        }
+    }
+
+    // Auflösung, die ein Export pro Grafik braucht: die größte Ausdehnung einer
+    // Wabe im Zielbild. Mehr als die Quelldatei hergibt kommt dabei nicht heraus.
+    exportShortSideFor(gridSize, scale) {
+        return Math.ceil(gridSize * 2 * scale);
+    }
+
+    // Alle User-Grafiken, die eine Karte tatsächlich verwendet. Nur die werden
+    // dekodiert — ein Ordner mit 300 Texturen kostet nichts, wenn die Karte fünf nutzt.
+    collectUsedAssetKeys(data) {
+        const keys = [];
+        if (!data || !data.hexes) return keys;
+        for (const hex of Object.values(data.hexes)) {
+            if (isUserAssetKey(hex.texture)) keys.push(hex.texture);
+            if (isUserAssetKey(hex.symbol)) keys.push(hex.symbol);
+        }
+        return keys;
+    }
+
+    // Lädt die angegebenen Kategorien neu (Standard: alle) und zeichnet offene
+    // Karten neu. Wird beim Start, nach Pfadänderungen und vom Watcher aufgerufen.
+    async reloadUserAssets(categoryIds = null) {
+        const ids = categoryIds || USER_ASSET_CATEGORIES.map(c => c.id);
+
+        this.userAssetsPromise = Promise.all(ids.map(id => {
+            const category = USER_ASSET_CATEGORIES.find(c => c.id === id);
+            if (!category) return Promise.resolve();
+            return this.userAssets.get(id).load(this.settings[category.settingKey]);
+        }));
+        await this.userAssetsPromise;
+
+        this.app.workspace.iterateAllLeaves(leaf => {
+            if (leaf.view instanceof HexCartographerView) {
+                leaf.view.rebuildToolbar();
+                leaf.view.render();
+            }
+        });
+    }
+
+    // Beobachtet die beiden User-Ordner, damit neue oder geänderte Grafiken ohne
+    // Neustart erscheinen. Möglich, weil die Pfade vault-relativ sind — Obsidian
+    // liefert für Vault-Inhalte Events frei Haus.
+    registerAssetWatcher() {
+        this.register(() => {
+            if (this._assetReloadTimer) clearTimeout(this._assetReloadTimer);
+        });
+
+        // Erst nach dem Start registrieren: Beim Aufbau des Vaults feuert 'create'
+        // für jede einzelne Datei, das gäbe sonst bei jedem Start einen Rescan-Sturm.
+        this.app.workspace.onLayoutReady(() => {
+            const handle = (file, oldPath) => this.handleAssetFileChange(file, oldPath);
+            this.registerEvent(this.app.vault.on('create', (f) => handle(f)));
+            this.registerEvent(this.app.vault.on('delete', (f) => handle(f)));
+            this.registerEvent(this.app.vault.on('modify', (f) => handle(f)));
+            this.registerEvent(this.app.vault.on('rename', (f, oldPath) => handle(f, oldPath)));
+        });
+    }
+
+    isInsideFolder(path, root) {
+        if (!path || !root) return false;
+        return path === root || path.startsWith(root + '/');
+    }
+
+    // Nur Dateien mit unterstützter Endung und Ordner (ohne Endung) lösen einen
+    // Rescan aus. Sonst würde z. B. das Speichern einer Karte, die im selben
+    // Ordner liegt, bei jedem Zug neu einlesen.
+    isAssetRelevantPath(path) {
+        const slash = path.lastIndexOf('/');
+        const dot = path.lastIndexOf('.');
+        if (dot <= slash + 1) return true; // kein Suffix → Ordner
+        return USER_ASSET_EXTENSIONS.includes(path.slice(dot + 1).toLowerCase());
+    }
+
+    handleAssetFileChange(file, oldPath) {
+        const paths = [file && file.path, oldPath].filter(Boolean).filter(p => this.isAssetRelevantPath(p));
+        if (paths.length === 0) return;
+
+        // Derselbe Ordner darf mehreren Kategorien zugewiesen sein — dann sind
+        // auch alle betroffen.
+        const hits = USER_ASSET_CATEGORIES
+            .filter(c => paths.some(p => this.isInsideFolder(p, this.settings[c.settingKey])))
+            .map(c => c.id);
+        if (hits.length === 0) return;
+
+        if (!this._pendingReload) this._pendingReload = new Set();
+        hits.forEach(id => this._pendingReload.add(id));
+
+        // Entprellen: Beim Kopieren mehrerer Dateien in den Ordner feuert pro Datei
+        // ein Event — ohne das würde für jede einzeln neu gescannt.
+        if (this._assetReloadTimer) clearTimeout(this._assetReloadTimer);
+        this._assetReloadTimer = setTimeout(() => {
+            this._assetReloadTimer = null;
+            const ids = [...this._pendingReload];
+            this._pendingReload.clear();
+            this.reloadUserAssets(ids);
+        }, ASSET_WATCH_DEBOUNCE);
+    }
 }
 
 // === View-Klasse für den Hex Cartographer ===
@@ -2661,6 +3410,8 @@ class HexCartographerView extends ItemView {
 
         this.masterColor = DEFAULT_MASTER_COLOR;
         this.hexColorColor = DEFAULT_PALETTE[0];
+        // null = Modus "Farbe" (Standard), sonst der Key einer User-Textur.
+        this.hexTexture = null;
 
         this.colorPalette = [...DEFAULT_PALETTE];
         this.colorPalette2 = [...DEFAULT_PALETTE2];
@@ -2790,7 +3541,7 @@ class HexCartographerView extends ItemView {
                         const mapSize = this.getMapWorldSize();
                         if (!mapSize) { new Notice(t('notice.noContentToPrint')); return; }
                         new ExportMapModal(this.app, mapSize, this.plugin.settings.exportWidth, async (format, width, quality, cropless) => {
-                            const tmpCanvas = this.renderFullMap({ targetWidth: width, cropless: cropless });
+                            const tmpCanvas = await this.renderFullMapForOutput({ targetWidth: width, cropless: cropless });
                             if (!tmpCanvas) { new Notice(t('notice.noContentToPrint')); return; }
                             const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
                             const ext = format === 'jpeg' ? '.jpg' : '.png';
@@ -2827,8 +3578,8 @@ class HexCartographerView extends ItemView {
                 menu.addItem((item) => {
                     item.setTitle(t('menu.printMap'))
                         .setIcon('printer')
-                        .onClick(() => {
-                            const tmpCanvas = this.renderFullMap();
+                        .onClick(async () => {
+                            const tmpCanvas = await this.renderFullMapForOutput();
                             if (!tmpCanvas) { new Notice(t('notice.noContentToPrint')); return; }
                             const dataUrl = tmpCanvas.toDataURL('image/png');
                             const title = this.file ? this.file.basename.replace('.hexcartographer', '') : 'Hex Cartographer Map';
@@ -2849,6 +3600,22 @@ class HexCartographerView extends ItemView {
             }
         }
         super.onPaneMenu(menu, source);
+    }
+
+    // Rendert die Karte für Export/Druck. renderFullMap zeichnet synchron, deshalb
+    // müssen die verwendeten Grafiken vorher dekodiert sein — und zwar in der
+    // Auflösung, die das Zielbild braucht statt der bildschirmgroßen Fassung.
+    async renderFullMapForOutput(opts = {}) {
+        await this.plugin.userAssetsPromise;
+
+        const keys = this.plugin.collectUsedAssetKeys(this.data);
+        await this.plugin.ensureUserAssets(keys);
+
+        const geo = this.computeExportGeometry(opts);
+        if (!geo) return null;
+
+        const needed = this.plugin.exportShortSideFor(this.data.gridSize, geo.scale);
+        return this.plugin.withExportResolution(keys, needed, () => this.renderFullMap(opts));
     }
 
     async loadSVGSymbols() {
@@ -2920,21 +3687,81 @@ class HexCartographerView extends ItemView {
             const btn = wrapper.querySelector('.hex-tool-btn');
             if (!btn) return;
 
-            const currentVariant = config.variants.find(v => v.id === config.currentVariant);
-            if (!currentVariant) return;
-
-            if (this.svgSymbols[currentVariant.id]) {
-                const symbolInfo = this.svgSymbols[currentVariant.id];
-                btn.innerHTML = `<svg viewBox="0 0 ${symbolInfo.viewBoxWidth} ${symbolInfo.viewBoxWidth}"
-                                      width="16" height="16" style="vertical-align: middle;">
-                    <path d="${symbolInfo.pathData}" fill="currentColor"/>
-                </svg>`;
-                console.log(`✓ Updated button icon for ${groupId} to ${currentVariant.id}`);
-            } else {
-                btn.innerHTML = '';
-                setIcon(btn, currentVariant.icon);
-            }
+            this.renderSymbolButtonIcon(btn, config.currentVariant, this.variantIconFor(config, config.currentVariant));
         });
+    }
+
+    // Lucide-Icon für einen Varianten-Key. User-Keys haben keine Variante in der
+    // Config — dann dient das Icon der ersten Systemvariante als Rückfall.
+    variantIconFor(config, id) {
+        const variant = config.variants.find(v => v.id === id);
+        if (variant) return variant.icon;
+        return config.variants[0] ? config.variants[0].icon : 'help-circle';
+    }
+
+    // Anzeigename einer Variante — für User-Symbole der Dateiname aus der Registry.
+    variantLabelFor(config, id) {
+        const variant = config.variants.find(v => v.id === id);
+        if (variant) return variant.label;
+        if (isUserAssetKey(id)) {
+            const asset = this.plugin.getUserAsset(id);
+            return asset ? asset.label : id.slice(id.indexOf(':', USER_ASSET_PREFIX.length) + 1);
+        }
+        return null;
+    }
+
+    // Einzige Stelle, an der das Icon eines Symbol-Buttons erzeugt wird —
+    // deckt System-Symbole, User-SVGs und User-Bitmaps ab.
+    renderSymbolButtonIcon(btn, symbolKey, fallbackIcon) {
+        btn.innerHTML = '';
+
+        if (isUserAssetKey(symbolKey)) {
+            const asset = this.plugin.getUserAsset(symbolKey);
+            if (!asset) {
+                if (fallbackIcon) setIcon(btn, fallbackIcon);
+                return;
+            }
+            // Ob ein SVG einfärbbar ist, steht erst nach dem Dekodieren fest. Bis
+            // dahin zeigt <img> die Grafik korrekt — danach ggf. auf den
+            // einfärbbaren Pfad umstellen.
+            if (!asset.decoded && !asset.failed) {
+                this.plugin.ensureUserAssets([symbolKey]).then(() => {
+                    if (btn.isConnected) this.renderSymbolButtonIcon(btn, symbolKey, fallbackIcon);
+                });
+            }
+            if (asset.colorable) {
+                this.setButtonPathIcon(btn, asset.pathData, asset.viewBoxWidth, asset.viewBoxHeight || asset.viewBoxWidth);
+            } else {
+                const img = btn.createEl('img', {
+                    attr: { src: this.app.vault.adapter.getResourcePath(asset.filePath) }
+                });
+                img.style.width = '16px';
+                img.style.height = '16px';
+                img.style.objectFit = 'contain';
+                img.style.verticalAlign = 'middle';
+            }
+            return;
+        }
+
+        const symbolInfo = this.svgSymbols[symbolKey];
+        if (symbolInfo) {
+            this.setButtonPathIcon(btn, symbolInfo.pathData, symbolInfo.viewBoxWidth, symbolInfo.viewBoxWidth);
+        } else if (fallbackIcon) {
+            setIcon(btn, fallbackIcon);
+        }
+    }
+
+    setButtonPathIcon(btn, pathData, vbWidth, vbHeight) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', `0 0 ${vbWidth} ${vbHeight}`);
+        svg.setAttribute('width', '16');
+        svg.setAttribute('height', '16');
+        svg.style.verticalAlign = 'middle';
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', pathData);
+        path.setAttribute('fill', 'currentColor');
+        svg.appendChild(path);
+        btn.appendChild(svg);
     }
 
     async setState(state, result) {
@@ -2955,8 +3782,14 @@ class HexCartographerView extends ItemView {
             if (this.svgLoadPromise && !this.svgSymbolsLoaded) {
                 await this.svgLoadPromise;
             }
+            await this.plugin.userAssetsPromise;
 
             const content = await this.app.vault.read(this.file);
+
+            // Eigener Speichervorgang: identischer Inhalt -> nichts neu zu laden.
+            // Verhindert, dass ein verzögertes modify-Event den aktuellen Stand
+            // (z. B. die Waben-Ausrichtung) mit einem veralteten Wert überschreibt.
+            if (content === this._lastSavedContent) return;
 
             let jsonContent = content;
 
@@ -3076,6 +3909,9 @@ class HexCartographerView extends ItemView {
                 }
                 if (newData.settings.hexColorColor) {
                     this.hexColorColor = newData.settings.hexColorColor;
+                }
+                if (newData.settings.hexTexture !== undefined) {
+                    this.hexTexture = newData.settings.hexTexture;
                 }
                 if (newData.settings.lastUsedTextSize !== undefined) this.lastUsedTextSize = newData.settings.lastUsedTextSize;
                 if (newData.settings.lastUsedTextOutline !== undefined) this.lastUsedTextOutline = newData.settings.lastUsedTextOutline;
@@ -3227,6 +4063,10 @@ class HexCartographerView extends ItemView {
 
             if (JSON.stringify(this.data) !== JSON.stringify(newData)) {
                 this.data = Object.assign({}, newData);
+
+                // Genau die Grafiken dekodieren, die diese Karte benutzt — vor dem
+                // ersten Zeichnen, damit keine Platzhalter aufblitzen.
+                await this.plugin.ensureUserAssets(this.plugin.collectUsedAssetKeys(this.data));
 
                 if (this.canvas) {
                     if (this.data.settings && this.data.settings.viewportSaved) {
@@ -3586,6 +4426,15 @@ class HexCartographerView extends ItemView {
             this.requestSave();
         };
 
+        this.hexColorBtn = hexColorBtn;
+        this.updateHexColorButtonIcon(hexColorBtn);
+
+        hexColorBtn.oncontextmenu = (e) => {
+            e.preventDefault();
+            this.showHexTextureMenu(hexColorBtn);
+        };
+        this.addLongPress(hexColorBtn, () => this.showHexTextureMenu(hexColorBtn));
+
         this.createToolGroupButton(editContent, 'grass');
         this.createToolGroupButton(editContent, 'tree');
         this.createToolGroupButton(editContent, 'mountain');
@@ -3630,16 +4479,10 @@ class HexCartographerView extends ItemView {
 
         const hexOrientationBtn = this.createToolButton(toolbar, { icon: 'rotate-cw', title: t('tooltip.hexOrientation') });
         this.hexOrientationBtn = hexOrientationBtn;
-        hexOrientationBtn.classList.toggle('active', this.hexOrientation);
-        hexOrientationBtn.style.background = this.hexOrientation ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
-        hexOrientationBtn.style.border = this.hexOrientation ? ACTIVE_BORDER : '';
-        hexOrientationBtn.style.boxShadow = this.hexOrientation ? ACTIVE_BOX_SHADOW : '';
+        this.syncHexOrientationButton();
         hexOrientationBtn.onclick = () => {
             this.hexOrientation = !this.hexOrientation;
-            hexOrientationBtn.classList.toggle('active', this.hexOrientation);
-            hexOrientationBtn.style.background = this.hexOrientation ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
-            hexOrientationBtn.style.border = this.hexOrientation ? ACTIVE_BORDER : '';
-            hexOrientationBtn.style.boxShadow = this.hexOrientation ? ACTIVE_BOX_SHADOW : '';
+            this.syncHexOrientationButton();
             this.render();
             this.requestSave();
         };
@@ -3698,17 +4541,7 @@ class HexCartographerView extends ItemView {
             style: `position: relative; background: ${config.backgroundEnabled ? config.backgroundColor : BUTTON_BG_DEFAULT};`
         });
 
-        const currentVariant = config.variants.find(v => v.id === config.currentVariant);
-
-        if (this.svgSymbols[currentVariant.id]) {
-            const symbolInfo = this.svgSymbols[currentVariant.id];
-            btn.innerHTML = `<svg viewBox="0 0 ${symbolInfo.viewBoxWidth} ${symbolInfo.viewBoxWidth}"
-                                  width="16" height="16" style="vertical-align: middle;">
-                <path d="${symbolInfo.pathData}" fill="currentColor"/>
-            </svg>`;
-        } else {
-            setIcon(btn, currentVariant.icon);
-        }
+        this.renderSymbolButtonIcon(btn, config.currentVariant, this.variantIconFor(config, config.currentVariant));
 
         if (config.symbolColor) {
             btn.style.color = config.symbolColor;
@@ -3741,7 +4574,7 @@ class HexCartographerView extends ItemView {
             e.preventDefault();
             this.showVariantMenu(groupId, wrapper);
         };
-
+        this.addLongPress(btn, () => this.showVariantMenu(groupId, wrapper));
     }
 
     createPatternTool(toolbar) {
@@ -3779,81 +4612,363 @@ class HexCartographerView extends ItemView {
         this.patternPickerBtn = pickerBtn;
     }
 
+    // Auf Touch-Geräten gibt es kein Kontextmenü — langes Drücken übernimmt.
+    addLongPress(el, handler) {
+        let timer = null;
+        const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+        el.addEventListener('touchstart', (e) => {
+            timer = setTimeout(() => { e.preventDefault(); handler(); timer = null; }, 500);
+        }, { passive: false });
+        el.addEventListener('touchend', cancel);
+        el.addEventListener('touchmove', cancel);
+        el.addEventListener('touchcancel', cancel);
+    }
+
+    // Waben-Button: Im Modus "Farbe" das normale Hexagon-Icon, mit gewählter Textur
+    // eine damit gefüllte Wabe als Vorschau.
+    updateHexColorButtonIcon(btn) {
+        if (!btn) return;
+        const asset = this.hexTexture ? this.plugin.getUserAsset(this.hexTexture) : null;
+
+        if (!asset) {
+            btn.innerHTML = '';
+            setIcon(btn, 'hexagon');
+            return;
+        }
+
+        btn.innerHTML = '';
+        const src = this.app.vault.adapter.getResourcePath(asset.filePath);
+        btn.appendChild(this.makeHexImageSvg(src, 16));
+    }
+
+    // Hexförmige Bildvorschau: das Bild per "cover" auf die Wabenform geclippt.
+    // Genutzt vom Waben-Button und der Menü-Grafikvorschau.
+    makeHexImageSvg(src, size) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 100 100');
+        svg.setAttribute('width', String(size));
+        svg.setAttribute('height', String(size));
+        svg.style.verticalAlign = 'middle';
+        svg.style.flex = '0 0 auto';
+
+        // Eindeutige ID, sonst greifen mehrere Vorschauen auf dasselbe clipPath zu.
+        const clipId = `hexclip-${Math.random().toString(36).slice(2)}`;
+        const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+        clipPath.setAttribute('id', clipId);
+        const shape = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        shape.setAttribute('points', this.hexPreviewPoints());
+        clipPath.appendChild(shape);
+
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        defs.appendChild(clipPath);
+        svg.appendChild(defs);
+
+        const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+        image.setAttribute('href', src);
+        image.setAttribute('x', '0');
+        image.setAttribute('y', '0');
+        image.setAttribute('width', '100');
+        image.setAttribute('height', '100');
+        image.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+        image.setAttribute('clip-path', `url(#${clipId})`);
+        svg.appendChild(image);
+        return svg;
+    }
+
+    // DOM-Eintrag für die Menü-Grafikvorschau: Thumbnail + Name. kind 'texture'
+    // -> hexförmig, sonst quadratisch (contain). Nutzt native <img>/<svg> mit der
+    // Ressourcen-URL, umgeht also den Dekodier-Cache; loading="lazy" schont bei
+    // großen Ordnern Speicher (v. a. mobil).
+    makeAssetPreviewLabel(asset, kind, prefix = '') {
+        const wrap = document.createElement('div');
+        wrap.style.display = 'flex';
+        wrap.style.alignItems = 'center';
+        wrap.style.gap = '8px';
+
+        const src = this.app.vault.adapter.getResourcePath(asset.filePath);
+        // Textur füllt die Wabe (cover), Symbol sitzt in der Wabe (contain) —
+        // beide mit identischer Wabengröße.
+        if (kind === 'texture') {
+            wrap.appendChild(this.makeHexImageSvg(src, 22));
+        } else {
+            wrap.appendChild(this.makeSymbolImageHex(src, 22));
+        }
+
+        const span = document.createElement('span');
+        span.textContent = prefix + asset.label;
+        wrap.appendChild(span);
+        return wrap;
+    }
+
+    // DOM-Eintrag für die Vorschau eines System-Symbols: das Symbol in einer Wabe
+    // dargestellt (wie auf der Karte), plus Name. Fällt auf das Lucide-Icon zurück,
+    // falls kein SVG-Pfad vorliegt.
+    makeSystemSymbolPreviewLabel(variant, symbolColor) {
+        const wrap = document.createElement('div');
+        wrap.style.display = 'flex';
+        wrap.style.alignItems = 'center';
+        wrap.style.gap = '8px';
+
+        const info = this.svgSymbols[variant.id];
+        if (info) {
+            wrap.appendChild(this.makeSystemSymbolHex(info, symbolColor, 22));
+        } else {
+            const icon = document.createElement('span');
+            icon.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:0 0 auto;';
+            if (variant.icon) setIcon(icon, variant.icon);
+            wrap.appendChild(icon);
+        }
+
+        const span = document.createElement('span');
+        span.textContent = variant.label;
+        wrap.appendChild(span);
+        return wrap;
+    }
+
+    // Leere Wabe (Hintergrund + Rahmen) als Grundlage einer Symbolvorschau.
+    // Gemeinsame Basis für System- und User-Symbole, damit die Wabengröße
+    // überall identisch ist.
+    makeHexPreviewSvg(size) {
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('viewBox', '0 0 100 100');
+        svg.setAttribute('width', String(size));
+        svg.setAttribute('height', String(size));
+        svg.style.verticalAlign = 'middle';
+        svg.style.flex = '0 0 auto';
+
+        const hex = document.createElementNS(NS, 'polygon');
+        hex.setAttribute('points', this.hexPreviewPoints());
+        hex.setAttribute('fill', 'var(--background-primary)');
+        hex.setAttribute('stroke', 'var(--background-modifier-border)');
+        hex.setAttribute('stroke-width', '4');
+        svg.appendChild(hex);
+        return svg;
+    }
+
+    // Wabe mit zentriertem System-Symbol (SVG-Pfad). Einheitliche Symbolgröße
+    // (nicht die per-Symbol-Kartengröße), damit die Liste gleichmäßig lesbar bleibt.
+    makeSystemSymbolHex(info, symbolColor, size) {
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = this.makeHexPreviewSvg(size);
+
+        const target = 60; // Symbolbreite innerhalb der 100er-Wabe
+        const scale = target / info.viewBoxWidth;
+        const off = (100 - target) / 2;
+        const g = document.createElementNS(NS, 'g');
+        g.setAttribute('transform', `translate(${off},${off}) scale(${scale})`);
+        const path = document.createElementNS(NS, 'path');
+        path.setAttribute('d', info.pathData);
+        path.setAttribute('fill', symbolColor || DEFAULT_MASTER_COLOR);
+        g.appendChild(path);
+        svg.appendChild(g);
+        return svg;
+    }
+
+    // Wabe mit zentriertem User-Symbol (Bild, contain). Gleiche Wabe wie beim
+    // System-Symbol, damit alle Symbolvorschauen einheitlich wirken.
+    makeSymbolImageHex(src, size) {
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = this.makeHexPreviewSvg(size);
+
+        const target = 64;
+        const off = (100 - target) / 2;
+        const image = document.createElementNS(NS, 'image');
+        image.setAttribute('href', src);
+        image.setAttribute('x', String(off));
+        image.setAttribute('y', String(off));
+        image.setAttribute('width', String(target));
+        image.setAttribute('height', String(target));
+        image.setAttribute('preserveAspectRatio', 'xMidYMid meet'); // contain
+        svg.appendChild(image);
+        return svg;
+    }
+
+    hexPreviewPoints() {
+        const angleOffset = this.hexOrientation ? 0 : -30;
+        const pts = [];
+        for (let i = 0; i < 6; i++) {
+            const a = (Math.PI / 180) * (60 * i + angleOffset);
+            pts.push(`${50 + 50 * Math.cos(a)},${50 + 50 * Math.sin(a)}`);
+        }
+        return pts.join(' ');
+    }
+
+    // Untermenüs sind erst in neueren Obsidian-Versionen verfügbar. Fehlen sie,
+    // wird die Hierarchie flach mit "Ordner / Name" abgebildet.
+    supportsSubmenus() {
+        if (this._submenuSupport === undefined) {
+            const probe = new Menu();
+            let ok = false;
+            probe.addItem(item => { ok = typeof item.setSubmenu === 'function'; });
+            this._submenuSupport = ok;
+        }
+        return this._submenuSupport;
+    }
+
+    // Obsidian lässt Menüs nur auf Mobile scrollen: `.menu-scroll` steht auf dem
+    // Desktop auf overflow:hidden, wodurch lange Listen an der Fensterkante
+    // abgeschnitten und unerreichbar werden. Die Klasse zieht unser Scroll-CSS
+    // aus styles.css nach. `dom` ist inoffiziell, deshalb defensiv geprüft.
+    tagScrollableMenu(menu) {
+        const dom = menu && menu.dom;
+        if (dom && typeof dom.addClass === 'function') dom.addClass('hex-cartographer-menu');
+        return menu;
+    }
+
+    // Nach angezeigtem Namen sortieren. Muss zur Anzeigezeit passieren, weil die
+    // Labels übersetzt sind — alphabetisch ist je Sprache eine andere Reihenfolge.
+    sortByLabel(items, labelOf) {
+        return [...items].sort((a, b) =>
+            labelOf(a).localeCompare(labelOf(b), currentLanguage, { numeric: true, sensitivity: 'base' }));
+    }
+
+    // Baut den Asset-Baum in ein Menü. currentKey wird abgehakt. previewKind:
+    // 'texture'/'symbol' zeigt Thumbnails statt Namen (siehe makeAssetPreviewLabel),
+    // null/false zeigt Namen wie bisher.
+    buildAssetMenu(menu, node, currentKey, onSelect, previewKind = null, prefix = '') {
+        const flat = !this.supportsSubmenus();
+
+        this.sortByLabel(node.folders, f => f.name).forEach(folder => {
+            if (flat) {
+                this.buildAssetMenu(menu, folder, currentKey, onSelect, previewKind, `${prefix}${folder.name} / `);
+                return;
+            }
+            menu.addItem(item => {
+                item.setTitle(folder.name);
+                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), folder, currentKey, onSelect, previewKind);
+            });
+        });
+
+        // Nach dem angezeigten Label sortieren, nicht nach der Einfügereihenfolge
+        // der Registry: Die sortiert nach vollem Pfad inklusive Endung und weicht
+        // deshalb ab (z. B. "foo-2.png" vor "foo.svg", angezeigt aber "foo" vor "foo-2").
+        this.sortByLabel(node.assets, a => a.label).forEach(asset => {
+            menu.addItem(item => {
+                // setTitle akzeptiert String ODER DOM-Element (Obsidian-API).
+                if (previewKind) item.setTitle(this.makeAssetPreviewLabel(asset, previewKind, prefix));
+                else item.setTitle(prefix + asset.label);
+                item.setChecked(asset.key === currentKey)
+                    .onClick(() => onSelect(asset.key));
+            });
+        });
+    }
+
     showVariantMenu(groupId, wrapper) {
         const config = this.toolConfigs[groupId];
         const btn = wrapper.querySelector('.hex-tool-btn');
+        // Jede Werkzeuggruppe hat ihren eigenen Ordner — ohne konfigurierten Pfad
+        // bleibt es bei den Systemsymbolen dieser Gruppe.
+        const registry = this.plugin.getRegistryForGroup(groupId);
+        const rect = btn.getBoundingClientRect();
 
-        const oldMenu = document.querySelector('.hex-variant-menu');
-        if (oldMenu) oldMenu.remove();
+        const selectVariant = async (id) => {
+            // Vor dem ersten Malen dekodieren — die Auswahl ist ein Klick, die
+            // kurze Wartezeit fällt nicht auf.
+            await this.plugin.ensureUserAssets([id]);
 
-        const menu = document.body.createDiv({ cls: 'hex-variant-menu' });
-        menu.style.position = 'absolute';
-        menu.style.background = 'var(--background-primary)';
-        menu.style.border = '1px solid var(--divider-color)';
-        menu.style.borderRadius = '4px';
-        menu.style.padding = '4px';
-        menu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
-        menu.style.zIndex = '1000';
+            config.currentVariant = id;
+            this.renderSymbolButtonIcon(btn, id, this.variantIconFor(config, id));
+
+            this.currentToolGroup = groupId;
+            this.drawMode = 'pen';
+            this.masterColor = config.symbolColor;
+            if (this.masterColorInput) {
+                this.masterColorInput.value = this.masterColor;
+                if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
+            }
+            this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
+            this.requestSave();
+        };
+
+        const addSystemVariants = (target) => {
+            const preview = this.plugin.settings.userAssetPreview;
+            this.sortByLabel(config.variants, v => v.label).forEach(variant => {
+                target.addItem(item => {
+                    // setTitle akzeptiert String ODER DOM-Element (Obsidian-API).
+                    if (preview) item.setTitle(this.makeSystemSymbolPreviewLabel(variant, config.symbolColor));
+                    else item.setTitle(variant.label);
+                    item.setChecked(variant.id === config.currentVariant)
+                        .onClick(() => selectVariant(variant.id));
+                });
+            });
+        };
+
+        const menu = this.tagScrollableMenu(new Menu());
+        const previewKind = this.plugin.settings.userAssetPreview ? 'symbol' : null;
+
+        // Ohne eigene Symbole bleibt das Menü flach wie bisher — ohne "System"-Ebene.
+        if (!registry || !registry.isActive) {
+            addSystemVariants(menu);
+        } else if (!this.supportsSubmenus()) {
+            addSystemVariants(menu);
+            menu.addSeparator();
+            this.buildAssetMenu(menu, registry.tree, config.currentVariant, selectVariant, previewKind);
+        } else {
+            menu.addItem(item => {
+                item.setTitle(t('menu.system'));
+                addSystemVariants(this.tagScrollableMenu(item.setSubmenu()));
+            });
+            menu.addItem(item => {
+                item.setTitle(registry.rootName);
+                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, config.currentVariant, selectVariant, previewKind);
+            });
+        }
+
+        menu.showAtPosition({ x: rect.left, y: rect.bottom + 4 });
+    }
+
+    // Rechtsklick auf den Waben-Button: "Farbe" (Standard) plus eigene Texturen.
+    // Ohne konfigurierten Texturordner erscheint gar kein Menü.
+    showHexTextureMenu(btn) {
+        const registry = this.plugin.getRegistry(TEXTURE_CATEGORY);
+        if (!registry || !registry.isActive) return;
 
         const rect = btn.getBoundingClientRect();
-        menu.style.left = rect.left + 'px';
-        menu.style.top = (rect.bottom + 4) + 'px';
 
-        config.variants.forEach(variant => {
-            const item = menu.createDiv({
-                text: variant.label,
-                style: 'padding: 6px 12px; cursor: pointer; border-radius: 3px;'
-            });
+        const selectTexture = async (key) => {
+            if (key) await this.plugin.ensureUserAssets([key]);
 
-            if (variant.id === config.currentVariant) {
-                item.style.background = 'var(--interactive-accent)';
-                item.style.color = 'var(--text-on-accent)';
+            this.hexTexture = key;
+            this.currentToolGroup = 'hexcolor';
+            this.drawMode = 'pen';
+            this.masterColor = this.hexColorColor;
+            if (this.masterColorInput) {
+                this.masterColorInput.value = this.masterColor;
+                if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
             }
+            this.updateHexColorButtonIcon(btn);
+            this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
+            this.requestSave();
+        };
 
-            item.onmouseover = () => {
-                if (variant.id !== config.currentVariant) {
-                    item.style.background = 'var(--background-modifier-hover)';
-                }
-            };
-            item.onmouseout = () => {
-                if (variant.id !== config.currentVariant) {
-                    item.style.background = '';
-                }
-            };
+        const menu = this.tagScrollableMenu(new Menu());
+        const previewKind = this.plugin.settings.userAssetPreview ? 'texture' : null;
 
-            item.onclick = () => {
-                config.currentVariant = variant.id;
+        const addColorEntry = (target) => {
+            target.addItem(item => {
+                item.setTitle(t('menu.color'))
+                    .setChecked(!this.hexTexture)
+                    .onClick(() => selectTexture(null));
+            });
+        };
 
-                if (this.svgSymbols[variant.id]) {
-                    const symbolInfo = this.svgSymbols[variant.id];
-                    btn.innerHTML = `<svg viewBox="0 0 ${symbolInfo.viewBoxWidth} ${symbolInfo.viewBoxWidth}"
-                                          width="16" height="16" style="vertical-align: middle;">
-                        <path d="${symbolInfo.pathData}" fill="currentColor"/>
-                    </svg>`;
-                } else {
-                    setIcon(btn, variant.icon);
-                }
+        if (!this.supportsSubmenus()) {
+            addColorEntry(menu);
+            menu.addSeparator();
+            this.buildAssetMenu(menu, registry.tree, this.hexTexture, selectTexture, previewKind);
+        } else {
+            menu.addItem(item => {
+                item.setTitle(t('menu.system'));
+                addColorEntry(this.tagScrollableMenu(item.setSubmenu()));
+            });
+            menu.addItem(item => {
+                item.setTitle(registry.rootName);
+                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, this.hexTexture, selectTexture, previewKind);
+            });
+        }
 
-                this.currentToolGroup = groupId;
-                this.drawMode = 'pen';
-                this.masterColor = config.symbolColor;
-                if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
-
-                menu.remove();
-                this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
-                this.requestSave();
-            };
-        });
-
-        setTimeout(() => {
-            const closeMenu = (e) => {
-                if (!menu.contains(e.target)) {
-                    menu.remove();
-                    document.removeEventListener('click', closeMenu);
-                }
-            };
-            document.addEventListener('click', closeMenu);
-        }, 10);
+        menu.showAtPosition({ x: rect.left, y: rect.bottom + 4 });
     }
 
     openColorPickerModal(groupId, wrapper) {
@@ -4417,6 +5532,21 @@ class HexCartographerView extends ItemView {
         }
     }
 
+    // Hält den Ausrichtungs-Button synchron mit this.hexOrientation. An einer Stelle,
+    // damit Button und Zustand nie auseinanderlaufen (Erstellen, Klick, Reload).
+    syncHexOrientationButton() {
+        const btn = this.hexOrientationBtn;
+        if (!btn) return;
+        // Button aktiv = Wabenspitze oben. Intern ist das hexOrientation === false
+        // (false = Spitze oben, true = flache Seite oben). Betrifft nur den
+        // Anzeige-Status des Buttons, nicht die Ausrichtungsfunktion selbst.
+        const pointyTop = !this.hexOrientation;
+        btn.classList.toggle('active', pointyTop);
+        btn.style.background = pointyTop ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
+        btn.style.border = pointyTop ? ACTIVE_BORDER : '';
+        btn.style.boxShadow = pointyTop ? ACTIVE_BOX_SHADOW : '';
+    }
+
     updateToolbarState(toolbar) {
         if (this.editModeBtn) {
             this.editModeBtn.classList.toggle('active', this.editMode);
@@ -4424,6 +5554,7 @@ class HexCartographerView extends ItemView {
             this.editModeBtn.style.border = this.editMode ? ACTIVE_BORDER : '';
             this.editModeBtn.style.boxShadow = this.editMode ? ACTIVE_BOX_SHADOW : '';
         }
+        this.syncHexOrientationButton();
         if (this.editContent) this.editContent.style.display = this.editMode ? 'contents' : 'none';
 
         if (this.borderVisBtn) {
@@ -4483,9 +5614,9 @@ class HexCartographerView extends ItemView {
             const isActive = this.currentToolGroup === groupId;
             btn.classList.toggle('active', isActive);
 
-            const currentVariant = config.variants.find(v => v.id === config.currentVariant);
-            if (currentVariant) {
-                btn.setAttribute('title', t('tooltip.toolGroupVariant', { label: currentVariant.label }));
+            const label = this.variantLabelFor(config, config.currentVariant);
+            if (label) {
+                btn.setAttribute('title', t('tooltip.toolGroupVariant', { label }));
             }
 
             btn.style.background = isActive ? PICKER_ACTIVE_BG : (config.backgroundEnabled ? config.backgroundColor : BUTTON_BG_DEFAULT);
@@ -5755,6 +6886,12 @@ class HexCartographerView extends ItemView {
         }
     }
 
+    // texture === null/undefined entfernt eine vorhandene Textur, statt sie zu behalten.
+    applyTexture(h, texture) {
+        if (texture) h.texture = texture;
+        else delete h.texture;
+    }
+
     paintHex(hex) {
         const key = `${hex.q}_${hex.r}`;
         let h = this.data.hexes[key];
@@ -5768,11 +6905,15 @@ class HexCartographerView extends ItemView {
             h.color = this.patternData.backgroundColor || this.patternData.color;
             h.symbol = this.patternData.symbol;
             h.symbolColor = this.patternData.symbolColor;
+            this.applyTexture(h, this.patternData.texture);
             return;
         }
 
         if (this.currentToolGroup === 'hexcolor') {
+            // Farbe wird immer gesetzt: Sie liegt unter der Textur, dient als Rückfall
+            // bei fehlender Grafik und hält die Wabe für ältere Plugin-Versionen lesbar.
             h.color = this.masterColor;
+            this.applyTexture(h, this.hexTexture);
             return;
         }
 
@@ -5808,8 +6949,8 @@ class HexCartographerView extends ItemView {
                 this.lastErasedHex = { q: hex.q, r: hex.r, type: 'pattern', pattern: { color: preData.color, symbol: preData.symbol, symbolColor: preData.symbolColor }, timestamp: Date.now() };
             } else if (tg && this.toolConfigs[tg] && preData && preData.symbol) {
                 this.lastErasedHex = { q: hex.q, r: hex.r, type: 'symbol', symbol: preData.symbol, timestamp: Date.now() };
-            } else if ((tg === 'hexcolor' || tg === null) && preData && preData.color) {
-                this.lastErasedHex = { q: hex.q, r: hex.r, type: 'color', color: preData.color, toolGroup: tg, timestamp: Date.now() };
+            } else if ((tg === 'hexcolor' || tg === null) && preData && (preData.color || preData.texture)) {
+                this.lastErasedHex = { q: hex.q, r: hex.r, type: 'color', color: preData.color, texture: preData.texture, toolGroup: tg, timestamp: Date.now() };
             } else if (tg === 'river' || tg === 'road') {
                 const paths = tg === 'river' ? (this.data.rivers || []) : (this.data.roads || []);
                 const pathIds = [];
@@ -5853,6 +6994,7 @@ class HexCartographerView extends ItemView {
             const h = this.data.hexes[key];
             if (h) {
                 delete h.color;
+                delete h.texture;
                 if (!h.symbol) delete this.data.hexes[key];
             }
         } else if (this.currentToolGroup === 'pattern') {
@@ -5876,9 +7018,10 @@ class HexCartographerView extends ItemView {
                         }
                     }
                 } else if (this.currentToolGroup === null) {
-                    if (h.color || h.backgroundColor) {
+                    if (h.color || h.backgroundColor || h.texture) {
                         delete h.color;
                         delete h.backgroundColor;
+                        delete h.texture;
                         if (!h.symbol) {
                             delete this.data.hexes[key];
                         }
@@ -5897,7 +7040,7 @@ class HexCartographerView extends ItemView {
         if (last.type === 'symbol') {
             this.floodEraseSymbol(hex, last.symbol);
         } else if (last.type === 'color') {
-            this.floodEraseColor(hex, last.color);
+            this.floodEraseColor(hex, last.color, last.texture);
         } else if (last.type === 'pattern') {
             this.floodErasePattern(hex, last.pattern);
         } else if (last.type === 'border') {
@@ -5924,7 +7067,7 @@ class HexCartographerView extends ItemView {
 
             delete hexData.symbol;
             delete hexData.symbolColor;
-            if (!hexData.color) {
+            if (!hexData.color && !hexData.texture) {
                 delete this.data.hexes[key];
             }
 
@@ -5933,7 +7076,7 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    floodEraseColor(startHex, targetColor) {
+    floodEraseColor(startHex, targetColor, targetTexture) {
         const visited = new Set();
         const queue = this.getHexNeighbors(startHex);
 
@@ -5944,10 +7087,12 @@ class HexCartographerView extends ItemView {
             visited.add(key);
 
             const hexData = this.data.hexes[key];
-            const currentColor = hexData ? hexData.color : null;
-            if (currentColor !== targetColor) continue;
+            if (!hexData) continue;
+            if (hexData.color !== targetColor) continue;
+            if ((hexData.texture || null) !== (targetTexture || null)) continue;
 
             delete hexData.color;
+            delete hexData.texture;
             if (!hexData.symbol) {
                 delete this.data.hexes[key];
             }
@@ -6022,7 +7167,8 @@ class HexCartographerView extends ItemView {
         const patternColor = pattern.backgroundColor || pattern.color;
         return hexColor === patternColor &&
                hex.symbol === pattern.symbol &&
-               hex.symbolColor === pattern.symbolColor;
+               hex.symbolColor === pattern.symbolColor &&
+               (hex.texture || null) === (pattern.texture || null);
     }
 
     handleFillTool(startHex) {
@@ -6040,16 +7186,15 @@ class HexCartographerView extends ItemView {
         if (this.currentToolGroup === 'pattern' && this.patternData) {
             const targetColor = startData.color;
             const targetSymbol = startData.symbol;
-            this.floodFillPattern(startHex, targetColor, targetSymbol);
+            this.floodFillPattern(startHex, targetColor, targetSymbol, startData.texture);
         }
         else if (this.currentToolGroup === 'hexcolor') {
-            const targetColor = startData.color;
-            this.floodFillColor(startHex, targetColor, this.masterColor);
+            this.floodFillColor(startHex, startData.color, this.masterColor, startData.texture, this.hexTexture);
         }
         else if (this.currentToolGroup === null) {
-            const targetColor = startData.color;
+            // Das Paletten-Werkzeug färbt nur — vorhandene Texturen bleiben unberührt.
             const newColor = this.colorPalette[this.activeColorSlot];
-            this.floodFillColor(startHex, targetColor, newColor);
+            this.floodFillColor(startHex, startData.color, newColor, startData.texture);
         }
         else if (this.toolConfigs[this.currentToolGroup]) {
             const config = this.toolConfigs[this.currentToolGroup];
@@ -6059,8 +7204,11 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    floodFillColor(startHex, targetColor, newColor) {
-        if (targetColor === newColor) return;
+    // newTexture: undefined = Textur unangetastet lassen, null = entfernen, String = setzen.
+    floodFillColor(startHex, targetColor, newColor, targetTexture, newTexture) {
+        const keepTexture = newTexture === undefined;
+        const sameTexture = keepTexture || (newTexture || null) === (targetTexture || null);
+        if (targetColor === newColor && sameTexture) return;
 
         const visited = new Set();
         const queue = [startHex];
@@ -6074,13 +7222,17 @@ class HexCartographerView extends ItemView {
 
             const hexData = this.data.hexes[key];
             const currentColor = hexData ? hexData.color : null;
+            const currentTexture = hexData ? (hexData.texture || null) : null;
 
             if (currentColor !== targetColor) continue;
+            if (currentTexture !== (targetTexture || null)) continue;
 
             if (hexData) {
                 hexData.color = newColor;
+                if (!keepTexture) this.applyTexture(hexData, newTexture);
             } else {
                 this.data.hexes[key] = { q: hex.q, r: hex.r, color: newColor };
+                if (!keepTexture) this.applyTexture(this.data.hexes[key], newTexture);
             }
 
             const neighbors = this.getHexNeighbors(hex);
@@ -6137,7 +7289,7 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    floodFillPattern(startHex, targetColor, targetSymbol) {
+    floodFillPattern(startHex, targetColor, targetSymbol, targetTexture) {
         const visited = new Set();
         const queue = [startHex];
 
@@ -6151,8 +7303,10 @@ class HexCartographerView extends ItemView {
             const hexData = this.data.hexes[key];
             const currentColor = hexData ? hexData.color : null;
             const currentSymbol = hexData ? hexData.symbol : null;
+            const currentTexture = hexData ? (hexData.texture || null) : null;
 
             if (currentColor !== targetColor || currentSymbol !== targetSymbol) continue;
+            if (currentTexture !== (targetTexture || null)) continue;
 
             if (!hexData) {
                 this.data.hexes[key] = {
@@ -6162,10 +7316,12 @@ class HexCartographerView extends ItemView {
                     symbol: this.patternData.symbol,
                     symbolColor: this.patternData.symbolColor
                 };
+                this.applyTexture(this.data.hexes[key], this.patternData.texture);
             } else {
                 hexData.color = this.patternData.color;
                 hexData.symbol = this.patternData.symbol;
                 hexData.symbolColor = this.patternData.symbolColor;
+                this.applyTexture(hexData, this.patternData.texture);
             }
 
             const neighbors = this.getHexNeighbors(hex);
@@ -6280,39 +7436,7 @@ class HexCartographerView extends ItemView {
         this.ctx.translate(this.data.offX, this.data.offY);
         this.ctx.scale(this.data.zoom, this.data.zoom);
 
-        Object.values(this.data.hexes).forEach(h => {
-            this.drawHexBase(h);
-        });
-
-        // Zeichenreihenfolge (unten → oben):
-
-        const drawSymbolLayer = (symbols) => {
-            Object.values(this.data.hexes).forEach(h => {
-                if (h.symbol && symbols.includes(h.symbol)) {
-                    const pos = this.hexToPixel(h);
-                    if (this.svgSymbols[h.symbol]) {
-                        this.drawSVGOnCanvas(h.symbol, pos, h.symbolColor);
-                    } else {
-                        this.drawCustomSymbol(h.symbol, pos.x, pos.y, this.data.gridSize, h.symbolColor);
-                    }
-                }
-            });
-        };
-
-        drawSymbolLayer(['swamp','grass', 'bush', 'tree', 'pine', 'palm']);
-
-        drawSymbolLayer(['hill', 'mountain']);
-
-        this.buildOverlapMap();
-        this.drawRivers();
-
-        this.drawRoads();
-
-        drawSymbolLayer(['question', 'exclamation', 'cross', 'dot', 'shield', 'pirateskull']);
-
-        drawSymbolLayer(['tent', 'house', 'village', 'town', 'castle', 'harbor', 'monastery', 'tower', 'ruins', 'cave', 'oasis']);
-
-        this.drawBorders();
+        this.drawMapLayers(); // Zeichenreihenfolge (unten → oben)
 
         this.drawPathWaypoints(); // Wegpunkte immer als letztes (ueber allen anderen Elementen)
 
@@ -6649,10 +7773,10 @@ class HexCartographerView extends ItemView {
         return { w: (maxX - minX) + padding * 2, h: (maxY - minY) + padding * 2 };
     }
 
-    renderFullMap({ targetWidth, scale: fixedScale, cropless } = {}) {
+    // Bounds und Maßstab eines Exports. Getrennt von renderFullMap, damit der
+    // Export den Maßstab vorher kennt und die Grafiken passend nachladen kann.
+    computeExportGeometry({ targetWidth, scale: fixedScale, cropless } = {}) {
         if (!this.getMapWorldSize()) return null;
-        // Scale wird erst nach der Bounds-Berechnung gesetzt (siehe unten),
-        // damit targetWidth die tatsächliche Export-Breite inkl. Crop-Option trifft.
 
         const hexes = Object.values(this.data.hexes);
         const texts = this.data.texts || [];
@@ -6699,6 +7823,14 @@ class HexCartographerView extends ItemView {
         // damit targetWidth unabhängig von der Crop-Option exakt eingehalten wird.
         const scale = targetWidth ? targetWidth / w : (fixedScale || 2);
 
+        return { minX, minY, w, h, scale };
+    }
+
+    renderFullMap(opts = {}) {
+        const geo = this.computeExportGeometry(opts);
+        if (!geo) return null;
+        const { minX, minY, w, h, scale } = geo;
+
         const tmpCanvas = document.createElement('canvas');
         tmpCanvas.width = Math.ceil(w * scale);
         tmpCanvas.height = Math.ceil(h * scale);
@@ -6724,29 +7856,7 @@ class HexCartographerView extends ItemView {
         tmpCtx.translate(this.data.offX, this.data.offY);
         tmpCtx.scale(this.data.zoom, this.data.zoom);
 
-        Object.values(this.data.hexes).forEach(hex => this.drawHexBase(hex));
-
-        const drawSymbolLayer = (symbols) => {
-            Object.values(this.data.hexes).forEach(hex => {
-                if (hex.symbol && symbols.includes(hex.symbol)) {
-                    const pos = this.hexToPixel(hex);
-                    if (this.svgSymbols[hex.symbol]) {
-                        this.drawSVGOnCanvas(hex.symbol, pos, hex.symbolColor);
-                    } else {
-                        this.drawCustomSymbol(hex.symbol, pos.x, pos.y, this.data.gridSize, hex.symbolColor);
-                    }
-                }
-            });
-        };
-
-        drawSymbolLayer(['swamp','grass', 'bush', 'tree', 'pine', 'palm']);
-        drawSymbolLayer(['hill', 'mountain']);
-        this.buildOverlapMap();
-        this.drawRivers();
-        this.drawRoads();
-        drawSymbolLayer(['question', 'exclamation', 'cross', 'dot', 'shield', 'pirateskull']);
-        drawSymbolLayer(['tent', 'house', 'village', 'town', 'castle', 'harbor', 'monastery', 'tower', 'ruins', 'cave', 'oasis']);
-        this.drawBorders();
+        this.drawMapLayers();
 
         tmpCtx.restore();
 
@@ -6889,20 +7999,32 @@ class HexCartographerView extends ItemView {
         this.ctx.restore();
     }
 
+    // Umriss einer Wabe als Pfad in den aktuellen Kontext legen.
+    tracehexPath(pos, radius, angleOffset) {
+        this.ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const a = (Math.PI / 180) * (60 * i + angleOffset);
+            this.ctx.lineTo(pos.x + radius * Math.cos(a), pos.y + radius * Math.sin(a));
+        }
+        this.ctx.closePath();
+    }
+
     drawHexBase(h) {
         const pos = this.hexToPixel(h), s = this.data.gridSize;
         const angleOffset = this.hexOrientation ? 0 : -30;
+        const sf = s + 0.5; // Kleiner Überstand, damit keine Lücken zwischen benachbarten Hexen entstehen
 
+        // Farbe zuerst: Sie bleibt als Untergrund erhalten und dient zugleich als
+        // Rückfall, wenn eine Textur fehlt.
         if (h.color) {
-            const sf = s + 0.5; // Kleiner Überstand, damit keine Lücken zwischen benachbarten Hexen entstehen
-            this.ctx.beginPath();
-            for (let i=0; i<6; i++) {
-                const a = (Math.PI/180) * (60*i + angleOffset);
-                this.ctx.lineTo(pos.x + sf*Math.cos(a), pos.y + sf*Math.sin(a));
-            }
-            this.ctx.closePath();
+            this.tracehexPath(pos, sf, angleOffset);
             this.ctx.fillStyle = h.color;
             this.ctx.fill();
+        }
+
+        if (h.texture) {
+            // Etwas größer als der Farb-Fill, damit die Textur dessen AA-Rand überdeckt.
+            this.drawHexTexture(h, pos, sf + TEXTURE_EDGE_BLEED, angleOffset);
         }
 
         if (!this.plugin.settings.hideHexBorders) {
@@ -6916,6 +8038,172 @@ class HexCartographerView extends ItemView {
             this.ctx.lineWidth = 1;
             this.ctx.stroke();
         }
+    }
+
+    // User-Symbole werden in die Wabe eingepasst (contain), damit nichts abgeschnitten
+    // wird — anders als Texturen, die die Wabe füllen müssen.
+    drawUserSymbolOnCanvas(symbol, pos, color) {
+        const asset = this.plugin.getUserAsset(symbol);
+        const box = this.hexBounds(this.data.gridSize);
+        const maxW = box.w * USER_SYMBOL_FIT;
+        const maxH = box.h * USER_SYMBOL_FIT;
+
+        if (this.isAssetPending(asset)) return; // wird nachgeladen, dann neu gezeichnet
+
+        if (!asset || asset.failed) {
+            this.drawMissingSymbol(pos, Math.min(maxW, maxH) / 2);
+            return;
+        }
+
+        if (asset.colorable) {
+            const vw = asset.viewBoxWidth;
+            const vh = asset.viewBoxHeight || asset.viewBoxWidth;
+            const scale = Math.min(maxW / vw, maxH / vh);
+            this.ctx.save();
+            this.ctx.translate(pos.x - (vw * scale) / 2, pos.y - (vh * scale) / 2);
+            this.ctx.scale(scale, scale);
+            this.ctx.fillStyle = color || DEFAULT_MASTER_COLOR;
+            this.ctx.fill(new Path2D(asset.pathData));
+            this.ctx.restore();
+            return;
+        }
+
+        const img = asset.image;
+        if (!img) return;
+        const iw = img.naturalWidth || img.width;
+        const ih = img.naturalHeight || img.height;
+        if (!iw || !ih) return;
+
+        const scale = Math.min(maxW / iw, maxH / ih);
+        const dw = iw * scale;
+        const dh = ih * scale;
+        this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
+    }
+
+    drawMissingSymbol(pos, radius) {
+        this.ctx.save();
+        this.ctx.strokeStyle = 'rgba(128,128,128,0.6)';
+        this.ctx.lineWidth = 1.5;
+        this.ctx.setLineDash([3, 3]);
+        this.ctx.beginPath();
+        this.ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+        this.ctx.stroke();
+        this.ctx.restore();
+    }
+
+    drawSymbolAt(symbol, pos, color) {
+        if (isUserAssetKey(symbol)) {
+            this.drawUserSymbolOnCanvas(symbol, pos, color);
+        } else if (this.svgSymbols[symbol]) {
+            this.drawSVGOnCanvas(symbol, pos, color);
+        } else {
+            this.drawCustomSymbol(symbol, pos.x, pos.y, this.data.gridSize, color);
+        }
+    }
+
+    // symbols === null zeichnet die User-Symbole (alles mit user:-Präfix).
+    drawSymbolLayerOnCtx(symbols) {
+        Object.values(this.data.hexes).forEach(h => {
+            if (!h.symbol) return;
+            const inLayer = symbols ? symbols.includes(h.symbol) : isUserAssetKey(h.symbol);
+            if (!inLayer) return;
+            this.drawSymbolAt(h.symbol, this.hexToPixel(h), h.symbolColor);
+        });
+    }
+
+    // Einzige Definition der Zeichenreihenfolge — Bildschirm und Export nutzen sie
+    // gemeinsam, damit beide nicht auseinanderdriften.
+    drawMapLayers() {
+        Object.values(this.data.hexes).forEach(h => this.drawHexBase(h));
+        this.drawSymbolLayerOnCtx(SYMBOL_LAYER_VEGETATION);
+        this.drawSymbolLayerOnCtx(SYMBOL_LAYER_TERRAIN);
+        this.buildOverlapMap();
+        this.drawRivers();
+        this.drawRoads();
+        this.drawSymbolLayerOnCtx(SYMBOL_LAYER_EXTRAS);
+        this.drawSymbolLayerOnCtx(SYMBOL_LAYER_BUILDINGS);
+        this.drawSymbolLayerOnCtx(null); // User-Symbole ganz oben, direkt vor den Grenzen
+        this.drawBorders();
+    }
+
+    // Bounding-Box einer Wabe. Bei Spitze oben ist sie schmaler als hoch,
+    // bei flacher Seite oben umgekehrt.
+    hexBounds(radius) {
+        return this.hexOrientation
+            ? { w: radius * 2, h: radius * Math.sqrt(3) }
+            : { w: radius * Math.sqrt(3), h: radius * 2 };
+    }
+
+    // Sicherheitsnetz: Taucht ein noch nicht dekodierter Key beim Zeichnen auf
+    // (z. B. durch Rückgängig oder eine Musterwabe), wird er nachgeladen und
+    // danach einmal neu gezeichnet. Der Normalfall ist über ensureUserAssets()
+    // schon abgedeckt.
+    requestAssetDecode(key) {
+        if (!this._pendingDecode) this._pendingDecode = new Set();
+        if (this._pendingDecode.has(key)) return;
+        this._pendingDecode.add(key);
+
+        if (this._decodeTimer) return;
+        this._decodeTimer = setTimeout(async () => {
+            this._decodeTimer = null;
+            const keys = [...this._pendingDecode];
+            this._pendingDecode.clear();
+            await this.plugin.ensureUserAssets(keys);
+            if (this.ctx) this.render();
+        }, 0);
+    }
+
+    // true, wenn die Grafik noch dekodiert wird — dann Platzhalter zeichnen.
+    isAssetPending(asset) {
+        if (!asset || asset.failed) return false;
+        if (asset.decoded) return false;
+        this.requestAssetDecode(asset.key);
+        return true;
+    }
+
+    drawHexTexture(h, pos, radius, angleOffset) {
+        const asset = this.plugin.getUserAsset(h.texture);
+        const box = this.hexBounds(radius);
+
+        // Noch nicht dekodiert -> nichts zeichnen, die Farbe darunter bleibt stehen.
+        // Nach dem Nachladen wird ohnehin neu gezeichnet.
+        if (this.isAssetPending(asset)) return;
+
+        this.ctx.save();
+        this.tracehexPath(pos, radius, angleOffset);
+        this.ctx.clip();
+
+        if (asset && asset.image) {
+            const img = asset.image;
+            const iw = img.naturalWidth || img.width;
+            const ih = img.naturalHeight || img.height;
+            if (iw && ih) {
+                // Cover: die schmalere Seite der Grafik füllt die Wabe aus,
+                // der Überstand wird vom Clipping abgeschnitten.
+                const scale = Math.max(box.w / iw, box.h / ih);
+                const dw = iw * scale;
+                const dh = ih * scale;
+                this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
+            }
+        } else {
+            this.drawMissingTexture(pos, box);
+        }
+
+        this.ctx.restore();
+    }
+
+    // Fehlende Grafik: dezente Schraffur, damit die Wabe nicht unverändert wirkt.
+    // Der Key bleibt erhalten — taucht die Datei wieder auf, ist alles zurück.
+    drawMissingTexture(pos, box) {
+        const step = 6;
+        this.ctx.strokeStyle = 'rgba(128,128,128,0.45)';
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        for (let o = -box.h; o < box.w; o += step) {
+            this.ctx.moveTo(pos.x - box.w / 2 + o, pos.y - box.h / 2);
+            this.ctx.lineTo(pos.x - box.w / 2 + o + box.h, pos.y + box.h / 2);
+        }
+        this.ctx.stroke();
     }
 
     drawBorders() {
@@ -7498,6 +8786,7 @@ class HexCartographerView extends ItemView {
                     masterColor: this.masterColor,
                     editMode: this.editMode,
                     hexColorColor: this.hexColorColor,
+                    hexTexture: this.hexTexture,
                     lastUsedTextSize: this.lastUsedTextSize,
                     lastUsedTextOutline: this.lastUsedTextOutline,
                     lastUsedTextBold: this.lastUsedTextBold,
@@ -7514,6 +8803,9 @@ class HexCartographerView extends ItemView {
                 const title = this.file.basename.replace('.hexcartographer', '');
                 const content = `${frontmatter}# ${title}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
 
+                // Merken, was wir schreiben — damit ein verzögertes modify-Event des
+                // eigenen Speicherns kein Neuladen auslöst (siehe reloadFile).
+                this._lastSavedContent = content;
                 await this.app.vault.modify(this.file, content);
             }
             catch (e) {
@@ -7623,7 +8915,12 @@ class HexCartographerView extends ItemView {
         return { q: rx, r: rz };
     }
 
+    clearDecodeTimer() {
+        if (this._decodeTimer) { clearTimeout(this._decodeTimer); this._decodeTimer = null; }
+    }
+
     async onClose() {
+        this.clearDecodeTimer();
         if (this.resizeObserver) this.resizeObserver.disconnect();
         await this.saveData();
     }
@@ -8151,6 +9448,40 @@ class ExportMapModal extends Modal {
     }
 }
 
+// Ordnerauswahl mit Fuzzy-Suche. Die Klasse entsteht bewusst erst beim ersten
+// Öffnen: Wäre FuzzySuggestModal zur Laufzeit nicht exportiert, würde ein
+// `extends undefined` auf oberster Ebene das gesamte Plugin am Laden hindern.
+let _FolderSuggestModal = null;
+function getFolderSuggestModal() {
+    if (_FolderSuggestModal) return _FolderSuggestModal;
+    if (typeof FuzzySuggestModal !== 'function') return null;
+
+    _FolderSuggestModal = class extends FuzzySuggestModal {
+        constructor(app, onChoose) {
+            super(app);
+            this.onChooseFolder = onChoose;
+            this.setPlaceholder(t('settings.folderPickerPlaceholder'));
+        }
+
+        // Ordner werden über ihr children-Array erkannt, nicht über `instanceof TFolder` —
+        // das kommt ohne den Import aus und kann nicht an einem fehlenden Export scheitern.
+        getItems() {
+            return this.app.vault.getAllLoadedFiles()
+                .filter(f => Array.isArray(f.children) && f.path && f.path !== '/')
+                .sort((a, b) => a.path.localeCompare(b.path, undefined, { numeric: true, sensitivity: 'base' }));
+        }
+
+        getItemText(folder) {
+            return folder.path;
+        }
+
+        onChooseItem(folder) {
+            this.onChooseFolder(folder.path);
+        }
+    };
+    return _FolderSuggestModal;
+}
+
 class HexCartographerSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
         super(app, plugin);
@@ -8218,9 +9549,122 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     });
             });
 
-        // ── Waben nummerieren ─────────────────────────────────────
-        containerEl.createEl('h3', { text: t('settings.hexNumbering') });
+        this.buildHexNumberingSettings(containerEl);
 
+        // ── Eigene Grafiken ───────────────────────────────────────
+        // Klappbar über natives <details> — Obsidian hat dafür keine offizielle
+        // API. Schon konfiguriert -> offen, sonst eingeklappt ("bei Bedarf").
+        const anyUserPath = USER_ASSET_CATEGORIES.some(c => this.plugin.settings[c.settingKey]);
+        const assetsSection = containerEl.createEl('details', { cls: 'hex-settings-section' });
+        assetsSection.open = anyUserPath;
+        assetsSection.createEl('summary', { cls: 'hex-settings-summary', text: t('settings.userAssets') });
+        const assetsBody = assetsSection.createDiv({ cls: 'hex-settings-body' });
+        assetsBody.createEl('p', {
+            text: t('settings.userAssetsDesc'),
+            attr: { style: 'color: var(--text-muted); font-size: 13px; margin-top: 0;' }
+        });
+
+        // Grafikvorschau: zeigt im Rechtsklick-Menü Thumbnails statt reiner Namen.
+        // Steht vor den Pfaden, gilt für alle Kategorien.
+        new Setting(assetsBody)
+            .setName(t('settings.userAssetPreview'))
+            .setDesc(t('settings.userAssetPreviewDesc'))
+            .addToggle(toggle => {
+                toggle.setValue(this.plugin.settings.userAssetPreview)
+                    .onChange(async (value) => {
+                        this.plugin.settings.userAssetPreview = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
+
+        const addFolderSetting = (name, desc, settingKey, registry, categoryId) => {
+            const setting = new Setting(assetsBody).setName(name).setDesc(desc);
+            const statusEl = setting.descEl.createDiv({ attr: { style: 'margin-top: 4px; font-size: 12px;' } });
+
+            const updateStatus = () => {
+                if (!this.plugin.settings[settingKey]) {
+                    statusEl.setText('');
+                    return;
+                }
+                if (registry.assets.size === 0) {
+                    statusEl.setText(t('settings.userAssetsNotFound'));
+                    statusEl.style.color = 'var(--text-error)';
+                    return;
+                }
+                statusEl.setText(
+                    t('settings.userAssetsFound').replace('{n}', String(registry.assets.size)) +
+                    (registry.truncated ? ' ' + t('settings.userAssetsTruncated').replace('{max}', String(USER_ASSET_MAX_FILES)) : '')
+                );
+                statusEl.style.color = 'var(--text-muted)';
+            };
+
+            let textComp;
+
+            const applyPath = async (raw) => {
+                const value = (raw || '').trim().replace(/^\/+|\/+$/g, '');
+                if (value === this.plugin.settings[settingKey]) return;
+                this.plugin.settings[settingKey] = value;
+                await this.plugin.saveSettings();
+                await this.plugin.reloadUserAssets([categoryId]);
+                updateStatus();
+            };
+
+            setting.addText(text => {
+                textComp = text;
+                text.setPlaceholder(t('settings.userAssetsPlaceholder'))
+                    .setValue(this.plugin.settings[settingKey]);
+
+                // Erst beim Verlassen des Feldes scannen — nicht bei jedem Tastendruck.
+                text.inputEl.addEventListener('blur', () => applyPath(text.getValue()));
+                text.inputEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') text.inputEl.blur();
+                });
+            });
+
+            const Picker = getFolderSuggestModal();
+            if (Picker) {
+                setting.addExtraButton(btn => {
+                    btn.setIcon('folder-open')
+                        .setTooltip(t('settings.userAssetsBrowse'))
+                        .onClick(() => {
+                            new Picker(this.app, async (path) => {
+                                textComp.setValue(path);
+                                await applyPath(path);
+                            }).open();
+                        });
+                });
+            }
+
+            setting.addExtraButton(btn => {
+                btn.setIcon('x')
+                    .setTooltip(t('settings.userAssetsClear'))
+                    .onClick(async () => {
+                        textComp.setValue('');
+                        await applyPath('');
+                    });
+            });
+
+            updateStatus();
+        };
+
+        // Waben-Texturen zuerst, danach je ein Ordner pro Werkzeuggruppe. Die Namen
+        // kommen aus denselben Übersetzungen wie die Toolbar-Tooltips, damit
+        // Einstellung und Werkzeug gleich heißen.
+        for (const category of USER_ASSET_CATEGORIES) {
+            const isTexture = category.kind === 'texture';
+            const name = isTexture
+                ? t('settings.userTexturePath')
+                : t('settings.userSymbolPathFor', { name: t(category.labelKey) });
+            const desc = isTexture ? t('settings.userTexturePathDesc') : t('settings.userSymbolPathDesc');
+            addFolderSetting(name, desc, category.settingKey, this.plugin.getRegistry(category.id), category.id);
+        }
+
+        this.buildGuide(containerEl);
+    }
+
+    // Waben-Nummerierung. Ohne eigene Überschrift — der Master-Schalter trägt
+    // den Namen. Wird direkt hinter "Waben-Rahmen ausblenden" einsortiert.
+    buildHexNumberingSettings(containerEl) {
         const refreshAll = async () => {
             await this.plugin.saveSettings();
             this.app.workspace.iterateAllLeaves(leaf => {
@@ -8362,10 +9806,12 @@ class HexCartographerSettingTab extends PluginSettingTab {
             });
         subOptions.push(outlineSetting);
 
-        // Initial-Sichtbarkeit der Unteroptionen
-        subOptions.forEach(el => el.settingEl.style.display = hide ? 'none' : '');
-
-        this.buildGuide(containerEl);
+        // Unteroptionen einrücken (Zugehörigkeit zu "Waben nummerieren")
+        // und Initial-Sichtbarkeit setzen.
+        subOptions.forEach(el => {
+            el.settingEl.addClass('hex-sub-setting');
+            el.settingEl.style.display = hide ? 'none' : '';
+        });
     }
 
     buildGuide(containerEl) {
@@ -8386,11 +9832,13 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 ['hexagon', 'guide.hexcolor.paint'],
                 ['pipette', 'guide.hexcolor.eyedropper'],
                 [null, 'guide.hexcolor.palette'],
+                [null, 'guide.hexcolor.texture'],
             ]],
             ['symbols', [
                 ['pine', 'guide.symbols.groups'],
                 [null, 'guide.symbols.variant'],
                 [null, 'guide.symbols.colors'],
+                [null, 'guide.symbols.userSymbols'],
             ]],
             ['drawing', [
                 ['pencil', 'guide.drawing.pen'],

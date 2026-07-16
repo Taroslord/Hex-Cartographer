@@ -150,6 +150,40 @@ input[type="color"][title="Werkzeugfarbe"]::-moz-color-swatch {
     color: #dddddd;
 }
 
+/* Obsidian lässt Menüs von Haus aus nur auf Mobile scrollen — auf dem Desktop
+   steht .menu-scroll auf overflow:hidden, sodass lange Listen an der Fensterkante
+   abgeschnitten und unerreichbar werden. Für unsere Symbol- und Textur-Menüs
+   aktivieren wir das Scrollen deshalb selbst. min-height:0 ist nötig, damit das
+   Flex-Kind unter seine Inhaltshöhe schrumpfen darf. */
+.menu.hex-cartographer-menu .menu-scroll {
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* Klappbarer Einstellungsbereich (natives <details>). Behält das native
+   Disclosure-Dreieck des Browsers — größer und identisch zur Kurzanleitung. */
+.hex-settings-section {
+    margin: 0.75em 0;
+    border-top: 1px solid var(--background-modifier-border);
+}
+.hex-settings-summary {
+    cursor: pointer;
+    padding: 0.6em 0;
+    font-weight: var(--font-semibold, 600);
+    color: var(--text-normal);
+    user-select: none;
+}
+.hex-settings-summary:hover { color: var(--text-accent); }
+.hex-settings-body { padding-bottom: 0.5em; }
+
+/* Unteroptionen eines Schalters (z. B. "Waben nummerieren"): eingerückt mit
+   dezenter Linie links, damit die Zugehörigkeit sichtbar ist. */
+.hex-sub-setting {
+    margin-left: 1.5em;
+    padding-left: 1em;
+    border-left: 2px solid var(--background-modifier-border);
+}
+
 /* Datei-Typ-Anzeige im File Explorer (wie CANVAS) */
 /* Platziere Badge direkt nach dem Dateinamen */
 .nav-file-title.hex-cartographer-file .nav-file-title-content::after {
