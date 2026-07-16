@@ -4,11 +4,11 @@ const { Plugin, PluginSettingTab, Setting, TFile, Notice, Modal, Menu, FuzzySugg
 const DEFAULT_PALETTE  = ['#3295D2', '#6CC261', '#DDC88D', '#9c9090', '#CD6155', '#FFD700', '#000000', '#FFFFFF'];
 const DEFAULT_PALETTE2 = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#8000ff', '#ff00ff'];
 
-// === Toolbar Schriftgröße & Höhe ===
+// === Toolbar font size & height ===
 const TOOLBAR_INPUT_FONT_SIZE = '13px';
 const TOOLBAR_INPUT_HEIGHT = '24px';
 
-// === Farben (Standardwerte) ===
+// === Colors (defaults) ===
 const DEFAULT_MASTER_COLOR = '#000000';
 const DEFAULT_RIVER_COLOR = '#3295D2';
 const DEFAULT_ROAD_COLOR = '#f5deb3';
@@ -23,20 +23,20 @@ const DEFAULT_MOUNTAIN_BG_COLOR = '#808080';
 const DEFAULT_BUILDING_SYMBOL_COLOR = '#CD6155';
 const DEFAULT_BUILDING_BG_COLOR = '#DDC88D';
 
-// === Größen & Abstände ===
+// === Sizes & spacing ===
 const DEFAULT_GRID_SIZE = 30;
 const DEFAULT_OFF_X = 400;
 const DEFAULT_OFF_Y = 300;
 const DEFAULT_RIVER_WIDTH = 5;
 const DEFAULT_ROAD_WIDTH = 3;
-const PATH_OVERLAP_SPACING = 1.5; // Abstandsfaktor Kante-zu-Kante: 1.0 = berühren sich, 1.5 = kleine Lücke, 2.0 = deutlicher Abstand
+const PATH_OVERLAP_SPACING = 1.5; // Edge-to-edge spacing factor: 1.0 = touching, 1.5 = small gap, 2.0 = clear gap
 const DEFAULT_BORDER_HIGHLIGHT_WIDTH = 3;
 const DEFAULT_BORDER_DASHES = 1;
 const DEFAULT_PATH_DASHES = 1;
 const PATH_END_INSET = 0.15;
 const MAX_HISTORY = 50;
-const MIN_ZOOM = 0.01; // Minimale Verkleinerung (1% einer Wabe)
-const MAX_ZOOM = 4; // Maximale Vergrößerung (Zahl x 100% einer Wabe. 4 = 400%)
+const MIN_ZOOM = 0.01; // Minimum zoom (1% of a hex)
+const MAX_ZOOM = 4; // Maximum zoom (number x 100% of a hex. 4 = 400%)
 const VIEWPORT_PADDING = 0.9;
 
 // === Text-Defaults ===
@@ -51,14 +51,14 @@ const ACTIVE_BORDER = `3px solid ${ACTIVE_COLOR}`;
 const PICKER_ACTIVE_BG = ACTIVE_COLOR;
 const BUTTON_BG_DEFAULT = '#ffffff';
 
-// === User-Assets (eigene Texturen & Symbole aus Vault-Ordnern) ===
-// Jede Kategorie hat einen eigenen Ordner. Die Kategorie steckt im Key
-// (`user:veg:Wald/eiche`), weil beim Zeichnen nur `hex.symbol` bzw. `hex.texture`
-// vorliegt — ohne sie wäre nicht entscheidbar, aus welchem Ordner ein Key stammt.
-// `id` wird in Kartendateien gespeichert und darf sich nicht mehr ändern.
-// `group` verweist auf die Werkzeuggruppe in toolConfigs (historische Namen).
-// `labelKey` ist derselbe Schlüssel wie der Name der Werkzeuggruppe, damit
-// Einstellung und Toolbar-Tooltip identisch heißen.
+// === User assets (custom textures & symbols from vault folders) ===
+// Each category has its own folder. The category is part of the key
+// (`user:veg:Wald/eiche`), because when drawing only `hex.symbol` / `hex.texture`
+// is available — without it the folder a key comes from would be ambiguous.
+// `id` is stored in map files and must not change anymore.
+// `group` refers to the tool group in toolConfigs (historical names).
+// `labelKey` is the same key as the tool group name, so
+// setting and toolbar tooltip have the same name.
 const USER_ASSET_CATEGORIES = [
     { id: 'tex',      settingKey: 'userTexturePath',    kind: 'texture' },
     { id: 'extras',   settingKey: 'userExtrasPath',     kind: 'symbol', group: 'grass',    labelKey: 'tool.extras' },
@@ -69,26 +69,27 @@ const USER_ASSET_CATEGORIES = [
 const TEXTURE_CATEGORY = 'tex';
 const USER_ASSET_PREFIX = 'user:';
 const USER_ASSET_EXTENSIONS = ['svg', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'avif'];
-// Kürzeste Kante, auf die eingelesene Grafiken heruntergerechnet werden.
-// Begründung: gridSize ist fest 30 und MAX_ZOOM ist 4, eine Wabe wird also nie
-// größer als 208x240 px. Beim Cover-Fit füllt die relativ kleinere Bildseite die
-// Wabe — 256 deckt die nötigen 240 px ab, alles darüber wäre nur Speicher.
-// Die längere Seite wird beim Cover-Fit ohnehin abgeschnitten.
+// Shortest side that loaded graphics are downscaled to.
+// Rationale: gridSize is fixed at 30 and MAX_ZOOM is 4, so a hex is never
+// larger than 208x240 px. With cover fit the relatively smaller image side fills the
+// hex — 256 covers the required 240 px, anything more is wasted memory.
+// The longer side is clipped by cover fit anyway.
 const USER_ASSET_MAX_SHORT_SIDE = 256;
-// Obergrenze fürs Nachladen beim Export. Deckelt den Speicher, falls jemand mit
-// extremer Auflösung exportiert; die Quelldatei bleibt ohnehin die echte Grenze.
+// Upper bound for reloading on export. Caps memory in case someone exports
+// at extreme resolution; the source file remains the real limit anyway.
 const USER_ASSET_EXPORT_MAX_SHORT_SIDE = 2048;
 const USER_ASSET_MAX_FILES = 500;
-// Wartezeit nach der letzten Dateiänderung, bevor ein Ordner neu gescannt wird.
+// Wait time after the last file change before a folder is rescanned.
 const ASSET_WATCH_DEBOUNCE = 400;
-// Anteil der Waben-Bounding-Box, den ein User-Symbol maximal einnimmt.
+// Fraction of the hex bounding box a user symbol may occupy at most.
 const USER_SYMBOL_FIT = 0.8;
-// Überstand der Textur über den Farb-Untergrund. Nötig, weil der Farb-Fill eine
-// antialiaste (weiche) Kante hat, das Textur-clip() aber hart abschneidet — ohne
-// den Überstand lugt bei ausgeblendeten Rahmen ein 1px-Farbrand hervor.
+// Overhang of the texture over the color background, in SCREEN pixels (divided by
+// zoom at draw time). Needed because the color fill has an antialiased (soft) edge
+// but texture clip() cuts hard — without it a 1px color border peeks out when
+// borders are hidden.
 const TEXTURE_EDGE_BLEED = 1;
-// Zeichenebenen der System-Symbole (unten → oben). User-Symbole liegen darüber,
-// direkt vor den Grenzen — siehe drawMapLayers().
+// Draw layers of the system symbols (bottom -> top). User symbols sit above,
+// just before the borders — see drawMapLayers().
 const SYMBOL_LAYER_VEGETATION = ['swamp', 'grass', 'bush', 'tree', 'pine', 'palm'];
 const SYMBOL_LAYER_TERRAIN = ['hill', 'mountain'];
 const SYMBOL_LAYER_EXTRAS = ['question', 'exclamation', 'cross', 'dot', 'shield', 'pirateskull'];
@@ -98,7 +99,7 @@ function isUserAssetKey(key) {
     return typeof key === 'string' && key.startsWith(USER_ASSET_PREFIX);
 }
 
-// === Symbol-Konfiguration (Größe/Position pro Symbol) ===
+// === Symbol config (size/position per symbol) ===
 const SVG_SYMBOL_CONFIG = {
     'question':    { size: 0.5,   align: 'center', marginX: 0, marginY: 0 },
     'exclamation': { size: 0.5,   align: 'center', marginX: 0, marginY: 0 },
@@ -127,7 +128,7 @@ const SVG_SYMBOL_CONFIG = {
     'oasis':       { size: 0.4,  align: 'center', marginX: 0, marginY: -5 }
 };
 
-// === Übersetzungen ===
+// === Translations ===
 function getObsidianLanguage() {
     const lang = window.localStorage.getItem('language');
     return (lang && TRANSLATIONS[lang]) ? lang : 'en';
@@ -159,7 +160,7 @@ const TRANSLATIONS = {
         // Varianten — Berge
         'variant.hill': 'Hügel',
         'variant.mountain': 'Berg',
-        // Varianten — Gebäude
+        // Variants — buildings
         'variant.tent': 'Zelt',
         'variant.house': 'Haus',
         'variant.village': 'Dorf',
@@ -261,7 +262,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Waben-Rahmen ausblenden',
         'settings.hideHexBordersDesc': 'Blendet die grauen Rahmenlinien zwischen den Waben aus.',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': 'Eigene Grafiken',
         'settings.userAssetPreview': 'Grafikvorschau',
         'settings.userAssetPreviewDesc': 'Zeigt im Rechtsklick-Menü Vorschaubilder der eigenen Grafiken statt nur der Namen.',
@@ -355,7 +356,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': 'Zwei-Finger-Pinch = Zoom.',
         'guide.touch.pan': 'Zwei-Finger-Ziehen = Karte verschieben.<br>Edit Modus aus: Auch mit einem Finger ziehen möglich.',
 
-        // Modal — Farbwähler
+        // Modal — color picker
         'modal.colorPickerTitle': 'Farbe wählen',
         'modal.colorPickerCancel': 'Abbrechen',
         'tooltip.colorEyedropper': 'Farbpipette\nTippe auf die Karte, um eine beliebige Farbe zu übernehmen',
@@ -363,7 +364,7 @@ const TRANSLATIONS = {
         'notice.colorPicked': 'Farbe aufgenommen',
         'notice.noColorAtPosition': 'Keine Farbe an dieser Position',
 
-        // Menü-Einträge
+        // Menu entries
         'menu.createNew': 'Neue Hex Cartographer Karte erstellen',
         'menu.openInEditor': 'Im Hex Cartographer öffnen',
         'menu.printMap': 'Karte drucken',
@@ -504,7 +505,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Hide hex borders',
         'settings.hideHexBordersDesc': 'Hides the gray border lines between hexes.',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': 'Custom graphics',
         'settings.userAssetPreview': 'Graphic preview',
         'settings.userAssetPreviewDesc': 'Shows thumbnail previews of your graphics in the right-click menu instead of just the names.',
@@ -725,7 +726,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': '隐藏六边形边框',
         'settings.hideHexBordersDesc': '隐藏六边形之间的灰色边框线。',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': '自定义图形',
         'settings.userAssetPreview': '图形预览',
         'settings.userAssetPreviewDesc': '在右键菜单中显示自定义图形的缩略图预览，而不仅是名称。',
@@ -940,7 +941,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Скрыть границы шестиугольников',
         'settings.hideHexBordersDesc': 'Скрывает серые линии границ между шестиугольниками.',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': 'Собственная графика',
         'settings.userAssetPreview': 'Предпросмотр графики',
         'settings.userAssetPreviewDesc': 'Показывает миниатюры собственной графики в контекстном меню вместо одних лишь имён.',
@@ -1155,7 +1156,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': '六角形の枠線を非表示',
         'settings.hideHexBordersDesc': '六角形間のグレーの枠線を非表示にします。',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': 'カスタム画像',
         'settings.userAssetPreview': '画像プレビュー',
         'settings.userAssetPreviewDesc': '右クリックメニューで、名前だけでなくカスタム画像のサムネイルを表示します。',
@@ -1370,7 +1371,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Masquer les bordures des hexagones',
         'settings.hideHexBordersDesc': 'Masque les lignes grises entre les hexagones.',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': 'Graphiques personnalisés',
         'settings.userAssetPreview': 'Aperçu graphique',
         'settings.userAssetPreviewDesc': 'Affiche des miniatures de vos graphiques dans le menu contextuel au lieu des seuls noms.',
@@ -1585,7 +1586,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Ocultar bordas dos hexágonos',
         'settings.hideHexBordersDesc': 'Oculta as linhas de borda cinzas entre os hexágonos.',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': 'Gráficos personalizados',
         'settings.userAssetPreview': 'Pré-visualização gráfica',
         'settings.userAssetPreviewDesc': 'Mostra miniaturas dos seus gráficos no menu de contexto em vez de apenas os nomes.',
@@ -1800,7 +1801,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': '육각형 테두리 숨기기',
         'settings.hideHexBordersDesc': '육각형 사이의 회색 테두리 선을 숨깁니다.',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': '사용자 그래픽',
         'settings.userAssetPreview': '그래픽 미리보기',
         'settings.userAssetPreviewDesc': '우클릭 메뉴에서 이름 대신 사용자 그래픽의 미리보기 썸네일을 표시합니다.',
@@ -2015,7 +2016,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Ocultar bordes de hexágonos',
         'settings.hideHexBordersDesc': 'Oculta las líneas grises entre los hexágonos.',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': 'Gráficos propios',
         'settings.userAssetPreview': 'Vista previa de gráficos',
         'settings.userAssetPreviewDesc': 'Muestra miniaturas de tus gráficos en el menú contextual en lugar de solo los nombres.',
@@ -2230,7 +2231,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Ukryj obramowania sześciokątów',
         'settings.hideHexBordersDesc': 'Ukrywa szare linie obramowań między sześciokątami.',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': 'Własna grafika',
         'settings.userAssetPreview': 'Podgląd grafiki',
         'settings.userAssetPreviewDesc': 'Pokazuje w menu kontekstowym miniatury własnej grafiki zamiast samych nazw.',
@@ -2445,7 +2446,7 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Nascondi bordi esagoni',
         'settings.hideHexBordersDesc': 'Nasconde le linee grigie tra gli esagoni.',
 
-        // Eigene Grafiken (User-Assets)
+        // Custom graphics (user assets)
         'settings.userAssets': 'Grafica personalizzata',
         'settings.userAssetPreview': 'Anteprima grafica',
         'settings.userAssetPreviewDesc': 'Mostra le anteprime delle tue grafiche nel menu contestuale invece dei soli nomi.',
@@ -2557,7 +2558,7 @@ const TRANSLATIONS = {
     },
 };
 
-// Übersetzungsfunktion mit Fallback auf Englisch und Platzhalterersetzung
+// Translation function with fallback to English and placeholder substitution
 function t(key, params) {
     let str = TRANSLATIONS[currentLanguage]?.[key]
            ?? TRANSLATIONS['en'][key]
@@ -2604,13 +2605,13 @@ function hsbToRgb(h, s, b) {
 function hsbToHex(h, s, b) { const rgb = hsbToRgb(h, s, b); return rgbToHex(rgb.r, rgb.g, rgb.b); }
 function hexToHsb(hex) { const rgb = hexToRgb(hex); return rgbToHsb(rgb.r, rgb.g, rgb.b); }
 
-// === Registry für User-Grafiken ===
-// Scannt den Ordner einer Kategorie rekursiv und hält die gefundenen Grafiken
-// bereit. Keys sind relativ zum Wurzelordner (`user:veg:Wald/eiche`), damit ein
-// Umbenennen des Wurzelordners bestehende Karten nicht zerstört.
+// === Registry for user graphics ===
+// Scans a category's folder recursively and keeps the found graphics
+// ready. Keys are relative to the root folder (`user:veg:Wald/eiche`), so
+// renaming the root folder does not break existing maps.
 class UserAssetRegistry {
-    // kind: 'symbol' erlaubt einfärbbare Einzelpfad-SVGs, 'texture' rastert immer —
-    // Texturen werden nie eingefärbt und brauchen deshalb stets ein Bild.
+    // kind: 'symbol' allows colorable single-path SVGs, 'texture' always rasterizes —
+    // Textures are never colored and therefore always need an image.
     constructor(app, category) {
         this.app = app;
         this.category = category.id;
@@ -2634,8 +2635,8 @@ class UserAssetRegistry {
 
     async load(rootPath) {
         const normalized = (rootPath || '').trim().replace(/^\/+|\/+$/g, '');
-        // Wird während des Ladens erneut geladen (z. B. Pfad schnell zweimal geändert),
-        // verwirft der ältere Lauf seine Ergebnisse.
+        // Reloaded while loading (e.g. path changed twice quickly),
+        // the older run discards its results.
         const gen = ++this.generation;
 
         this.rootPath = normalized;
@@ -2659,9 +2660,9 @@ class UserAssetRegistry {
             files.length = USER_ASSET_MAX_FILES;
         }
 
-        // Nur Metadaten aufbauen — kein Lesen, kein Dekodieren. Das passiert erst
-        // in ensure(), sonst läge ein ganzer Ordner im Speicher, obwohl die Karte
-        // vielleicht nur drei Grafiken benutzt.
+        // Build metadata only — no reading, no decoding. That happens only
+        // in ensure(), otherwise a whole folder would sit in memory although the map
+        // may use only three graphics.
         for (const file of files) {
             const asset = this.makeAsset(file);
             this.assets.set(asset.key, asset);
@@ -2682,7 +2683,7 @@ class UserAssetRegistry {
         };
     }
 
-    // Dekodiert eine Grafik bei Bedarf. Mehrfachaufrufe teilen sich denselben
+    // Decodes a graphic on demand. Repeated calls share the same
     // Vorgang; einmal Dekodiertes bleibt im Speicher.
     ensure(key) {
         const asset = this.assets.get(key);
@@ -2723,7 +2724,7 @@ class UserAssetRegistry {
         try {
             listing = await this.app.vault.adapter.list(folder);
         } catch (e) {
-            return; // Ordner existiert nicht oder ist nicht lesbar
+            return; // Folder does not exist or is not readable
         }
         if (!listing) return;
 
@@ -2749,18 +2750,18 @@ class UserAssetRegistry {
         }
     }
 
-    // Dekodiert eine Grafik einmalig in höherer Auflösung, ohne den Cache zu
-    // verändern — für den Export. Liefert null, wenn die Grafik gar kein Bild hat
-    // (einfärbbare SVGs sind Vektoren und skalieren ohnehin verlustfrei).
-    // Die Quelldatei begrenzt das Ergebnis: downscale() vergrößert nie.
+    // Decodes a graphic once at higher resolution without touching the cache
+    // — for export. Returns null if the graphic has no image at all
+    // (colorable SVGs are vectors and scale losslessly anyway).
+    // The source file caps the result: downscale() never upscales.
     async decodeAt(key, shortSideCap) {
         const asset = this.assets.get(key);
         if (!asset || asset.failed) return null;
-        if (asset.decoded && !asset.image) return null; // einfärbbares SVG
+        if (asset.decoded && !asset.image) return null; // colorable SVG
 
         try {
             if (asset.ext === 'svg') {
-                // Nur nicht-einfärbbare SVGs brauchen ein größeres Rasterbild.
+                // Only non-colorable SVGs need a larger raster image.
                 if (asset.decoded && asset.colorable) return null;
                 return await this.loadSvg(asset, shortSideCap).then(d => (d && d.image) || null);
             }
@@ -2771,10 +2772,10 @@ class UserAssetRegistry {
         }
     }
 
-    // Ein SVG ist nur dann einfärbbar, wenn es aus genau einem <path> und sonst
-    // keiner Form besteht — nur das kann der Path2D-Renderpfad darstellen.
-    // Alles andere wird gerastert und wie eine Bitmap behandelt. Texturen werden
-    // nie eingefärbt und deshalb immer gerastert.
+    // An SVG is colorable only if it consists of exactly one <path> and no
+    // other shape — only that the Path2D render path can display.
+    // Everything else is rasterized and treated like a bitmap. Textures are
+    // never colored and therefore always rasterized.
     async loadSvg(asset, cap = USER_ASSET_MAX_SHORT_SIDE) {
         const content = await this.app.vault.adapter.read(asset.filePath);
         const doc = new DOMParser().parseFromString(content, 'image/svg+xml');
@@ -2811,13 +2812,13 @@ class UserAssetRegistry {
         return { colorable: false, image };
     }
 
-    // Chromium rendert ein <img> mit SVG ohne intrinsische Größe unzuverlässig,
-    // deshalb werden width/height vor dem Laden aus der viewBox gesetzt.
+    // Chromium renders an <img> with SVG lacking an intrinsic size unreliably,
+    // so width/height are set from the viewBox before loading.
     async rasterizeSvg(svgEl, vbWidth, vbHeight, cap = USER_ASSET_MAX_SHORT_SIDE) {
-        // Wie bei Bitmaps: die kürzere Seite bestimmt die Auflösung.
+        // Like bitmaps: the shorter side determines the resolution.
         const ratio = vbHeight / vbWidth;
         let width, height;
-        if (ratio >= 1) { // hoch -> Breite ist die kurze Seite
+        if (ratio >= 1) { // tall -> width is the short side
             width = cap;
             height = Math.max(1, Math.round(cap * ratio));
         } else {
@@ -2835,13 +2836,13 @@ class UserAssetRegistry {
         const serialized = new XMLSerializer().serializeToString(clone);
         const url = URL.createObjectURL(new Blob([serialized], { type: 'image/svg+xml' }));
         try {
-            return await this.loadBitmap(url, null); // bereits in Zielgröße gerastert
+            return await this.loadBitmap(url, null); // already rasterized at target size
         } finally {
             URL.revokeObjectURL(url);
         }
     }
 
-    // cap: Zielgröße der kurzen Seite, oder null/0 zum Übernehmen wie geladen.
+    // cap: target size of the short side, or null/0 to keep as loaded.
     loadBitmap(src, cap = USER_ASSET_MAX_SHORT_SIDE) {
         return new Promise((resolve) => {
             const img = new Image();
@@ -2851,10 +2852,10 @@ class UserAssetRegistry {
         });
     }
 
-    // Auf die KÜRZERE Seite begrenzen, nicht auf die längere: Beim Cover-Fit füllt
-    // die relativ kleinere Bildseite die Wabe, sie bestimmt also die sichtbare
-    // Auflösung. Die längere Seite wird ohnehin abgeschnitten.
-    // Vergrößert nie — die Quelldatei ist die Obergrenze.
+    // Limit the SHORTER side, not the longer one: with cover fit the
+    // the relatively smaller image side fills the hex, so it determines the visible
+    // resolution. The longer side is clipped anyway.
+    // Never upscales — the source file is the upper bound.
     downscale(img, cap = USER_ASSET_MAX_SHORT_SIDE) {
         const w = img.naturalWidth, h = img.naturalHeight;
         if (!w || !h) return null;
@@ -2906,7 +2907,7 @@ const DEFAULT_SETTINGS = {
     hexNumberingFontSize: 10,
 };
 
-// === Hauptklasse des Plugins ===
+// === Main plugin class ===
 class HexCartographerPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
@@ -3211,13 +3212,13 @@ class HexCartographerPlugin extends Plugin {
         return this.userAssets.get(categoryId);
     }
 
-    // Registry für eine Werkzeuggruppe (grass/tree/mountain/building).
+    // Registry for a tool group (grass/tree/mountain/building).
     getRegistryForGroup(groupId) {
         const category = USER_ASSET_CATEGORIES.find(c => c.group === groupId);
         return category ? this.userAssets.get(category.id) : null;
     }
 
-    // Registry, zu der ein Key gehört — Kategorie steckt im Key selbst.
+    // Registry a key belongs to — the category is part of the key itself.
     getRegistryForKey(key) {
         if (!isUserAssetKey(key)) return null;
         const rest = key.slice(USER_ASSET_PREFIX.length);
@@ -3226,15 +3227,15 @@ class HexCartographerPlugin extends Plugin {
         return this.userAssets.get(rest.slice(0, sep)) || null;
     }
 
-    // Löst `user:<kat>:<pfad>` auf. Liefert Metadaten; das Bild ist erst nach
+    // Resolves `user:<cat>:<path>`. Returns metadata; the image is only available after
     // ensureUserAssets() vorhanden.
     getUserAsset(key) {
         const registry = this.getRegistryForKey(key);
         return (registry && registry.get(key)) || null;
     }
 
-    // Dekodiert die genannten Grafiken. Wird aufgerufen, bevor gezeichnet wird,
-    // damit nie ein Platzhalter aufblitzt.
+    // Decodes the given graphics. Called before drawing,
+    // so a placeholder never flashes.
     async ensureUserAssets(keys) {
         const todo = [];
         for (const key of new Set(keys)) {
@@ -3244,10 +3245,10 @@ class HexCartographerPlugin extends Plugin {
         if (todo.length) await Promise.all(todo);
     }
 
-    // Führt fn() aus, während die genannten Grafiken in Export-Auflösung vorliegen,
-    // und gibt den Mehrspeicher danach wieder frei. Nötig, weil im Betrieb nur eine
-    // bildschirmgroße Fassung (256 px kurze Seite) im Speicher liegt.
-    // Einfärbbare SVGs bleiben unangetastet — die skalieren als Vektor verlustfrei.
+    // Runs fn() while the given graphics are present at export resolution,
+    // and frees the extra memory afterwards. Needed because at runtime only a
+    // screen-sized version (256 px short side) is kept in memory.
+    // Colorable SVGs stay untouched — they scale losslessly as vectors.
     async withExportResolution(keys, shortSideCap, fn) {
         if (!(shortSideCap > USER_ASSET_MAX_SHORT_SIDE)) return fn();
 
@@ -3258,7 +3259,7 @@ class HexCartographerPlugin extends Plugin {
                 const registry = this.getRegistryForKey(key);
                 if (!registry) continue;
                 const asset = registry.get(key);
-                if (!asset || !asset.image) continue; // nicht dekodiert oder Vektor
+                if (!asset || !asset.image) continue; // not decoded or vector
 
                 const hiRes = await registry.decodeAt(key, cap);
                 if (!hiRes) continue;
@@ -3271,14 +3272,14 @@ class HexCartographerPlugin extends Plugin {
         }
     }
 
-    // Auflösung, die ein Export pro Grafik braucht: die größte Ausdehnung einer
-    // Wabe im Zielbild. Mehr als die Quelldatei hergibt kommt dabei nicht heraus.
+    // Resolution an export needs per graphic: the largest extent of a
+    // hex in the target image. Never exceeds what the source file provides.
     exportShortSideFor(gridSize, scale) {
         return Math.ceil(gridSize * 2 * scale);
     }
 
-    // Alle User-Grafiken, die eine Karte tatsächlich verwendet. Nur die werden
-    // dekodiert — ein Ordner mit 300 Texturen kostet nichts, wenn die Karte fünf nutzt.
+    // All user graphics a map actually uses. Only those get
+    // decoded — a folder of 300 textures costs nothing if the map uses five.
     collectUsedAssetKeys(data) {
         const keys = [];
         if (!data || !data.hexes) return keys;
@@ -3289,8 +3290,8 @@ class HexCartographerPlugin extends Plugin {
         return keys;
     }
 
-    // Lädt die angegebenen Kategorien neu (Standard: alle) und zeichnet offene
-    // Karten neu. Wird beim Start, nach Pfadänderungen und vom Watcher aufgerufen.
+    // Reloads the given categories (default: all) and redraws open
+    // open maps. Called at startup, after path changes and by the watcher.
     async reloadUserAssets(categoryIds = null) {
         const ids = categoryIds || USER_ASSET_CATEGORIES.map(c => c.id);
 
@@ -3309,16 +3310,16 @@ class HexCartographerPlugin extends Plugin {
         });
     }
 
-    // Beobachtet die beiden User-Ordner, damit neue oder geänderte Grafiken ohne
-    // Neustart erscheinen. Möglich, weil die Pfade vault-relativ sind — Obsidian
-    // liefert für Vault-Inhalte Events frei Haus.
+    // Watches the user folders so new or changed graphics appear without
+    // a restart. Possible because the paths are vault-relative — Obsidian
+    // provides events for vault content out of the box.
     registerAssetWatcher() {
         this.register(() => {
             if (this._assetReloadTimer) clearTimeout(this._assetReloadTimer);
         });
 
-        // Erst nach dem Start registrieren: Beim Aufbau des Vaults feuert 'create'
-        // für jede einzelne Datei, das gäbe sonst bei jedem Start einen Rescan-Sturm.
+        // Register only after startup: building the vault fires 'create'
+        // for every single file, which would cause a rescan storm on each start.
         this.app.workspace.onLayoutReady(() => {
             const handle = (file, oldPath) => this.handleAssetFileChange(file, oldPath);
             this.registerEvent(this.app.vault.on('create', (f) => handle(f)));
@@ -3333,13 +3334,13 @@ class HexCartographerPlugin extends Plugin {
         return path === root || path.startsWith(root + '/');
     }
 
-    // Nur Dateien mit unterstützter Endung und Ordner (ohne Endung) lösen einen
-    // Rescan aus. Sonst würde z. B. das Speichern einer Karte, die im selben
-    // Ordner liegt, bei jedem Zug neu einlesen.
+    // Only files with a supported extension and folders (no extension) trigger a
+    // rescan. Otherwise saving a map that sits in the same
+    // folder, would re-read on every stroke.
     isAssetRelevantPath(path) {
         const slash = path.lastIndexOf('/');
         const dot = path.lastIndexOf('.');
-        if (dot <= slash + 1) return true; // kein Suffix → Ordner
+        if (dot <= slash + 1) return true; // no suffix -> folder
         return USER_ASSET_EXTENSIONS.includes(path.slice(dot + 1).toLowerCase());
     }
 
@@ -3347,8 +3348,8 @@ class HexCartographerPlugin extends Plugin {
         const paths = [file && file.path, oldPath].filter(Boolean).filter(p => this.isAssetRelevantPath(p));
         if (paths.length === 0) return;
 
-        // Derselbe Ordner darf mehreren Kategorien zugewiesen sein — dann sind
-        // auch alle betroffen.
+        // The same folder may be assigned to several categories — then
+        // all of them are affected.
         const hits = USER_ASSET_CATEGORIES
             .filter(c => paths.some(p => this.isInsideFolder(p, this.settings[c.settingKey])))
             .map(c => c.id);
@@ -3357,8 +3358,8 @@ class HexCartographerPlugin extends Plugin {
         if (!this._pendingReload) this._pendingReload = new Set();
         hits.forEach(id => this._pendingReload.add(id));
 
-        // Entprellen: Beim Kopieren mehrerer Dateien in den Ordner feuert pro Datei
-        // ein Event — ohne das würde für jede einzeln neu gescannt.
+        // Debounce: copying several files into the folder fires one event per file
+        // one event — without this each would trigger its own rescan.
         if (this._assetReloadTimer) clearTimeout(this._assetReloadTimer);
         this._assetReloadTimer = setTimeout(() => {
             this._assetReloadTimer = null;
@@ -3369,7 +3370,7 @@ class HexCartographerPlugin extends Plugin {
     }
 }
 
-// === View-Klasse für den Hex Cartographer ===
+// === View class for the Hex Cartographer ===
 class HexCartographerView extends ItemView {
     constructor(leaf, plugin) {
         super(leaf);
@@ -3401,7 +3402,7 @@ class HexCartographerView extends ItemView {
         this.pathPickMode = false;
         this.pathPickPending = null;
         this.lastToolGroup = null;
-        // Wie weit Pfad-Endpunkte ins Hex reichen: 0 = Hex-Rand, 1 = Hex-Zentrum
+        // How far path endpoints reach into the hex: 0 = hex edge, 1 = hex center
         this.pathEndInset = PATH_END_INSET;
         this.riverDragIndex = null;
         this.roadDragIndex = null;
@@ -3410,7 +3411,7 @@ class HexCartographerView extends ItemView {
 
         this.masterColor = DEFAULT_MASTER_COLOR;
         this.hexColorColor = DEFAULT_PALETTE[0];
-        // null = Modus "Farbe" (Standard), sonst der Key einer User-Textur.
+        // null = "Color" mode (default), otherwise the key of a user texture.
         this.hexTexture = null;
 
         this.colorPalette = [...DEFAULT_PALETTE];
@@ -3421,14 +3422,14 @@ class HexCartographerView extends ItemView {
 
         this.initToolConfigs();
 
-        this.editMode = false; // Edit-Modus: true = Werkzeuge sichtbar, false = nur Navigation
-        this.hexOrientation = false; // false = Spitze oben (Standard), true = Flache Seite oben (90° gedreht)
+        this.editMode = false; // Edit mode: true = tools visible, false = navigation only
+        this.hexOrientation = false; // false = pointy top (default), true = flat top (rotated 90 deg)
         this.drawMode = 'pen'; // pen, fill, eraser
-        this.currentToolGroup = null; // grass, tree, mountain, building, oder null für Farbpalette
+        this.currentToolGroup = null; // grass, tree, mountain, building, or null for the color palette
 
         this.patternData = null;
         this.patternPickMode = false;
-        this.patternSourceHex = null; // Speichert q/r der Musterwabe
+        this.patternSourceHex = null; // Stores q/r of the pattern hex
 
         this.svgSymbols = {};
         this.svgSymbolsLoaded = false;
@@ -3548,7 +3549,7 @@ class HexCartographerView extends ItemView {
                             const baseName = this.file ? this.file.basename.replace('.hexcartographer', '') : 'hex-cartographer-map';
                             const blob = await new Promise(resolve => tmpCanvas.toBlob(resolve, mimeType, format === 'jpeg' ? quality / 100 : undefined));
                             if (this.isTouchDevice) {
-                                // Mobil: In Export-Unterordner neben der .hexcartographer-Datei speichern
+                                // Mobile: save into an export subfolder next to the .hexcartographer file
                                 const parentFolder = this.file ? this.file.parent.path : '';
                                 const exportFolder = parentFolder ? `${parentFolder}/Hex Cartographer Export` : 'Hex Cartographer Export';
                                 if (!this.app.vault.getAbstractFileByPath(exportFolder)) {
@@ -3602,9 +3603,9 @@ class HexCartographerView extends ItemView {
         super.onPaneMenu(menu, source);
     }
 
-    // Rendert die Karte für Export/Druck. renderFullMap zeichnet synchron, deshalb
-    // müssen die verwendeten Grafiken vorher dekodiert sein — und zwar in der
-    // Auflösung, die das Zielbild braucht statt der bildschirmgroßen Fassung.
+    // Renders the map for export/print. renderFullMap draws synchronously, so
+    // the used graphics must be decoded beforehand — namely at the
+    // resolution the target image needs instead of the screen-sized version.
     async renderFullMapForOutput(opts = {}) {
         await this.plugin.userAssetsPromise;
 
@@ -3691,15 +3692,15 @@ class HexCartographerView extends ItemView {
         });
     }
 
-    // Lucide-Icon für einen Varianten-Key. User-Keys haben keine Variante in der
-    // Config — dann dient das Icon der ersten Systemvariante als Rückfall.
+    // Lucide icon for a variant key. User keys have no variant in the
+    // config — then the first system variant's icon serves as fallback.
     variantIconFor(config, id) {
         const variant = config.variants.find(v => v.id === id);
         if (variant) return variant.icon;
         return config.variants[0] ? config.variants[0].icon : 'help-circle';
     }
 
-    // Anzeigename einer Variante — für User-Symbole der Dateiname aus der Registry.
+    // Display name of a variant — for user symbols the file name from the registry.
     variantLabelFor(config, id) {
         const variant = config.variants.find(v => v.id === id);
         if (variant) return variant.label;
@@ -3710,8 +3711,8 @@ class HexCartographerView extends ItemView {
         return null;
     }
 
-    // Einzige Stelle, an der das Icon eines Symbol-Buttons erzeugt wird —
-    // deckt System-Symbole, User-SVGs und User-Bitmaps ab.
+    // Single place where a symbol button's icon is created —
+    // covers system symbols, user SVGs and user bitmaps.
     renderSymbolButtonIcon(btn, symbolKey, fallbackIcon) {
         btn.innerHTML = '';
 
@@ -3721,9 +3722,9 @@ class HexCartographerView extends ItemView {
                 if (fallbackIcon) setIcon(btn, fallbackIcon);
                 return;
             }
-            // Ob ein SVG einfärbbar ist, steht erst nach dem Dekodieren fest. Bis
-            // dahin zeigt <img> die Grafik korrekt — danach ggf. auf den
-            // einfärbbaren Pfad umstellen.
+            // Whether an SVG is colorable is known only after decoding. Until
+            // then <img> shows the graphic correctly — afterwards switch to the
+            // colorable path.
             if (!asset.decoded && !asset.failed) {
                 this.plugin.ensureUserAssets([symbolKey]).then(() => {
                     if (btn.isConnected) this.renderSymbolButtonIcon(btn, symbolKey, fallbackIcon);
@@ -3786,9 +3787,9 @@ class HexCartographerView extends ItemView {
 
             const content = await this.app.vault.read(this.file);
 
-            // Eigener Speichervorgang: identischer Inhalt -> nichts neu zu laden.
-            // Verhindert, dass ein verzögertes modify-Event den aktuellen Stand
-            // (z. B. die Waben-Ausrichtung) mit einem veralteten Wert überschreibt.
+            // Own save: identical content -> nothing to reload.
+            // Prevents a delayed modify event from overwriting the current state
+            // (e.g. the hex orientation) with a stale value.
             if (content === this._lastSavedContent) return;
 
             let jsonContent = content;
@@ -3802,7 +3803,7 @@ class HexCartographerView extends ItemView {
 
             const newData = JSON.parse(jsonContent);
 
-            // KRITISCH: Validiere gridSize und repariere falls nötig
+            // CRITICAL: validate gridSize and repair if needed
             if (!newData.gridSize || newData.gridSize < 1 || newData.gridSize > 1000 || !isFinite(newData.gridSize)) {
                 console.warn('Invalid gridSize detected:', newData.gridSize, '- resetting to 30');
                 newData.gridSize = 30;
@@ -3820,7 +3821,7 @@ class HexCartographerView extends ItemView {
                     migratedHexes[key] = {
                         q: h.q,
                         r: h.r,
-                        color: h.backgroundColor || h.color, // backgroundColor hat Vorrang
+                        color: h.backgroundColor || h.color, // backgroundColor takes precedence
                         symbol: h.symbol,
                         symbolColor: h.symbolColor
                     };
@@ -3860,7 +3861,7 @@ class HexCartographerView extends ItemView {
                     this._savedDrawMode = savedDrawMode;
                 }
                 if (newData.settings.toolConfigs) {
-                    // WICHTIG: Explizit jeden Key einzeln laden, um sicherzustellen,
+                    // IMPORTANT: load each key explicitly to ensure
                     ['grass', 'tree', 'mountain', 'building'].forEach(key => {
                         if (newData.settings.toolConfigs[key] && this.toolConfigs[key]) {
                             const saved = newData.settings.toolConfigs[key];
@@ -4064,8 +4065,8 @@ class HexCartographerView extends ItemView {
             if (JSON.stringify(this.data) !== JSON.stringify(newData)) {
                 this.data = Object.assign({}, newData);
 
-                // Genau die Grafiken dekodieren, die diese Karte benutzt — vor dem
-                // ersten Zeichnen, damit keine Platzhalter aufblitzen.
+                // Decode exactly the graphics this map uses — before the
+                // first draw, so no placeholders flash.
                 await this.plugin.ensureUserAssets(this.plugin.collectUsedAssetKeys(this.data));
 
                 if (this.canvas) {
@@ -4212,7 +4213,7 @@ class HexCartographerView extends ItemView {
 
         texts.forEach(t => {
             const textSize = t.size || 16;
-            const estimatedWidth = t.text.length * textSize * 0.6; // Geschätzte Textbreite
+            const estimatedWidth = t.text.length * textSize * 0.6; // Estimated text width
             const estimatedHeight = textSize;
 
             minX = Math.min(minX, t.x - estimatedWidth / 2);
@@ -4300,15 +4301,6 @@ class HexCartographerView extends ItemView {
         this.canvas.tabIndex = 0;
         this.canvas.style.outline = 'none';
         this.ctx = this.canvas.getContext('2d');
-
-        this.svgLayer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        this.svgLayer.style.position = 'absolute';
-        this.svgLayer.style.top = '0';
-        this.svgLayer.style.left = '0';
-        this.svgLayer.style.width = '100%';
-        this.svgLayer.style.height = '100%';
-        this.svgLayer.style.pointerEvents = 'none'; // Lässt Maus-Events durch
-        canvasContainer.appendChild(this.svgLayer);
 
         this.textCanvas = canvasContainer.createEl('canvas', { cls: 'hex-text-canvas' });
         this.textCtx = this.textCanvas.getContext('2d');
@@ -4612,7 +4604,7 @@ class HexCartographerView extends ItemView {
         this.patternPickerBtn = pickerBtn;
     }
 
-    // Auf Touch-Geräten gibt es kein Kontextmenü — langes Drücken übernimmt.
+    // Touch devices have no context menu — long press takes over.
     addLongPress(el, handler) {
         let timer = null;
         const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
@@ -4624,8 +4616,8 @@ class HexCartographerView extends ItemView {
         el.addEventListener('touchcancel', cancel);
     }
 
-    // Waben-Button: Im Modus "Farbe" das normale Hexagon-Icon, mit gewählter Textur
-    // eine damit gefüllte Wabe als Vorschau.
+    // Hex button: the plain hexagon icon in "Color" mode, with a chosen texture
+    // a hex filled with it as a preview.
     updateHexColorButtonIcon(btn) {
         if (!btn) return;
         const asset = this.hexTexture ? this.plugin.getUserAsset(this.hexTexture) : null;
@@ -4641,8 +4633,8 @@ class HexCartographerView extends ItemView {
         btn.appendChild(this.makeHexImageSvg(src, 16));
     }
 
-    // Hexförmige Bildvorschau: das Bild per "cover" auf die Wabenform geclippt.
-    // Genutzt vom Waben-Button und der Menü-Grafikvorschau.
+    // Hex-shaped image preview: the image clipped to the hex shape via "cover".
+    // Used by the hex button and the menu graphic preview.
     makeHexImageSvg(src, size) {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 100 100');
@@ -4651,7 +4643,7 @@ class HexCartographerView extends ItemView {
         svg.style.verticalAlign = 'middle';
         svg.style.flex = '0 0 auto';
 
-        // Eindeutige ID, sonst greifen mehrere Vorschauen auf dasselbe clipPath zu.
+        // Unique ID, otherwise several previews would share the same clipPath.
         const clipId = `hexclip-${Math.random().toString(36).slice(2)}`;
         const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
         clipPath.setAttribute('id', clipId);
@@ -4675,10 +4667,10 @@ class HexCartographerView extends ItemView {
         return svg;
     }
 
-    // DOM-Eintrag für die Menü-Grafikvorschau: Thumbnail + Name. kind 'texture'
-    // -> hexförmig, sonst quadratisch (contain). Nutzt native <img>/<svg> mit der
+    // DOM entry for the menu graphic preview: thumbnail + name. kind 'texture'
+    // -> hex-shaped, otherwise square (contain). Uses native <img>/<svg> with the
     // Ressourcen-URL, umgeht also den Dekodier-Cache; loading="lazy" schont bei
-    // großen Ordnern Speicher (v. a. mobil).
+    // large folders (especially on mobile).
     makeAssetPreviewLabel(asset, kind, prefix = '') {
         const wrap = document.createElement('div');
         wrap.style.display = 'flex';
@@ -4686,8 +4678,8 @@ class HexCartographerView extends ItemView {
         wrap.style.gap = '8px';
 
         const src = this.app.vault.adapter.getResourcePath(asset.filePath);
-        // Textur füllt die Wabe (cover), Symbol sitzt in der Wabe (contain) —
-        // beide mit identischer Wabengröße.
+        // Texture fills the hex (cover), symbol sits in the hex (contain) —
+        // both at identical hex size.
         if (kind === 'texture') {
             wrap.appendChild(this.makeHexImageSvg(src, 22));
         } else {
@@ -4700,9 +4692,9 @@ class HexCartographerView extends ItemView {
         return wrap;
     }
 
-    // DOM-Eintrag für die Vorschau eines System-Symbols: das Symbol in einer Wabe
-    // dargestellt (wie auf der Karte), plus Name. Fällt auf das Lucide-Icon zurück,
-    // falls kein SVG-Pfad vorliegt.
+    // DOM entry for a system symbol preview: the symbol inside a hex
+    // shown (like on the map), plus name. Falls back to the Lucide icon
+    // if no SVG path is available.
     makeSystemSymbolPreviewLabel(variant, symbolColor) {
         const wrap = document.createElement('div');
         wrap.style.display = 'flex';
@@ -4725,9 +4717,9 @@ class HexCartographerView extends ItemView {
         return wrap;
     }
 
-    // Leere Wabe (Hintergrund + Rahmen) als Grundlage einer Symbolvorschau.
-    // Gemeinsame Basis für System- und User-Symbole, damit die Wabengröße
-    // überall identisch ist.
+    // Empty hex (background + border) as the basis of a symbol preview.
+    // Shared base for system and user symbols, so the hex size
+    // is identical everywhere.
     makeHexPreviewSvg(size) {
         const NS = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(NS, 'svg');
@@ -4746,13 +4738,13 @@ class HexCartographerView extends ItemView {
         return svg;
     }
 
-    // Wabe mit zentriertem System-Symbol (SVG-Pfad). Einheitliche Symbolgröße
-    // (nicht die per-Symbol-Kartengröße), damit die Liste gleichmäßig lesbar bleibt.
+    // Hex with a centered system symbol (SVG path). Uniform symbol size
+    // (not the per-symbol map size), so the list stays evenly readable.
     makeSystemSymbolHex(info, symbolColor, size) {
         const NS = 'http://www.w3.org/2000/svg';
         const svg = this.makeHexPreviewSvg(size);
 
-        const target = 60; // Symbolbreite innerhalb der 100er-Wabe
+        const target = 60; // Symbol width within the 100-unit hex
         const scale = target / info.viewBoxWidth;
         const off = (100 - target) / 2;
         const g = document.createElementNS(NS, 'g');
@@ -4765,8 +4757,8 @@ class HexCartographerView extends ItemView {
         return svg;
     }
 
-    // Wabe mit zentriertem User-Symbol (Bild, contain). Gleiche Wabe wie beim
-    // System-Symbol, damit alle Symbolvorschauen einheitlich wirken.
+    // Hex with a centered user symbol (image, contain). Same hex as the
+    // system symbol, so all symbol previews look consistent.
     makeSymbolImageHex(src, size) {
         const NS = 'http://www.w3.org/2000/svg';
         const svg = this.makeHexPreviewSvg(size);
@@ -4794,8 +4786,8 @@ class HexCartographerView extends ItemView {
         return pts.join(' ');
     }
 
-    // Untermenüs sind erst in neueren Obsidian-Versionen verfügbar. Fehlen sie,
-    // wird die Hierarchie flach mit "Ordner / Name" abgebildet.
+    // Submenus exist only in newer Obsidian versions. If missing,
+    // the hierarchy is flattened as "Folder / Name".
     supportsSubmenus() {
         if (this._submenuSupport === undefined) {
             const probe = new Menu();
@@ -4806,25 +4798,25 @@ class HexCartographerView extends ItemView {
         return this._submenuSupport;
     }
 
-    // Obsidian lässt Menüs nur auf Mobile scrollen: `.menu-scroll` steht auf dem
-    // Desktop auf overflow:hidden, wodurch lange Listen an der Fensterkante
-    // abgeschnitten und unerreichbar werden. Die Klasse zieht unser Scroll-CSS
-    // aus styles.css nach. `dom` ist inoffiziell, deshalb defensiv geprüft.
+    // Obsidian only scrolls menus on mobile: on the desktop `.menu-scroll` is
+    // desktop it is overflow:hidden, so long lists at the window edge
+    // get clipped and unreachable. The class pulls in our scroll CSS
+    // from styles.css. `dom` is unofficial, so checked defensively.
     tagScrollableMenu(menu) {
         const dom = menu && menu.dom;
         if (dom && typeof dom.addClass === 'function') dom.addClass('hex-cartographer-menu');
         return menu;
     }
 
-    // Nach angezeigtem Namen sortieren. Muss zur Anzeigezeit passieren, weil die
-    // Labels übersetzt sind — alphabetisch ist je Sprache eine andere Reihenfolge.
+    // Sort by displayed name. Must happen at display time because the
+    // labels are translated — alphabetical order differs per language.
     sortByLabel(items, labelOf) {
         return [...items].sort((a, b) =>
             labelOf(a).localeCompare(labelOf(b), currentLanguage, { numeric: true, sensitivity: 'base' }));
     }
 
-    // Baut den Asset-Baum in ein Menü. currentKey wird abgehakt. previewKind:
-    // 'texture'/'symbol' zeigt Thumbnails statt Namen (siehe makeAssetPreviewLabel),
+    // Builds the asset tree into a menu. currentKey is checked. previewKind:
+    // 'texture'/'symbol' shows thumbnails instead of names (see makeAssetPreviewLabel),
     // null/false zeigt Namen wie bisher.
     buildAssetMenu(menu, node, currentKey, onSelect, previewKind = null, prefix = '') {
         const flat = !this.supportsSubmenus();
@@ -4840,12 +4832,12 @@ class HexCartographerView extends ItemView {
             });
         });
 
-        // Nach dem angezeigten Label sortieren, nicht nach der Einfügereihenfolge
-        // der Registry: Die sortiert nach vollem Pfad inklusive Endung und weicht
-        // deshalb ab (z. B. "foo-2.png" vor "foo.svg", angezeigt aber "foo" vor "foo-2").
+        // Sort by displayed label, not by the insertion order
+        // of the registry: it sorts by full path including extension and differs
+        // accordingly (e.g. "foo-2.png" before "foo.svg", but shown "foo" before "foo-2").
         this.sortByLabel(node.assets, a => a.label).forEach(asset => {
             menu.addItem(item => {
-                // setTitle akzeptiert String ODER DOM-Element (Obsidian-API).
+                // setTitle accepts a string OR a DOM element (Obsidian API).
                 if (previewKind) item.setTitle(this.makeAssetPreviewLabel(asset, previewKind, prefix));
                 else item.setTitle(prefix + asset.label);
                 item.setChecked(asset.key === currentKey)
@@ -4857,14 +4849,14 @@ class HexCartographerView extends ItemView {
     showVariantMenu(groupId, wrapper) {
         const config = this.toolConfigs[groupId];
         const btn = wrapper.querySelector('.hex-tool-btn');
-        // Jede Werkzeuggruppe hat ihren eigenen Ordner — ohne konfigurierten Pfad
-        // bleibt es bei den Systemsymbolen dieser Gruppe.
+        // Each tool group has its own folder — without a configured path
+        // it stays with this group's system symbols.
         const registry = this.plugin.getRegistryForGroup(groupId);
         const rect = btn.getBoundingClientRect();
 
         const selectVariant = async (id) => {
-            // Vor dem ersten Malen dekodieren — die Auswahl ist ein Klick, die
-            // kurze Wartezeit fällt nicht auf.
+            // Decode before first paint — selection is a click, the
+            // short wait is not noticeable.
             await this.plugin.ensureUserAssets([id]);
 
             config.currentVariant = id;
@@ -4885,7 +4877,7 @@ class HexCartographerView extends ItemView {
             const preview = this.plugin.settings.userAssetPreview;
             this.sortByLabel(config.variants, v => v.label).forEach(variant => {
                 target.addItem(item => {
-                    // setTitle akzeptiert String ODER DOM-Element (Obsidian-API).
+                    // setTitle accepts a string OR a DOM element (Obsidian API).
                     if (preview) item.setTitle(this.makeSystemSymbolPreviewLabel(variant, config.symbolColor));
                     else item.setTitle(variant.label);
                     item.setChecked(variant.id === config.currentVariant)
@@ -4897,7 +4889,7 @@ class HexCartographerView extends ItemView {
         const menu = this.tagScrollableMenu(new Menu());
         const previewKind = this.plugin.settings.userAssetPreview ? 'symbol' : null;
 
-        // Ohne eigene Symbole bleibt das Menü flach wie bisher — ohne "System"-Ebene.
+        // Without custom symbols the menu stays flat as before — no "System" level.
         if (!registry || !registry.isActive) {
             addSystemVariants(menu);
         } else if (!this.supportsSubmenus()) {
@@ -4918,8 +4910,8 @@ class HexCartographerView extends ItemView {
         menu.showAtPosition({ x: rect.left, y: rect.bottom + 4 });
     }
 
-    // Rechtsklick auf den Waben-Button: "Farbe" (Standard) plus eigene Texturen.
-    // Ohne konfigurierten Texturordner erscheint gar kein Menü.
+    // Right-click on the hex button: "Color" (default) plus custom textures.
+    // Without a configured texture folder no menu appears at all.
     showHexTextureMenu(btn) {
         const registry = this.plugin.getRegistry(TEXTURE_CATEGORY);
         if (!registry || !registry.isActive) return;
@@ -4969,51 +4961,6 @@ class HexCartographerView extends ItemView {
         }
 
         menu.showAtPosition({ x: rect.left, y: rect.bottom + 4 });
-    }
-
-    openColorPickerModal(groupId, wrapper) {
-        const config = this.toolConfigs[groupId];
-        const btn = wrapper.querySelector('.hex-tool-btn');
-
-        const modal = new Modal(this.app);
-        modal.contentEl.createEl('h3', { text: `${config.name} - Hintergrundfarbe` });
-
-        const bgSection = modal.contentEl.createDiv({ style: 'margin: 15px 0;' });
-
-        const bgRow = bgSection.createDiv({ style: 'display: flex; gap: 10px; align-items: center; margin-bottom: 10px;' });
-        bgRow.createEl('label', { text: 'Farbe:' });
-        const bgPicker = bgRow.createEl('input', { type: 'color', value: config.backgroundColor || BUTTON_BG_DEFAULT });
-
-        const bgPaletteRow = bgSection.createDiv({ style: 'display: flex; gap: 5px; flex-wrap: wrap;' });
-        bgPaletteRow.createEl('span', { text: 'Palette:', attr: { style: 'width: 100%; font-size: 11px; margin-bottom: 5px;' } });
-        this.colorPalette.forEach(color => {
-            const paletteBtn = bgPaletteRow.createEl('button', {
-                attr: {
-                    style: `width: 30px; height: 30px; background: ${color}; border: 2px solid var(--divider-color); border-radius: 3px; cursor: pointer;`
-                }
-            });
-            paletteBtn.onclick = () => {
-                bgPicker.value = color;
-            };
-        });
-
-        const btnRow = modal.contentEl.createDiv({ style: 'display: flex; gap: 10px; margin-top: 20px;' });
-
-        const okBtn = btnRow.createEl('button', { text: 'OK', cls: 'mod-cta' });
-        okBtn.onclick = () => {
-            config.backgroundColor = bgPicker.value;
-            if (config.backgroundEnabled) {
-                btn.style.background = config.backgroundColor;
-            }
-            modal.close();
-            this.requestSave();
-            this.render();
-        };
-
-        const cancelBtn = btnRow.createEl('button', { text: 'Abbrechen' });
-        cancelBtn.onclick = () => modal.close();
-
-        modal.open();
     }
 
     createColorPalette(toolbar) {
@@ -5532,14 +5479,14 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    // Hält den Ausrichtungs-Button synchron mit this.hexOrientation. An einer Stelle,
-    // damit Button und Zustand nie auseinanderlaufen (Erstellen, Klick, Reload).
+    // Keeps the orientation button in sync with this.hexOrientation. In one place,
+    // so button and state never diverge (create, click, reload).
     syncHexOrientationButton() {
         const btn = this.hexOrientationBtn;
         if (!btn) return;
-        // Button aktiv = Wabenspitze oben. Intern ist das hexOrientation === false
-        // (false = Spitze oben, true = flache Seite oben). Betrifft nur den
-        // Anzeige-Status des Buttons, nicht die Ausrichtungsfunktion selbst.
+        // Button active = pointy top. Internally that is hexOrientation === false
+        // (false = pointy top, true = flat top). Affects only the
+        // display state of the button, not the orientation function itself.
         const pointyTop = !this.hexOrientation;
         btn.classList.toggle('active', pointyTop);
         btn.style.background = pointyTop ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
@@ -6205,7 +6152,7 @@ class HexCartographerView extends ItemView {
                     }
                     this.touchState.pendingTouchStart = null;
                     this.touchState.touchStartTimeout = null;
-                }, 150); // 150ms Verzögerung
+                }, 150); // 150ms delay
             }
         }, { passive: false });
 
@@ -6886,7 +6833,7 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    // texture === null/undefined entfernt eine vorhandene Textur, statt sie zu behalten.
+    // texture === null/undefined removes an existing texture instead of keeping it.
     applyTexture(h, texture) {
         if (texture) h.texture = texture;
         else delete h.texture;
@@ -6910,8 +6857,8 @@ class HexCartographerView extends ItemView {
         }
 
         if (this.currentToolGroup === 'hexcolor') {
-            // Farbe wird immer gesetzt: Sie liegt unter der Textur, dient als Rückfall
-            // bei fehlender Grafik und hält die Wabe für ältere Plugin-Versionen lesbar.
+            // Color is always set: it sits under the texture, acts as fallback
+            // when a graphic is missing and keeps the hex readable for older plugin versions.
             h.color = this.masterColor;
             this.applyTexture(h, this.hexTexture);
             return;
@@ -7177,7 +7124,7 @@ class HexCartographerView extends ItemView {
 
         if (!startData) {
             if (!this.isEnclosedByFrame(startHex)) {
-                return; // Nicht füllen, wenn kein Rahmen vorhanden
+                return; // Do not fill if no frame present
             }
             this.floodFillEmpty(startHex);
             return;
@@ -7192,7 +7139,7 @@ class HexCartographerView extends ItemView {
             this.floodFillColor(startHex, startData.color, this.masterColor, startData.texture, this.hexTexture);
         }
         else if (this.currentToolGroup === null) {
-            // Das Paletten-Werkzeug färbt nur — vorhandene Texturen bleiben unberührt.
+            // The palette tool only colors — existing textures stay untouched.
             const newColor = this.colorPalette[this.activeColorSlot];
             this.floodFillColor(startHex, startData.color, newColor, startData.texture);
         }
@@ -7340,7 +7287,7 @@ class HexCartographerView extends ItemView {
     isEnclosedByFrame(startHex) {
         const visited = new Set();
         const queue = [startHex];
-        const maxDistance = 50; // Maximale Distanz zum Prüfen (verhindert endlose Suche)
+        const maxDistance = 50; // Maximum distance to check (prevents endless search)
         let foundBoundary = false;
 
         while (queue.length > 0) {
@@ -7351,7 +7298,7 @@ class HexCartographerView extends ItemView {
 
             const distance = Math.abs(hex.q - startHex.q) + Math.abs(hex.r - startHex.r);
             if (distance > maxDistance) {
-                return false; // Zu weit = nicht umrahmt
+                return false; // Too far = not framed
             }
 
             visited.add(key);
@@ -7360,7 +7307,7 @@ class HexCartographerView extends ItemView {
 
             if (hexData) {
                 foundBoundary = true;
-                continue; // Nicht weiter in diese Richtung
+                continue; // No further in this direction
             }
 
             const neighbors = this.getHexNeighbors(hex);
@@ -7436,14 +7383,9 @@ class HexCartographerView extends ItemView {
         this.ctx.translate(this.data.offX, this.data.offY);
         this.ctx.scale(this.data.zoom, this.data.zoom);
 
-        this.drawMapLayers(); // Zeichenreihenfolge (unten → oben)
+        this.drawMapLayers(); // draw order (bottom -> top)
 
-        this.drawPathWaypoints(); // Wegpunkte immer als letztes (ueber allen anderen Elementen)
-
-        if (this.svgLayer) {
-            while (this.svgLayer.firstChild) this.svgLayer.removeChild(this.svgLayer.firstChild);
-        }
-
+        this.drawPathWaypoints(); // Waypoints always last (above all other elements)
 
         if (this.currentToolGroup === 'pattern' && this.patternSourceHex) {
             const pos = this.hexToPixel(this.patternSourceHex);
@@ -7519,7 +7461,7 @@ class HexCartographerView extends ItemView {
         this.textCtx.restore();
     }
 
-    // Berechnet für jede Wabe ein Label basierend auf den Settings
+    // Computes a label for each hex based on the settings
     _buildHexNumberLabels() {
         const settings = this.plugin.settings;
         const hexes = Object.values(this.data.hexes);
@@ -7528,13 +7470,13 @@ class HexCartographerView extends ItemView {
         const horizontal = settings.hexNumberingDirection !== 'vertical';
         const tol = this.data.gridSize * 0.6;
 
-        // Pixelposition jeder Wabe berechnen
+        // Compute the pixel position of each hex
         const withPos = hexes.map(hex => {
             const pos = this.hexToPixel(hex);
             return { hex, px: pos.x, py: pos.y };
         });
 
-        // Buchstabe aus Index: 0→A, 1→B … 25→Z, 26→AA, 27→AB …
+        // Letter from index: 0->A, 1->B ... 25->Z, 26->AA, 27->AB ...
         const toAlpha = (n) => {
             let s = '';
             n += 1;
@@ -7546,7 +7488,7 @@ class HexCartographerView extends ItemView {
             return s;
         };
 
-        // Gruppen aus Pixelwerten bilden (sortiert, mit Toleranz)
+        // Form groups from pixel values (sorted, with tolerance)
         const buildGroups = (values) => {
             const sorted = [...new Set(values.map(v => Math.round(v)))].sort((a, b) => a - b);
             const groups = [];
@@ -7558,20 +7500,20 @@ class HexCartographerView extends ItemView {
             return groups;
         };
 
-        const colGroups = buildGroups(withPos.map(e => e.px)); // Spalten (links→rechts)
-        const rowGroups = buildGroups(withPos.map(e => e.py)); // Zeilen (oben→unten)
+        const colGroups = buildGroups(withPos.map(e => e.px)); // columns (left -> right)
+        const rowGroups = buildGroups(withPos.map(e => e.py)); // rows (top -> bottom)
 
         const colIndex = (px) => colGroups.findIndex(g => Math.abs(px - g) <= tol);
         const rowIndex = (py) => rowGroups.findIndex(g => Math.abs(py - g) <= tol);
 
         // ── Buchstabenkoordinaten-Modus ───────────────────────────
         // Horizontal: Buchstabe = Zeilenindex (A=1.Zeile, B=2.Zeile …)
-        //             Zahl     = laufende Position in der Zeile (1, 2, 3 …)
+        // Number = running position in the row (1, 2, 3 ...)
         // Vertikal:   Buchstabe = Spaltenindex (A=linkste Spalte, B=zweite …)
-        //             Zahl     = laufende Position in der Spalte (1, 2, 3 …)
+        // Number = running position in the column (1, 2, 3 ...)
         if (settings.hexNumberingAlphaChess) {
             if (horizontal) {
-                // Sortierung: erst Zeile (py), dann Spalte (px)
+                // Order: row first (py), then column (px)
                 withPos.sort((a, b) => {
                     if (Math.abs(a.py - b.py) > tol) return a.py - b.py;
                     return a.px - b.px;
@@ -7590,7 +7532,7 @@ class HexCartographerView extends ItemView {
                     return { hex, label: `${toAlpha(rowIdx)}-${posInRow}` };
                 });
             } else {
-                // Sortierung: erst Spalte (px), dann Zeile (py)
+                // Order: column first (px), then row (py)
                 withPos.sort((a, b) => {
                     if (Math.abs(a.px - b.px) > tol) return a.px - b.px;
                     return a.py - b.py;
@@ -7655,8 +7597,8 @@ class HexCartographerView extends ItemView {
         }
 
         // ── Einfache Durchnummerierung ────────────────────────────
-        // Horizontal: zeilenweise (py), dann spaltenweise (px)
-        // Vertikal:   spaltenweise (px), dann zeilenweise (py)
+        // Horizontal: row by row (py), then column by column (px)
+        // Vertical: column by column (px), then row by row (py)
         if (horizontal) {
             withPos.sort((a, b) => {
                 if (Math.abs(a.py - b.py) > tol) return a.py - b.py;
@@ -7672,7 +7614,7 @@ class HexCartographerView extends ItemView {
         return withPos.map(({ hex }, i) => ({ hex, label: String(i + 1) }));
     }
 
-    // Zeichnet Nummerierung auf einen beliebigen 2D-Context
+    // Draws numbering onto any 2D context
     _renderHexNumberingToCtx(ctx, zoom, offX, offY) {
         const settings = this.plugin.settings;
         const labels = this._buildHexNumberLabels();
@@ -7690,20 +7632,20 @@ class HexCartographerView extends ItemView {
         for (const { hex, label } of labels) {
             const pos = this.hexToPixel(hex);
 
-            // Y-Offset je nach Position (top/bottom) und Orientierung
-            // Bei pointy-top (flatTop=false) liegt die breiteste Stelle in der Mitte.
-            // Wir setzen den Text ins obere oder untere Drittel der Wabe.
+            // Y offset depending on position (top/bottom) and orientation
+            // For pointy-top (flatTop=false) the widest point is in the middle.
+            // We place the text in the upper or lower third of the hex.
             let yOffset;
             if (flatTop) {
-                // Flat-top: volle Höhe = s * sin(60°) * 2 ≈ s * 1.732
+                // Flat-top: full height = s * sin(60deg) * 2 ~= s * 1.732
                 // Oberes/unteres Drittel innen
                 const halfH = s * Math.sin(Math.PI / 3); // ≈ 0.866 * s
                 yOffset = settings.hexNumberingPosition === 'top'
                     ? -halfH * 0.55
                     :  halfH * 0.55;
             } else {
-                // Pointy-top: Spitze oben/unten, breit in der Mitte
-                // Von Mitte bis Spitze = s; wir setzen Text bei ~60% davon
+                // Pointy-top: point at top/bottom, wide in the middle
+                // Center to tip = s; we place text at ~60% of that
                 yOffset = settings.hexNumberingPosition === 'top'
                     ? -s * 0.52
                     :  s * 0.52;
@@ -7727,7 +7669,7 @@ class HexCartographerView extends ItemView {
         ctx.restore();
     }
 
-    // Nummerierung auf den Live-Canvas zeichnen (kein zoom/translate nötig — direkt in Pixeln)
+    // Draw numbering onto the live canvas (no zoom/translate needed — directly in pixels)
     renderHexNumbering() {
         if (!this.plugin.settings.hexNumberingEnabled) return;
         if (!this.ctx) return;
@@ -7773,8 +7715,8 @@ class HexCartographerView extends ItemView {
         return { w: (maxX - minX) + padding * 2, h: (maxY - minY) + padding * 2 };
     }
 
-    // Bounds und Maßstab eines Exports. Getrennt von renderFullMap, damit der
-    // Export den Maßstab vorher kennt und die Grafiken passend nachladen kann.
+    // Bounds and scale of an export. Separate from renderFullMap so the
+    // export knows the scale up front and can reload graphics accordingly.
     computeExportGeometry({ targetWidth, scale: fixedScale, cropless } = {}) {
         if (!this.getMapWorldSize()) return null;
 
@@ -7819,8 +7761,8 @@ class HexCartographerView extends ItemView {
         const w = maxX - minX;
         const h = maxY - minY;
 
-        // Scale auf Basis der tatsächlichen Export-Breite berechnen (nach Padding-Anpassung),
-        // damit targetWidth unabhängig von der Crop-Option exakt eingehalten wird.
+        // Compute scale from the actual export width (after padding adjustment),
+        // so targetWidth is met exactly regardless of the crop option.
         const scale = targetWidth ? targetWidth / w : (fixedScale || 2);
 
         return { minX, minY, w, h, scale };
@@ -7860,7 +7802,7 @@ class HexCartographerView extends ItemView {
 
         tmpCtx.restore();
 
-        // Texte direkt auf das Print-Canvas rendern
+        // Render texts directly onto the print canvas
         if (this.data.texts) this.data.texts.forEach(tx => {
             tmpCtx.save();
             tmpCtx.translate(this.data.offX, this.data.offY);
@@ -7890,7 +7832,7 @@ class HexCartographerView extends ItemView {
         this.data.offX = origOffX;
         this.data.offY = origOffY;
 
-        // Nummerierung auf Print-Canvas rendern (mit temporärem ctx)
+        // Render numbering onto the print canvas (with temporary ctx)
         if (this.plugin.settings.hexNumberingEnabled) {
             const printCtx = tmpCtx;
             const printZoom = scale;
@@ -7900,71 +7842,6 @@ class HexCartographerView extends ItemView {
         }
 
         return tmpCanvas;
-    }
-
-    renderSVGSymbols(symbols) {
-        if (!this.svgLayer) return;
-
-        while (this.svgLayer.firstChild) {
-            this.svgLayer.removeChild(this.svgLayer.firstChild);
-        }
-
-        symbols.forEach(({ symbol, pos, color }) => {
-            if (this.svgSymbols[symbol]) {
-                const config = this.svgSymbolConfig[symbol] || { size: 0.30, align: 'center', marginX: 0, marginY: 0 };
-
-                const screenX = pos.x * this.data.zoom + this.data.offX;
-                const screenY = pos.y * this.data.zoom + this.data.offY;
-
-                const baseSize = this.data.gridSize * 2.0; // Basis-Größe
-                const size = baseSize * config.size * this.data.zoom;
-
-                const hexWidth = this.data.gridSize * Math.sqrt(3) * this.data.zoom;
-                const hexHeight = this.data.gridSize * 2 * this.data.zoom;
-
-                let offsetX = 0;
-                let offsetY = 0;
-
-                const alignParts = config.align.split('-');
-                alignParts.forEach(part => {
-                    switch(part) {
-                        case 'top':
-                            offsetY = -hexHeight / 4;
-                            break;
-                        case 'bottom':
-                            offsetY = hexHeight / 4;
-                            break;
-                        case 'left':
-                            offsetX = -hexWidth / 4;
-                            break;
-                        case 'right':
-                            offsetX = hexWidth / 4;
-                            break;
-                        case 'center':
-                            break;
-                    }
-                });
-
-                offsetX += (config.marginX / 100) * hexWidth;
-                offsetY += (config.marginY / 100) * hexHeight;
-
-                const svgData = this.svgSymbols[symbol];
-                const viewBoxSize = svgData.viewBoxWidth;
-
-                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const scale = size / viewBoxSize;
-                const finalX = screenX - size/2 + offsetX;
-                const finalY = screenY - size/2 + offsetY;
-                g.setAttribute('transform', `translate(${finalX}, ${finalY}) scale(${scale})`);
-
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', svgData.pathData);
-                path.setAttribute('fill', color || '#228B22');
-                g.appendChild(path);
-
-                this.svgLayer.appendChild(g);
-            }
-        });
     }
 
     drawSVGOnCanvas(symbol, pos, color) {
@@ -7999,7 +7876,7 @@ class HexCartographerView extends ItemView {
         this.ctx.restore();
     }
 
-    // Umriss einer Wabe als Pfad in den aktuellen Kontext legen.
+    // Trace the outline of a hex as a path into the current context.
     tracehexPath(pos, radius, angleOffset) {
         this.ctx.beginPath();
         for (let i = 0; i < 6; i++) {
@@ -8012,10 +7889,10 @@ class HexCartographerView extends ItemView {
     drawHexBase(h) {
         const pos = this.hexToPixel(h), s = this.data.gridSize;
         const angleOffset = this.hexOrientation ? 0 : -30;
-        const sf = s + 0.5; // Kleiner Überstand, damit keine Lücken zwischen benachbarten Hexen entstehen
+        const sf = s + 0.5; // Small overhang so no gaps appear between neighboring hexes
 
-        // Farbe zuerst: Sie bleibt als Untergrund erhalten und dient zugleich als
-        // Rückfall, wenn eine Textur fehlt.
+        // Color first: it stays as background and also serves as
+        // fallback when a texture is missing.
         if (h.color) {
             this.tracehexPath(pos, sf, angleOffset);
             this.ctx.fillStyle = h.color;
@@ -8023,8 +7900,12 @@ class HexCartographerView extends ItemView {
         }
 
         if (h.texture) {
-            // Etwas größer als der Farb-Fill, damit die Textur dessen AA-Rand überdeckt.
-            this.drawHexTexture(h, pos, sf + TEXTURE_EDGE_BLEED, angleOffset);
+            // Slightly larger than the color fill so the texture covers its AA edge.
+            // The AA edge is ~1 screen pixel at any zoom, so convert the bleed from
+            // screen to world units — a fixed world value would grow with the zoom
+            // and make the texture visibly spill over the hex edge.
+            const bleed = TEXTURE_EDGE_BLEED / (this.data.zoom || 1);
+            this.drawHexTexture(h, pos, sf + bleed, angleOffset);
         }
 
         if (!this.plugin.settings.hideHexBorders) {
@@ -8040,15 +7921,15 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    // User-Symbole werden in die Wabe eingepasst (contain), damit nichts abgeschnitten
-    // wird — anders als Texturen, die die Wabe füllen müssen.
+    // User symbols are fitted into the hex (contain) so nothing is clipped
+    // — unlike textures, which must fill the hex.
     drawUserSymbolOnCanvas(symbol, pos, color) {
         const asset = this.plugin.getUserAsset(symbol);
         const box = this.hexBounds(this.data.gridSize);
         const maxW = box.w * USER_SYMBOL_FIT;
         const maxH = box.h * USER_SYMBOL_FIT;
 
-        if (this.isAssetPending(asset)) return; // wird nachgeladen, dann neu gezeichnet
+        if (this.isAssetPending(asset)) return; // loaded on demand, then redrawn
 
         if (!asset || asset.failed) {
             this.drawMissingSymbol(pos, Math.min(maxW, maxH) / 2);
@@ -8101,7 +7982,7 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    // symbols === null zeichnet die User-Symbole (alles mit user:-Präfix).
+    // symbols === null draws the user symbols (everything with the user: prefix).
     drawSymbolLayerOnCtx(symbols) {
         Object.values(this.data.hexes).forEach(h => {
             if (!h.symbol) return;
@@ -8111,8 +7992,8 @@ class HexCartographerView extends ItemView {
         });
     }
 
-    // Einzige Definition der Zeichenreihenfolge — Bildschirm und Export nutzen sie
-    // gemeinsam, damit beide nicht auseinanderdriften.
+    // Single definition of the draw order — screen and export share it
+    // so the two do not drift apart.
     drawMapLayers() {
         Object.values(this.data.hexes).forEach(h => this.drawHexBase(h));
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_VEGETATION);
@@ -8122,22 +8003,22 @@ class HexCartographerView extends ItemView {
         this.drawRoads();
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_EXTRAS);
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_BUILDINGS);
-        this.drawSymbolLayerOnCtx(null); // User-Symbole ganz oben, direkt vor den Grenzen
+        this.drawSymbolLayerOnCtx(null); // User symbols on top, just before the borders
         this.drawBorders();
     }
 
-    // Bounding-Box einer Wabe. Bei Spitze oben ist sie schmaler als hoch,
-    // bei flacher Seite oben umgekehrt.
+    // Bounding box of a hex. Pointy top is narrower than tall,
+    // flat top the other way around.
     hexBounds(radius) {
         return this.hexOrientation
             ? { w: radius * 2, h: radius * Math.sqrt(3) }
             : { w: radius * Math.sqrt(3), h: radius * 2 };
     }
 
-    // Sicherheitsnetz: Taucht ein noch nicht dekodierter Key beim Zeichnen auf
-    // (z. B. durch Rückgängig oder eine Musterwabe), wird er nachgeladen und
-    // danach einmal neu gezeichnet. Der Normalfall ist über ensureUserAssets()
-    // schon abgedeckt.
+    // Safety net: if an undecoded key shows up while drawing
+    // (e.g. via undo or a pattern hex), it is loaded on demand and
+    // then redrawn once. The normal case is already covered by ensureUserAssets()
+    // already covered.
     requestAssetDecode(key) {
         if (!this._pendingDecode) this._pendingDecode = new Set();
         if (this._pendingDecode.has(key)) return;
@@ -8153,7 +8034,7 @@ class HexCartographerView extends ItemView {
         }, 0);
     }
 
-    // true, wenn die Grafik noch dekodiert wird — dann Platzhalter zeichnen.
+    // true if the graphic is still decoding — then draw a placeholder.
     isAssetPending(asset) {
         if (!asset || asset.failed) return false;
         if (asset.decoded) return false;
@@ -8165,8 +8046,8 @@ class HexCartographerView extends ItemView {
         const asset = this.plugin.getUserAsset(h.texture);
         const box = this.hexBounds(radius);
 
-        // Noch nicht dekodiert -> nichts zeichnen, die Farbe darunter bleibt stehen.
-        // Nach dem Nachladen wird ohnehin neu gezeichnet.
+        // Not decoded yet -> draw nothing, the color underneath remains.
+        // After reloading it is redrawn anyway.
         if (this.isAssetPending(asset)) return;
 
         this.ctx.save();
@@ -8178,8 +8059,8 @@ class HexCartographerView extends ItemView {
             const iw = img.naturalWidth || img.width;
             const ih = img.naturalHeight || img.height;
             if (iw && ih) {
-                // Cover: die schmalere Seite der Grafik füllt die Wabe aus,
-                // der Überstand wird vom Clipping abgeschnitten.
+                // Cover: the narrower side of the graphic fills the hex,
+                // the overhang is cut off by the clipping.
                 const scale = Math.max(box.w / iw, box.h / ih);
                 const dw = iw * scale;
                 const dh = ih * scale;
@@ -8192,8 +8073,8 @@ class HexCartographerView extends ItemView {
         this.ctx.restore();
     }
 
-    // Fehlende Grafik: dezente Schraffur, damit die Wabe nicht unverändert wirkt.
-    // Der Key bleibt erhalten — taucht die Datei wieder auf, ist alles zurück.
+    // Missing graphic: subtle hatching so the hex does not look unchanged.
+    // The key is kept — if the file reappears, everything is back.
     drawMissingTexture(pos, box) {
         const step = 6;
         this.ctx.strokeStyle = 'rgba(128,128,128,0.45)';
@@ -8212,13 +8093,13 @@ class HexCartographerView extends ItemView {
         const s = this.data.gridSize;
         const sf = s + 0.5;
         const lineWidth = 3;
-        const inset = lineWidth / 2 + 0.575; // 1px Abstand zu Hex-Kante + Hälfte der Linienbreite
+        const inset = lineWidth / 2 + 0.575; // 1px gap to hex edge + half the line width
         const factor = (sf - inset) / sf;
 
         const neighbors = [
             { dq: 1, dr: 0 },   // Edge 0: Ost
-            { dq: 0, dr: 1 },   // Edge 1: Süd-Ost
-            { dq: -1, dr: 1 },  // Edge 2: Süd-West
+            { dq: 0, dr: 1 }, // Edge 1: south-east
+            { dq: -1, dr: 1 }, // Edge 2: south-west
             { dq: -1, dr: 0 },  // Edge 3: West
             { dq: 0, dr: -1 },  // Edge 4: Nord-West
             { dq: 1, dr: -1 }   // Edge 5: Nord-Ost
@@ -8803,8 +8684,8 @@ class HexCartographerView extends ItemView {
                 const title = this.file.basename.replace('.hexcartographer', '');
                 const content = `${frontmatter}# ${title}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
 
-                // Merken, was wir schreiben — damit ein verzögertes modify-Event des
-                // eigenen Speicherns kein Neuladen auslöst (siehe reloadFile).
+                // Remember what we write — so a delayed modify event of the
+                // own save does not trigger a reload (see reloadFile).
                 this._lastSavedContent = content;
                 await this.app.vault.modify(this.file, content);
             }
@@ -9271,10 +9152,10 @@ class ColorPickerModal extends Modal {
     renderSB() {
         const ctx = this.sbCtx;
         const w = this.sbCanvas.width, h = this.sbCanvas.height;
-        // Hue-Füllung
+        // Hue fill
         ctx.fillStyle = hsbToHex(this.hue, 100, 100);
         ctx.fillRect(0, 0, w, h);
-        // Weißer Horizontalverlauf (Sättigung)
+        // White horizontal gradient (saturation)
         const whiteGrad = ctx.createLinearGradient(0, 0, w, 0);
         whiteGrad.addColorStop(0, 'rgba(255,255,255,1)');
         whiteGrad.addColorStop(1, 'rgba(255,255,255,0)');
@@ -9390,7 +9271,7 @@ class ExportMapModal extends Modal {
             btn.style.color = active ? 'var(--text-on-accent)' : 'var(--text-normal)';
         };
 
-        // Bildgröße
+        // Image size
         const sizeRow = contentEl.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 8px; margin-bottom: 12px;' } });
         sizeRow.createEl('span', { text: 'px:' });
         const widthInput = sizeRow.createEl('input', { attr: { type: 'number', min: '64', max: '8192', step: '1', value: this.imgWidth, style: 'width: 80px;' } });
@@ -9414,7 +9295,7 @@ class ExportMapModal extends Modal {
             this._updating = false;
         };
 
-        // Qualität (nur JPEG)
+        // Quality (JPEG only)
         const qualityRow = contentEl.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 8px; margin-bottom: 12px;' } });
         qualityRow.createEl('span', { text: t('modal.exportQuality') + ':' });
         const slider = qualityRow.createEl('input', { attr: { type: 'range', min: '10', max: '100', step: '5', value: this.quality, style: 'flex: 1;' } });
@@ -9448,9 +9329,9 @@ class ExportMapModal extends Modal {
     }
 }
 
-// Ordnerauswahl mit Fuzzy-Suche. Die Klasse entsteht bewusst erst beim ersten
-// Öffnen: Wäre FuzzySuggestModal zur Laufzeit nicht exportiert, würde ein
-// `extends undefined` auf oberster Ebene das gesamte Plugin am Laden hindern.
+// Folder picker with fuzzy search. The class is created deliberately only on first
+// open: if FuzzySuggestModal were not exported at runtime, an
+// `extends undefined` at top level would stop the whole plugin from loading.
 let _FolderSuggestModal = null;
 function getFolderSuggestModal() {
     if (_FolderSuggestModal) return _FolderSuggestModal;
@@ -9463,8 +9344,8 @@ function getFolderSuggestModal() {
             this.setPlaceholder(t('settings.folderPickerPlaceholder'));
         }
 
-        // Ordner werden über ihr children-Array erkannt, nicht über `instanceof TFolder` —
-        // das kommt ohne den Import aus und kann nicht an einem fehlenden Export scheitern.
+        // Folders are detected via their children array, not `instanceof TFolder` —
+        // this avoids the import and cannot fail on a missing export.
         getItems() {
             return this.app.vault.getAllLoadedFiles()
                 .filter(f => Array.isArray(f.children) && f.path && f.path !== '/')
@@ -9551,9 +9432,9 @@ class HexCartographerSettingTab extends PluginSettingTab {
 
         this.buildHexNumberingSettings(containerEl);
 
-        // ── Eigene Grafiken ───────────────────────────────────────
-        // Klappbar über natives <details> — Obsidian hat dafür keine offizielle
-        // API. Schon konfiguriert -> offen, sonst eingeklappt ("bei Bedarf").
+        // ── Custom graphics ───────────────────────────────────────
+        // Collapsible via native <details> — Obsidian has no official
+        // API. Already configured -> open, otherwise collapsed ("on demand").
         const anyUserPath = USER_ASSET_CATEGORIES.some(c => this.plugin.settings[c.settingKey]);
         const assetsSection = containerEl.createEl('details', { cls: 'hex-settings-section' });
         assetsSection.open = anyUserPath;
@@ -9564,8 +9445,8 @@ class HexCartographerSettingTab extends PluginSettingTab {
             attr: { style: 'color: var(--text-muted); font-size: 13px; margin-top: 0;' }
         });
 
-        // Grafikvorschau: zeigt im Rechtsklick-Menü Thumbnails statt reiner Namen.
-        // Steht vor den Pfaden, gilt für alle Kategorien.
+        // Graphic preview: shows thumbnails in the right-click menu instead of plain names.
+        // Placed before the paths, applies to all categories.
         new Setting(assetsBody)
             .setName(t('settings.userAssetPreview'))
             .setDesc(t('settings.userAssetPreviewDesc'))
@@ -9614,7 +9495,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 text.setPlaceholder(t('settings.userAssetsPlaceholder'))
                     .setValue(this.plugin.settings[settingKey]);
 
-                // Erst beim Verlassen des Feldes scannen — nicht bei jedem Tastendruck.
+                // Scan only on blur — not on every keystroke.
                 text.inputEl.addEventListener('blur', () => applyPath(text.getValue()));
                 text.inputEl.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') text.inputEl.blur();
@@ -9647,9 +9528,9 @@ class HexCartographerSettingTab extends PluginSettingTab {
             updateStatus();
         };
 
-        // Waben-Texturen zuerst, danach je ein Ordner pro Werkzeuggruppe. Die Namen
-        // kommen aus denselben Übersetzungen wie die Toolbar-Tooltips, damit
-        // Einstellung und Werkzeug gleich heißen.
+        // Hex textures first, then one folder per tool group. The names
+        // come from the same translations as the toolbar tooltips, so
+        // setting and tool have the same name.
         for (const category of USER_ASSET_CATEGORIES) {
             const isTexture = category.kind === 'texture';
             const name = isTexture
@@ -9662,8 +9543,8 @@ class HexCartographerSettingTab extends PluginSettingTab {
         this.buildGuide(containerEl);
     }
 
-    // Waben-Nummerierung. Ohne eigene Überschrift — der Master-Schalter trägt
-    // den Namen. Wird direkt hinter "Waben-Rahmen ausblenden" einsortiert.
+    // Hex numbering. No own heading — the master switch carries
+    // the name. Placed directly after "Hide hex borders".
     buildHexNumberingSettings(containerEl) {
         const refreshAll = async () => {
             await this.plugin.saveSettings();
@@ -9689,7 +9570,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
         const subOptions = [];
         const hide = !this.plugin.settings.hexNumberingEnabled;
 
-        // Zähl-Ausrichtung: ein Schalter — aus=horizontal (Standard), ein=vertikal
+        // Counting direction: one switch — off=horizontal (default), on=vertical
         const dirSetting = new Setting(containerEl)
             .setName(t('settings.hexNumberingVertical'))
             .setDesc(t('settings.hexNumberingVerticalDesc'))
@@ -9703,8 +9584,8 @@ class HexCartographerSettingTab extends PluginSettingTab {
         subOptions.push(dirSetting);
 
         // Koordinaten Modus
-        // Gemerkter Chess-Zustand: wird beim Ausschalten des Koordinatenmodus gespeichert
-        // und beim Wiedereinschalten wiederhergestellt
+        // Remembered chess state: saved when the coordinate mode is turned off
+        // and restored when turned back on
         let rememberedChessState = this.plugin.settings.hexNumberingAlphaChess;
 
         const alphaSetting = new Setting(containerEl)
@@ -9715,7 +9596,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     .onChange(async (value) => {
                         this.plugin.settings.hexNumberingAlpha = value;
                         if (!value) {
-                            // Zustand merken, Chess deaktivieren und sperren
+                            // Remember state, disable and lock chess mode
                             rememberedChessState = this.plugin.settings.hexNumberingAlphaChess;
                             this.plugin.settings.hexNumberingAlphaChess = false;
                             chessToggle.setValue(false);
@@ -9739,7 +9620,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
             .addToggle(toggle => {
                 chessToggle = toggle;
                 toggle.setValue(this.plugin.settings.hexNumberingAlphaChess);
-                // Initial sperren wenn Koordinatenmodus aus
+                // Lock initially if coordinate mode is off
                 if (!this.plugin.settings.hexNumberingAlpha) toggle.setDisabled(true);
                 toggle.onChange(async (value) => {
                     this.plugin.settings.hexNumberingAlphaChess = value;
@@ -9775,7 +9656,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
             });
         subOptions.push(colorSetting);
 
-        // Textgröße
+        // Text size
         const fontSizeSetting = new Setting(containerEl)
             .setName(t('settings.hexNumberingFontSize'))
             .setDesc(t('settings.hexNumberingFontSizeDesc'))
@@ -9806,8 +9687,8 @@ class HexCartographerSettingTab extends PluginSettingTab {
             });
         subOptions.push(outlineSetting);
 
-        // Unteroptionen einrücken (Zugehörigkeit zu "Waben nummerieren")
-        // und Initial-Sichtbarkeit setzen.
+        // Indent sub-options (belonging to "Number hexes")
+        // and set initial visibility.
         subOptions.forEach(el => {
             el.settingEl.addClass('hex-sub-setting');
             el.settingEl.style.display = hide ? 'none' : '';

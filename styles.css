@@ -1,16 +1,3 @@
-.active-eraser.active-eraser {
-    background-color: var(--interactive-accent);
-    color: #ffffff;
-}
-
-.hex-cartographer-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-    background-color: #f5f5f5;
-}
-
 .hex-toolbar {
     display: flex;
     align-items: center;
@@ -42,61 +29,6 @@
     border-color: #3a8eef;
 }
 
-/* Masterfarbe: quadratisch ausfüllend */
-input[type="color"][title="Werkzeugfarbe"]::-webkit-color-swatch-wrapper {
-    padding: 0;
-}
-input[type="color"][title="Werkzeugfarbe"]::-webkit-color-swatch {
-    border: none;
-    border-radius: 3px;
-}
-input[type="color"][title="Werkzeugfarbe"]::-moz-color-swatch {
-    border: none;
-    border-radius: 3px;
-}
-
-.hex-color-picker {
-    width: 50px;
-    height: 35px;
-    border: 1px solid #cccccc;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 2px;
-}
-
-.hex-text-size {
-    width: 60px;
-    padding: 6px;
-    border: 1px solid #cccccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.hex-save-btn {
-    padding: 8px 16px;
-    background-color: #4caf50;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    margin-left: auto;
-    transition: all 0.2s;
-}
-
-.hex-save-btn:hover {
-    background-color: #45a049;
-    transform: translateY(-1px);
-}
-
-.hex-canvas {
-    flex: 1;
-    cursor: crosshair;
-    background-color: #ffffff;
-    display: block;
-}
-
 .hex-text-canvas {
     position: absolute;
     top: 0;
@@ -107,18 +39,7 @@ input[type="color"][title="Werkzeugfarbe"]::-moz-color-swatch {
     display: block;
 }
 
-.hex-text-input {
-    padding: 8px;
-    border: 1px solid #cccccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
 /* Dark mode support */
-.theme-dark .hex-cartographer-container {
-    background-color: #1e1e1e;
-}
-
 .theme-dark .hex-toolbar {
     background-color: #2d2d2d;
     border-bottom-color: #3d3d3d;
@@ -139,29 +60,17 @@ input[type="color"][title="Werkzeugfarbe"]::-moz-color-swatch {
     color: #ffffff;
 }
 
-.theme-dark .hex-canvas {
-    background-color: #2d2d2d;
-}
-
-.theme-dark .hex-text-size,
-.theme-dark .hex-color-picker {
-    background-color: #3d3d3d;
-    border-color: #4d4d4d;
-    color: #dddddd;
-}
-
-/* Obsidian lässt Menüs von Haus aus nur auf Mobile scrollen — auf dem Desktop
-   steht .menu-scroll auf overflow:hidden, sodass lange Listen an der Fensterkante
-   abgeschnitten und unerreichbar werden. Für unsere Symbol- und Textur-Menüs
-   aktivieren wir das Scrollen deshalb selbst. min-height:0 ist nötig, damit das
-   Flex-Kind unter seine Inhaltshöhe schrumpfen darf. */
+/* Obsidian scrolls menus only on mobile — on the desktop .menu-scroll is
+   overflow:hidden, so long lists get clipped at the window edge and become
+   unreachable. We enable scrolling ourselves for our symbol and texture menus.
+   min-height:0 is required so the flex child may shrink below its content height. */
 .menu.hex-cartographer-menu .menu-scroll {
     overflow-y: auto;
     min-height: 0;
 }
 
-/* Klappbarer Einstellungsbereich (natives <details>). Behält das native
-   Disclosure-Dreieck des Browsers — größer und identisch zur Kurzanleitung. */
+/* Collapsible settings section (native <details>). Keeps the browser's native
+   disclosure triangle — larger and identical to the quick guide. */
 .hex-settings-section {
     margin: 0.75em 0;
     border-top: 1px solid var(--background-modifier-border);
@@ -176,16 +85,16 @@ input[type="color"][title="Werkzeugfarbe"]::-moz-color-swatch {
 .hex-settings-summary:hover { color: var(--text-accent); }
 .hex-settings-body { padding-bottom: 0.5em; }
 
-/* Unteroptionen eines Schalters (z. B. "Waben nummerieren"): eingerückt mit
-   dezenter Linie links, damit die Zugehörigkeit sichtbar ist. */
+/* Sub-options of a switch (e.g. "Number hexes"): indented with a subtle line
+   on the left so the grouping is visible. */
 .hex-sub-setting {
     margin-left: 1.5em;
     padding-left: 1em;
     border-left: 2px solid var(--background-modifier-border);
 }
 
-/* Datei-Typ-Anzeige im File Explorer (wie CANVAS) */
-/* Platziere Badge direkt nach dem Dateinamen */
+/* File type badge in the file explorer (like CANVAS) */
+/* Place the badge directly after the file name */
 .nav-file-title.hex-cartographer-file .nav-file-title-content::after {
     content: "HEXCARTOGRAPHER";
     display: inline-block;
@@ -202,7 +111,7 @@ input[type="color"][title="Werkzeugfarbe"]::-moz-color-swatch {
     line-height: 1;
 }
 
-/* Fallback für Dateien, die noch nicht die Klasse haben */
+/* Fallback for files that do not have the class yet */
 .nav-file-title[data-path$=".hexcartographer.md"]:not(.hex-cartographer-file) .nav-file-title-content::after {
     content: "HEXCARTOGRAPHER";
     display: inline-block;
