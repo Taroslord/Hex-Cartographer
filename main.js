@@ -50,6 +50,10 @@ const ACTIVE_BOX_SHADOW = `0 0 8px ${ACTIVE_COLOR}66`;
 const ACTIVE_BORDER = `3px solid ${ACTIVE_COLOR}`;
 const PICKER_ACTIVE_BG = ACTIVE_COLOR;
 const BUTTON_BG_DEFAULT = '#ffffff';
+// Hold duration that opens a context menu on touch devices. Our own value, not an
+// OS default: shorter than the usual ~500 ms so the menu feels responsive, but
+// still clearly above a normal tap (~50-150 ms) to avoid accidental triggers.
+const LONG_PRESS_MS = 350;
 
 // === User assets (custom textures & symbols from vault folders) ===
 // Each category has its own folder. The category is part of the key
@@ -4607,30 +4611,43 @@ class HexCartographerView extends ItemView {
     // Touch devices have no context menu — long press takes over.
     addLongPress(el, handler) {
         let timer = null;
+        let fired = false;
         const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
-        el.addEventListener('touchstart', (e) => {
-            timer = setTimeout(() => { e.preventDefault(); handler(); timer = null; }, 500);
+
+        el.addEventListener('touchstart', () => {
+            fired = false;
+            timer = setTimeout(() => { timer = null; fired = true; handler(); }, LONG_PRESS_MS);
+        }, { passive: true });
+
+        el.addEventListener('touchend', (e) => {
+            cancel();
+            // Suppress the click the browser would synthesize after the touch —
+            // a long press should only open the menu, not also trigger the button.
+            if (fired) e.preventDefault();
         }, { passive: false });
-        el.addEventListener('touchend', cancel);
-        el.addEventListener('touchmove', cancel);
-        el.addEventListener('touchcancel', cancel);
+
+        el.addEventListener('touchmove', cancel, { passive: true });
+        el.addEventListener('touchcancel', cancel, { passive: true });
     }
 
-    // Hex button: the plain hexagon icon in "Color" mode, with a chosen texture
-    // a hex filled with it as a preview.
+    // Hex button preview: a hex filled with the chosen texture, or — in "Color"
+    // mode — a hex in the current hex color. Matches the menu entries.
+    // Rebuilds only when something actually changed; updateToolbarState calls this
+    // on every tool switch and would otherwise churn the DOM.
     updateHexColorButtonIcon(btn) {
         if (!btn) return;
         const asset = this.hexTexture ? this.plugin.getUserAsset(this.hexTexture) : null;
-
-        if (!asset) {
-            btn.innerHTML = '';
-            setIcon(btn, 'hexagon');
-            return;
-        }
+        const key = [this.hexTexture || '', this.hexColorColor || '', this.hexOrientation, !!asset].join('|');
+        if (btn._hexIconKey === key) return;
+        btn._hexIconKey = key;
 
         btn.innerHTML = '';
-        const src = this.app.vault.adapter.getResourcePath(asset.filePath);
-        btn.appendChild(this.makeHexImageSvg(src, 16));
+        if (asset) {
+            const src = this.app.vault.adapter.getResourcePath(asset.filePath);
+            btn.appendChild(this.makeHexImageSvg(src, 16));
+        } else {
+            btn.appendChild(this.makeHexPreviewSvg(16, this.hexColorColor || DEFAULT_MASTER_COLOR));
+        }
     }
 
     // Hex-shaped image preview: the image clipped to the hex shape via "cover".
@@ -4717,10 +4734,10 @@ class HexCartographerView extends ItemView {
         return wrap;
     }
 
-    // Empty hex (background + border) as the basis of a symbol preview.
-    // Shared base for system and user symbols, so the hex size
-    // is identical everywhere.
-    makeHexPreviewSvg(size) {
+    // Empty hex (background + border) as the basis of a preview. Shared base for
+    // system symbols, user symbols and the plain color entry, so the hex size is
+    // identical everywhere. `fill` allows showing an actual hex color.
+    makeHexPreviewSvg(size, fill = 'var(--background-primary)') {
         const NS = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(NS, 'svg');
         svg.setAttribute('viewBox', '0 0 100 100');
@@ -4731,11 +4748,25 @@ class HexCartographerView extends ItemView {
 
         const hex = document.createElementNS(NS, 'polygon');
         hex.setAttribute('points', this.hexPreviewPoints());
-        hex.setAttribute('fill', 'var(--background-primary)');
+        hex.setAttribute('fill', fill);
         hex.setAttribute('stroke', 'var(--background-modifier-border)');
         hex.setAttribute('stroke-width', '4');
         svg.appendChild(hex);
         return svg;
+    }
+
+    // DOM entry for the "Color" system entry: a hex filled with the current hex
+    // color, so it reads like the other previews.
+    makeColorPreviewLabel(color, label) {
+        const wrap = document.createElement('div');
+        wrap.style.display = 'flex';
+        wrap.style.alignItems = 'center';
+        wrap.style.gap = '8px';
+        wrap.appendChild(this.makeHexPreviewSvg(22, color || DEFAULT_MASTER_COLOR));
+        const span = document.createElement('span');
+        span.textContent = label;
+        wrap.appendChild(span);
+        return wrap;
     }
 
     // Hex with a centered system symbol (SVG path). Uniform symbol size
@@ -4939,8 +4970,10 @@ class HexCartographerView extends ItemView {
 
         const addColorEntry = (target) => {
             target.addItem(item => {
-                item.setTitle(t('menu.color'))
-                    .setChecked(!this.hexTexture)
+                // setTitle accepts a string OR a DOM element (Obsidian API).
+                if (previewKind) item.setTitle(this.makeColorPreviewLabel(this.hexColorColor, t('menu.color')));
+                else item.setTitle(t('menu.color'));
+                item.setChecked(!this.hexTexture)
                     .onClick(() => selectTexture(null));
             });
         };
@@ -5027,20 +5060,7 @@ class HexCartographerView extends ItemView {
                 openPaletteColorPicker();
             };
 
-            let longPressTimer = null;
-            btn.addEventListener('touchstart', (e) => {
-                longPressTimer = setTimeout(() => {
-                    e.preventDefault();
-                    openPaletteColorPicker();
-                    longPressTimer = null;
-                }, 500);
-            }, { passive: false });
-            btn.addEventListener('touchend', () => {
-                if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-            });
-            btn.addEventListener('touchmove', () => {
-                if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-            });
+            this.addLongPress(btn, openPaletteColorPicker);
 
             hiddenInput.oninput = (e) => {
                 this[paletteKey][index] = e.target.value;
@@ -5502,6 +5522,7 @@ class HexCartographerView extends ItemView {
             this.editModeBtn.style.boxShadow = this.editMode ? ACTIVE_BOX_SHADOW : '';
         }
         this.syncHexOrientationButton();
+        this.updateHexColorButtonIcon(this.hexColorBtn);
         if (this.editContent) this.editContent.style.display = this.editMode ? 'contents' : 'none';
 
         if (this.borderVisBtn) {
@@ -7147,7 +7168,8 @@ class HexCartographerView extends ItemView {
             const config = this.toolConfigs[this.currentToolGroup];
             const targetSymbol = startData ? startData.symbol : null;
             const targetColor = startData ? startData.color : null;
-            this.floodFillSymbol(startHex, targetSymbol, targetColor, config.backgroundEnabled);
+            const targetTexture = startData ? startData.texture : null;
+            this.floodFillSymbol(startHex, targetSymbol, targetColor, config.backgroundEnabled, targetTexture);
         }
     }
 
@@ -7187,7 +7209,10 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    floodFillSymbol(startHex, targetSymbol, targetColor, applyBackground) {
+    // Without a target symbol the area is defined by color AND texture — same rule
+    // as floodFillColor. Textured hexes usually share the color underneath, so
+    // ignoring the texture would fill across texture borders.
+    floodFillSymbol(startHex, targetSymbol, targetColor, applyBackground, targetTexture) {
         const config = this.toolConfigs[this.currentToolGroup];
         const newSymbol = config.currentVariant;
         const newSymbolColor = config.symbolColor;
@@ -7206,11 +7231,13 @@ class HexCartographerView extends ItemView {
             const hexData = this.data.hexes[key];
             const currentSymbol = hexData ? hexData.symbol : null;
             const currentColor = hexData ? hexData.color : null;
+            const currentTexture = hexData ? (hexData.texture || null) : null;
 
             if (targetSymbol) {
                 if (currentSymbol !== targetSymbol) continue;
             } else {
                 if (currentSymbol || currentColor !== targetColor) continue;
+                if (currentTexture !== (targetTexture || null)) continue;
             }
 
             if (!hexData) {
@@ -7346,12 +7373,14 @@ class HexCartographerView extends ItemView {
                     symbolColor: this.patternData.symbolColor,
                     backgroundColor: this.patternData.backgroundColor
                 };
+                this.applyTexture(this.data.hexes[key], this.patternData.texture);
             } else if (this.currentToolGroup === 'hexcolor') {
                 this.data.hexes[key] = {
                     q: hex.q,
                     r: hex.r,
                     color: this.masterColor
                 };
+                this.applyTexture(this.data.hexes[key], this.hexTexture);
             } else if (this.currentToolGroup === null) {
                 this.data.hexes[key] = {
                     q: hex.q,
