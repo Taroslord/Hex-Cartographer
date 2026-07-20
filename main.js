@@ -39,6 +39,14 @@ const MIN_ZOOM = 0.01; // Minimum zoom (1% of a hex)
 const MAX_ZOOM = 4; // Maximum zoom (number x 100% of a hex. 4 = 400%)
 const VIEWPORT_PADDING = 0.9;
 
+// Default radius of the anchor dot in SCREEN pixels (divided by zoom when drawing),
+// so it stays the same size at any zoom level. Per text overridable via anchorRadius.
+const TEXT_ANCHOR_RADIUS = 3;
+// Distance between the anchor point and the text: a horizontal offset for
+// left/right alignment, a vertical lift for centered text (which cannot dodge
+// sideways). User configurable per text via anchorGap; this is the default.
+const DEFAULT_ANCHOR_GAP = 10;
+
 // === Text-Defaults ===
 const DEFAULT_TEXT_SIZE = 16;
 const DEFAULT_SHADOW_DISTANCE = 5;
@@ -248,6 +256,14 @@ const TRANSLATIONS = {
         'modal.formatting': 'Formatierung:',
         'modal.outline': 'Outline',
         'modal.bold': 'Fett',
+        'modal.showAnchor': 'Ankerpunkt anzeigen',
+        'modal.alignment': 'Ausrichtung',
+        'modal.alignLeft': 'Linksbündig',
+        'modal.alignCenter': 'Zentriert',
+        'modal.alignRight': 'Rechtsbündig',
+        'modal.anchorRadius': 'Radius (px)',
+        'modal.anchorGap': 'Ankerpunkt Text-Abstand',
+        'modal.anchorOutline': 'Ankerpunkt-Outline',
         'modal.shadowSettings': 'Schatten-Einstellungen:',
         'modal.shadowEnable': 'Schatten aktivieren',
         'modal.shadowDistance': 'Abstand (px):',
@@ -491,6 +507,14 @@ const TRANSLATIONS = {
         'modal.formatting': 'Formatting:',
         'modal.outline': 'Outline',
         'modal.bold': 'Bold',
+        'modal.showAnchor': 'Show anchor point',
+        'modal.alignment': 'Alignment',
+        'modal.alignLeft': 'Left',
+        'modal.alignCenter': 'Centered',
+        'modal.alignRight': 'Right',
+        'modal.anchorRadius': 'Radius (px)',
+        'modal.anchorGap': 'Anchor text distance',
+        'modal.anchorOutline': 'Anchor outline',
         'modal.shadowSettings': 'Shadow Settings:',
         'modal.shadowEnable': 'Enable shadow',
         'modal.shadowDistance': 'Distance (px):',
@@ -714,6 +738,14 @@ const TRANSLATIONS = {
         'modal.formatting': '格式：',
         'modal.outline': '描边',
         'modal.bold': '粗体',
+        'modal.showAnchor': '显示锚点',
+        'modal.alignment': '对齐',
+        'modal.alignLeft': '左对齐',
+        'modal.alignCenter': '居中',
+        'modal.alignRight': '右对齐',
+        'modal.anchorRadius': '半径 (px)',
+        'modal.anchorGap': '锚点文字间距',
+        'modal.anchorOutline': '锚点描边',
         'modal.shadowSettings': '阴影设置：',
         'modal.shadowEnable': '启用阴影',
         'modal.shadowDistance': '距离 (px)：',
@@ -929,6 +961,14 @@ const TRANSLATIONS = {
         'modal.formatting': 'Форматирование:',
         'modal.outline': 'Обводка',
         'modal.bold': 'Жирный',
+        'modal.showAnchor': 'Показать точку привязки',
+        'modal.alignment': 'Выравнивание',
+        'modal.alignLeft': 'По левому краю',
+        'modal.alignCenter': 'По центру',
+        'modal.alignRight': 'По правому краю',
+        'modal.anchorRadius': 'Радиус (px)',
+        'modal.anchorGap': 'Отступ текста от точки привязки',
+        'modal.anchorOutline': 'Обводка точки привязки',
         'modal.shadowSettings': 'Настройки тени:',
         'modal.shadowEnable': 'Включить тень',
         'modal.shadowDistance': 'Расстояние (px):',
@@ -1144,6 +1184,14 @@ const TRANSLATIONS = {
         'modal.formatting': '書式：',
         'modal.outline': 'アウトライン',
         'modal.bold': '太字',
+        'modal.showAnchor': 'アンカーポイントを表示',
+        'modal.alignment': '配置',
+        'modal.alignLeft': '左揃え',
+        'modal.alignCenter': '中央揃え',
+        'modal.alignRight': '右揃え',
+        'modal.anchorRadius': '半径 (px)',
+        'modal.anchorGap': 'アンカーとテキストの間隔',
+        'modal.anchorOutline': 'アンカーのアウトライン',
         'modal.shadowSettings': '影の設定：',
         'modal.shadowEnable': '影を有効にする',
         'modal.shadowDistance': '距離 (px)：',
@@ -1359,6 +1407,14 @@ const TRANSLATIONS = {
         'modal.formatting': 'Mise en forme :',
         'modal.outline': 'Contour',
         'modal.bold': 'Gras',
+        'modal.showAnchor': 'Afficher le point d\'ancrage',
+        'modal.alignment': 'Alignement',
+        'modal.alignLeft': 'À gauche',
+        'modal.alignCenter': 'Centré',
+        'modal.alignRight': 'À droite',
+        'modal.anchorRadius': 'Rayon (px)',
+        'modal.anchorGap': 'Distance texte-ancrage',
+        'modal.anchorOutline': 'Contour de l\'ancrage',
         'modal.shadowSettings': 'Paramètres d\'ombre :',
         'modal.shadowEnable': 'Activer l\'ombre',
         'modal.shadowDistance': 'Distance (px) :',
@@ -1574,6 +1630,14 @@ const TRANSLATIONS = {
         'modal.formatting': 'Formatação:',
         'modal.outline': 'Contorno',
         'modal.bold': 'Negrito',
+        'modal.showAnchor': 'Mostrar ponto de ancoragem',
+        'modal.alignment': 'Alinhamento',
+        'modal.alignLeft': 'À esquerda',
+        'modal.alignCenter': 'Centralizado',
+        'modal.alignRight': 'À direita',
+        'modal.anchorRadius': 'Raio (px)',
+        'modal.anchorGap': 'Distância do texto à âncora',
+        'modal.anchorOutline': 'Contorno da âncora',
         'modal.shadowSettings': 'Configurações de sombra:',
         'modal.shadowEnable': 'Ativar sombra',
         'modal.shadowDistance': 'Distância (px):',
@@ -1789,6 +1853,14 @@ const TRANSLATIONS = {
         'modal.formatting': '서식:',
         'modal.outline': '외곽선',
         'modal.bold': '굵게',
+        'modal.showAnchor': '앵커 포인트 표시',
+        'modal.alignment': '정렬',
+        'modal.alignLeft': '왼쪽 정렬',
+        'modal.alignCenter': '가운데 정렬',
+        'modal.alignRight': '오른쪽 정렬',
+        'modal.anchorRadius': '반지름 (px)',
+        'modal.anchorGap': '앵커-텍스트 간격',
+        'modal.anchorOutline': '앵커 외곽선',
         'modal.shadowSettings': '그림자 설정:',
         'modal.shadowEnable': '그림자 활성화',
         'modal.shadowDistance': '거리 (px):',
@@ -2004,6 +2076,14 @@ const TRANSLATIONS = {
         'modal.formatting': 'Formato:',
         'modal.outline': 'Contorno',
         'modal.bold': 'Negrita',
+        'modal.showAnchor': 'Mostrar punto de anclaje',
+        'modal.alignment': 'Alineación',
+        'modal.alignLeft': 'A la izquierda',
+        'modal.alignCenter': 'Centrado',
+        'modal.alignRight': 'A la derecha',
+        'modal.anchorRadius': 'Radio (px)',
+        'modal.anchorGap': 'Distancia texto-ancla',
+        'modal.anchorOutline': 'Contorno del ancla',
         'modal.shadowSettings': 'Ajustes de sombra:',
         'modal.shadowEnable': 'Activar sombra',
         'modal.shadowDistance': 'Distancia (px):',
@@ -2219,6 +2299,14 @@ const TRANSLATIONS = {
         'modal.formatting': 'Formatowanie:',
         'modal.outline': 'Obrys',
         'modal.bold': 'Pogrubienie',
+        'modal.showAnchor': 'Pokaż punkt zakotwiczenia',
+        'modal.alignment': 'Wyrównanie',
+        'modal.alignLeft': 'Do lewej',
+        'modal.alignCenter': 'Wyśrodkowane',
+        'modal.alignRight': 'Do prawej',
+        'modal.anchorRadius': 'Promień (px)',
+        'modal.anchorGap': 'Odstęp tekstu od kotwicy',
+        'modal.anchorOutline': 'Obrys kotwicy',
         'modal.shadowSettings': 'Ustawienia cienia:',
         'modal.shadowEnable': 'Włącz cień',
         'modal.shadowDistance': 'Odległość (px):',
@@ -2434,6 +2522,14 @@ const TRANSLATIONS = {
         'modal.formatting': 'Formattazione:',
         'modal.outline': 'Contorno',
         'modal.bold': 'Grassetto',
+        'modal.showAnchor': 'Mostra punto di ancoraggio',
+        'modal.alignment': 'Allineamento',
+        'modal.alignLeft': 'A sinistra',
+        'modal.alignCenter': 'Centrato',
+        'modal.alignRight': 'A destra',
+        'modal.anchorRadius': 'Raggio (px)',
+        'modal.anchorGap': 'Distanza testo-ancora',
+        'modal.anchorOutline': 'Contorno dell\'ancora',
         'modal.shadowSettings': 'Impostazioni ombra:',
         'modal.shadowEnable': 'Attiva ombra',
         'modal.shadowDistance': 'Distanza (px):',
@@ -3395,6 +3491,7 @@ class HexCartographerView extends ItemView {
         this.isReloading = false;
         this.isSaving = false;
         this.draggedText = null;
+        this.draggedTextMoved = false;
 
         this.startHex = null;
         this.borderSettings = { dashes: DEFAULT_BORDER_DASHES, activeRegionId: null, pickedHex: null, visible: true };
@@ -3448,6 +3545,11 @@ class HexCartographerView extends ItemView {
         this.lastUsedTextShadow = false;
         this.lastUsedTextShadowDistance = DEFAULT_SHADOW_DISTANCE;
         this.lastUsedTextShadowOpatown = DEFAULT_SHADOW_OPACITY;
+        this.lastUsedTextShowAnchor = false;
+        this.lastUsedTextAnchorRadius = TEXT_ANCHOR_RADIUS;
+        this.lastUsedTextAnchorGap = DEFAULT_ANCHOR_GAP;
+        this.lastUsedTextAnchorOutline = true;
+        this.lastUsedTextAlign = 'center';
     }
 
     initToolConfigs() {
@@ -3924,6 +4026,11 @@ class HexCartographerView extends ItemView {
                 if (newData.settings.lastUsedTextShadow !== undefined) this.lastUsedTextShadow = newData.settings.lastUsedTextShadow;
                 if (newData.settings.lastUsedTextShadowDistance !== undefined) this.lastUsedTextShadowDistance = newData.settings.lastUsedTextShadowDistance;
                 if (newData.settings.lastUsedTextShadowOpatown !== undefined) this.lastUsedTextShadowOpatown = newData.settings.lastUsedTextShadowOpatown;
+                if (newData.settings.lastUsedTextShowAnchor !== undefined) this.lastUsedTextShowAnchor = newData.settings.lastUsedTextShowAnchor;
+                if (newData.settings.lastUsedTextAnchorRadius !== undefined) this.lastUsedTextAnchorRadius = newData.settings.lastUsedTextAnchorRadius;
+                if (newData.settings.lastUsedTextAnchorGap !== undefined) this.lastUsedTextAnchorGap = newData.settings.lastUsedTextAnchorGap;
+                if (newData.settings.lastUsedTextAnchorOutline !== undefined) this.lastUsedTextAnchorOutline = newData.settings.lastUsedTextAnchorOutline;
+                if (newData.settings.lastUsedTextAlign !== undefined) this.lastUsedTextAlign = newData.settings.lastUsedTextAlign;
                 if (newData.settings.masterColor) {
                     this.masterColor = newData.settings.masterColor;
                     if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
@@ -4069,6 +4176,12 @@ class HexCartographerView extends ItemView {
             if (JSON.stringify(this.data) !== JSON.stringify(newData)) {
                 this.data = Object.assign({}, newData);
 
+                // Anchor texts to their hex (older maps carry only x/y), then place
+                // them. hexOrientation is already loaded at this point, so the
+                // migration uses the orientation the map was saved with.
+                this.migrateTextsToHex();
+                this.applyTextHexPositions();
+
                 // Decode exactly the graphics this map uses — before the
                 // first draw, so no placeholders flash.
                 await this.plugin.ensureUserAssets(this.plugin.collectUsedAssetKeys(this.data));
@@ -4147,6 +4260,9 @@ class HexCartographerView extends ItemView {
             this.data.texts = restored.texts;
             this.data.borders = restored.borders || [];
             this.data.gridSize = restored.gridSize;
+            // The snapshot holds x/y from its own time — re-place from the anchor
+            // in case the orientation changed since.
+            this.applyTextHexPositions();
             this.render();
             this.requestSave();
         } else {
@@ -4173,6 +4289,9 @@ class HexCartographerView extends ItemView {
             this.data.texts = restored.texts;
             this.data.borders = restored.borders || [];
             this.data.gridSize = restored.gridSize;
+            // The snapshot holds x/y from its own time — re-place from the anchor
+            // in case the orientation changed since.
+            this.applyTextHexPositions();
             this.render();
             this.requestSave();
         } else {
@@ -4477,8 +4596,15 @@ class HexCartographerView extends ItemView {
         this.hexOrientationBtn = hexOrientationBtn;
         this.syncHexOrientationButton();
         hexOrientationBtn.onclick = () => {
+            // Anchor anything not anchored yet — still in the CURRENT orientation,
+            // otherwise the offset would be measured against already moved hexes.
+            // Covers maps that were open while the plugin was updated.
+            this.migrateTextsToHex();
+
             this.hexOrientation = !this.hexOrientation;
             this.syncHexOrientationButton();
+            // Hex centers move with the orientation — let the anchored texts follow.
+            this.applyTextHexPositions();
             this.render();
             this.requestSave();
         };
@@ -5619,16 +5745,91 @@ class HexCartographerView extends ItemView {
     }
 
 
+    // Texts are anchored to a hex: `hex` (q/r) plus `offset` from that hex's
+    // center. x/y stay the working values (rendering, hit test, export, drag) and
+    // are derived from the anchor — they are also written to the file so older
+    // plugin versions keep showing the texts.
+    bindTextToHex(t) {
+        if (!t || !isFinite(t.x) || !isFinite(t.y)) return;
+        const hex = this.pixelToHex(t.x, t.y);
+        const center = this.hexToPixel(hex);
+        t.hex = { q: hex.q, r: hex.r };
+        t.offset = { x: t.x - center.x, y: t.y - center.y };
+    }
+
+    // Recomputes x/y from the anchor. Called after loading, after undo/redo and
+    // whenever the hex orientation changes — the hex centers move then, and the
+    // texts must follow. The offset itself is not rotated: a text keeps its
+    // relative spot and stays horizontally readable.
+    applyTextHexPositions() {
+        if (!this.data.texts) return;
+        for (const t of this.data.texts) {
+            if (!t.hex || !t.offset) continue;
+            const center = this.hexToPixel(t.hex);
+            t.x = center.x + t.offset.x;
+            t.y = center.y + t.offset.y;
+        }
+    }
+
+    // Older maps store only absolute x/y. Derive the anchor once, using the
+    // orientation the map was saved with, so texts follow the hexes from now on.
+    migrateTextsToHex() {
+        if (!this.data.texts) return;
+        for (const t of this.data.texts) {
+            if (t.hex && t.offset) continue;
+            this.bindTextToHex(t);
+        }
+    }
+
+    // Draw position and horizontal bounds of a text, honoring its alignment.
+    // Left/right aligned texts sit anchorGap pixels beside the anchor; centered ones
+    // are lifted by anchorGap instead, since they cannot dodge sideways. Shared by
+    // drawing, hit testing and export so all three agree. Expects ctx.font to be set.
+    textLayout(t, ctx) {
+        const align = t.align || 'center';
+        const width = ctx.measureText(t.text).width;
+        const gap = Number.isFinite(t.anchorGap) ? t.anchorGap : DEFAULT_ANCHOR_GAP;
+        let x = t.x, y = t.y, left, right;
+
+        if (align === 'left') {
+            x = t.x + gap; left = x; right = x + width;
+        } else if (align === 'right') {
+            x = t.x - gap; left = x - width; right = x;
+        } else {
+            y = t.y - gap; left = t.x - width / 2; right = t.x + width / 2;
+        }
+        return { align, x, y, width, left, right };
+    }
+
+    setTextFont(ctx, t) {
+        ctx.font = `${t.bold ? 'bold ' : ''}${t.size || 16}px Verdana`;
+    }
+
+    // Carries the last used text settings over to the next new text. One place, so
+    // no option gets forgotten when the modal grows.
+    rememberTextDefaults(size, color, outline, bold, shadow, shadowDistance, shadowOpatown, showAnchor, anchorRadius, align, anchorGap, anchorOutline) {
+        this.lastUsedTextSize = size;
+        this.lastUsedTextColor = color;
+        this.lastUsedTextOutline = outline;
+        this.lastUsedTextBold = bold;
+        this.lastUsedTextShadow = shadow;
+        this.lastUsedTextShadowDistance = shadowDistance;
+        this.lastUsedTextShadowOpatown = shadowOpatown;
+        this.lastUsedTextShowAnchor = showAnchor;
+        this.lastUsedTextAnchorRadius = anchorRadius;
+        this.lastUsedTextAlign = align;
+        this.lastUsedTextAnchorGap = anchorGap;
+        this.lastUsedTextAnchorOutline = anchorOutline;
+    }
+
     getTextAt(worldX, worldY) {
         if (!this.data.texts) return null;
         return this.data.texts.find(t => {
-            const weight = t.bold ? "bold " : "";
-            this.ctx.font = `${weight}${t.size || 16}px Verdana`;
-            const metrics = this.ctx.measureText(t.text);
-            const halfWidth = metrics.width / 2;
+            this.setTextFont(this.ctx, t);
+            const l = this.textLayout(t, this.ctx);
             const height = t.size || 16;
-            return worldX >= t.x - halfWidth - 5 && worldX <= t.x + halfWidth + 5 &&
-                   worldY >= t.y - height && worldY <= t.y + 5;
+            return worldX >= l.left - 5 && worldX <= l.right + 5 &&
+                   worldY >= l.y - height && worldY <= l.y + 5;
         });
     }
 
@@ -5779,6 +5980,10 @@ class HexCartographerView extends ItemView {
             if (hitText && this.currentToolGroup === 'text' && this.drawMode === 'none') {
                 this.pushHistoryIfNeeded();
                 this.draggedText = hitText;
+                this.draggedTextMoved = false;
+                // Remember where inside the text the cursor grabbed it, so the anchor
+                // keeps its position relative to the cursor instead of snapping to it.
+                this.textDragOffset = { x: hitText.x - world.x, y: hitText.y - world.y };
             } else {
                 this.processInput(e, true);
             }
@@ -5817,8 +6022,16 @@ class HexCartographerView extends ItemView {
                 this.data.offY += e.movementY;
                 this.render();
             } else if (this.draggedText) {
-                this.draggedText.x = world.x;
-                this.draggedText.y = world.y;
+                const off = this.textDragOffset || { x: 0, y: 0 };
+                this.draggedText.x = world.x + off.x;
+                this.draggedText.y = world.y + off.y;
+                // Any move of 1 screen pixel or more counts as a drag, not a click,
+                // so the release must not open the editor.
+                if (this.mouseDownPos) {
+                    const movedPx = Math.hypot(world.x - this.mouseDownPos.x, world.y - this.mouseDownPos.y) * (this.data.zoom || 1);
+                    if (movedPx >= 1) this.draggedTextMoved = true;
+                }
+                this.bindTextToHex(this.draggedText); // re-anchor to the hex it was dropped on
                 this.render();
             } else if (this.isMouseDown) {
                 if (!this.editMode) {
@@ -5919,23 +6132,30 @@ class HexCartographerView extends ItemView {
                 }
                 const dist = Math.sqrt((world.x - this.mouseDownPos.x)**2 + (world.y - this.mouseDownPos.y)**2);
                 if (dist < 5 && this.drawMode !== 'eraser') {
-                    const hitText = this.getTextAt(world.x, world.y);
-                    if (hitText) {
-                        if (this.currentToolGroup === 'text') {
-                            const hitX = hitText.x, hitY = hitText.y;
-                            new TextInputModal(this.app, (v, s, l, c, o, b, sh, shd, sho) => {
-                                const target = this.data.texts.find(t => t.x === hitX && t.y === hitY);
-                                if (v && target) {
+                    if (this.currentToolGroup === 'text') {
+                        // Edit only on a pure click: the press started on this text
+                        // (draggedText) and it was not moved at all. Any drag of 1 screen
+                        // pixel or more sets draggedTextMoved and must not open the editor.
+                        // Re-querying getTextAt at the release point would also spuriously
+                        // open the editor when the press began elsewhere (placing a text).
+                        const target = this.draggedText;
+                        if (target && !this.draggedTextMoved) {
+                            new TextInputModal(this.app, (v, s, l, c, o, b, sh, shd, sho, anc, ar, al, ag, ao) => {
+                                if (v) {
                                     target.text = v; target.size = s; target.link = l;
                                     target.color = c; target.outline = o; target.bold = b;
                                     target.shadow = sh; target.shadowDistance = shd; target.shadowOpatown = sho;
-                                    this.lastUsedTextSize = s; this.lastUsedTextColor = c; this.lastUsedTextOutline = o; this.lastUsedTextBold = b;
-                                    this.lastUsedTextShadow = sh; this.lastUsedTextShadowDistance = shd; this.lastUsedTextShadowOpatown = sho;
+                                    target.showAnchor = anc; target.anchorRadius = ar; target.align = al; target.anchorGap = ag; target.anchorOutline = ao;
+                                    this.rememberTextDefaults(s, c, o, b, sh, shd, sho, anc, ar, al, ag, ao);
+                                } else {
+                                    this.data.texts = this.data.texts.filter(t => t !== target);
                                 }
-                                else if (!v) { this.data.texts = this.data.texts.filter(t => !(t.x === hitX && t.y === hitY)); }
                                 this.render(); this.requestSave();
-                            }, hitText.text, hitText.size, hitText.link, hitText.color, hitText.outline, hitText.bold, hitText.shadow, hitText.shadowDistance, hitText.shadowOpatown, this.colorPalette, this.colorPalette2).open();
-                        } else if (hitText.link) {
+                            }, target.text, target.size, target.link, target.color, target.outline, target.bold, target.shadow, target.shadowDistance, target.shadowOpatown, this.colorPalette, this.colorPalette2, target.showAnchor, target.anchorRadius, target.align, target.anchorGap, target.anchorOutline).open();
+                        }
+                    } else {
+                        const hitText = this.getTextAt(world.x, world.y);
+                        if (hitText && hitText.link) {
                             this.app.workspace.openLinkText(hitText.link, this.file.path, true);
                         }
                     }
@@ -6167,6 +6387,9 @@ class HexCartographerView extends ItemView {
                         if (hitText && this.currentToolGroup === 'text' && this.drawMode === 'none') {
                             this.pushHistoryIfNeeded();
                             this.draggedText = hitText;
+                            this.draggedTextMoved = false;
+                            // Keep the grab offset so the anchor does not jump to the finger.
+                            this.textDragOffset = { x: hitText.x - world.x, y: hitText.y - world.y };
                         } else {
                             this.processInput(this.touchState.pendingTouchStart.mouseEvent, true);
                         }
@@ -6237,8 +6460,15 @@ class HexCartographerView extends ItemView {
                 const world = this.getWorldCoords(mouseEvent);
 
                 if (this.draggedText) {
-                    this.draggedText.x = world.x;
-                    this.draggedText.y = world.y;
+                    const off = this.textDragOffset || { x: 0, y: 0 };
+                    this.draggedText.x = world.x + off.x;
+                    this.draggedText.y = world.y + off.y;
+                    // Any move of 1 screen pixel or more counts as a drag, not a tap.
+                    if (this.mouseDownPos) {
+                        const movedPx = Math.hypot(world.x - this.mouseDownPos.x, world.y - this.mouseDownPos.y) * (this.data.zoom || 1);
+                        if (movedPx >= 1) this.draggedTextMoved = true;
+                    }
+                    this.bindTextToHex(this.draggedText); // re-anchor to the hex it was dropped on
                     this.render();
                 } else if (this.isMouseDown) {
                     if (!this.editMode) {
@@ -6464,23 +6694,28 @@ class HexCartographerView extends ItemView {
                     }
                     const dist = Math.sqrt((world.x - this.mouseDownPos.x)**2 + (world.y - this.mouseDownPos.y)**2);
                     if (dist < 5 && this.drawMode !== 'eraser') {
-                        const hitText = this.getTextAt(world.x, world.y);
-                        if (hitText) {
-                            if (this.currentToolGroup === 'text') {
-                                const hitX = hitText.x, hitY = hitText.y;
-                                new TextInputModal(this.app, (v, s, l, c, o, b, sh, shd, sho) => {
-                                    const target = this.data.texts.find(t => t.x === hitX && t.y === hitY);
-                                    if (v && target) {
+                        if (this.currentToolGroup === 'text') {
+                            // Edit only on a pure tap: started on this text (draggedText)
+                            // and not moved. Any drag of 1 screen pixel or more sets
+                            // draggedTextMoved — see the mouse handler.
+                            const target = this.draggedText;
+                            if (target && !this.draggedTextMoved) {
+                                new TextInputModal(this.app, (v, s, l, c, o, b, sh, shd, sho, anc, ar, al, ag, ao) => {
+                                    if (v) {
                                         target.text = v; target.size = s; target.link = l;
                                         target.color = c; target.outline = o; target.bold = b;
                                         target.shadow = sh; target.shadowDistance = shd; target.shadowOpatown = sho;
-                                        this.lastUsedTextSize = s; this.lastUsedTextColor = c; this.lastUsedTextOutline = o; this.lastUsedTextBold = b;
-                                        this.lastUsedTextShadow = sh; this.lastUsedTextShadowDistance = shd; this.lastUsedTextShadowOpatown = sho;
+                                        target.showAnchor = anc; target.anchorRadius = ar; target.align = al; target.anchorGap = ag; target.anchorOutline = ao;
+                                        this.rememberTextDefaults(s, c, o, b, sh, shd, sho, anc, ar, al, ag, ao);
+                                    } else {
+                                        this.data.texts = this.data.texts.filter(t => t !== target);
                                     }
-                                    else if (!v) { this.data.texts = this.data.texts.filter(t => !(t.x === hitX && t.y === hitY)); }
                                     this.render(); this.requestSave();
-                                }, hitText.text, hitText.size, hitText.link, hitText.color, hitText.outline, hitText.bold, hitText.shadow, hitText.shadowDistance, hitText.shadowOpatown, this.colorPalette, this.colorPalette2).open();
-                            } else if (hitText.link) {
+                                }, target.text, target.size, target.link, target.color, target.outline, target.bold, target.shadow, target.shadowDistance, target.shadowOpatown, this.colorPalette, this.colorPalette2, target.showAnchor, target.anchorRadius, target.align, target.anchorGap, target.anchorOutline).open();
+                            }
+                        } else {
+                            const hitText = this.getTextAt(world.x, world.y);
+                            if (hitText && hitText.link) {
                                 this.app.workspace.openLinkText(hitText.link, this.file.path, true);
                             }
                         }
@@ -6588,14 +6823,21 @@ class HexCartographerView extends ItemView {
         if (this.currentToolGroup === 'text' && this.drawMode === 'none' && isInitial) {
             const existingText = this.getTextAt(world.x, world.y);
             if (!existingText) {
-                new TextInputModal(this.app, (v, s, l, c, o, b, sh, shd, sho) => {
+                // The modal opens on mousedown; its backdrop swallows the mouseup, so
+                // clear the press state here or it would linger and mis-trigger the
+                // next release (e.g. reopen the editor of a nearby text).
+                this.isMouseDown = false;
+                this.draggedText = null;
+                new TextInputModal(this.app, (v, s, l, c, o, b, sh, shd, sho, anc, ar, al, ag, ao) => {
                     if(v) {
-                        this.data.texts.push({text: v, x: world.x, y: world.y, size: s, link: l, color: c, outline: o, bold: b, shadow: sh, shadowDistance: shd, shadowOpatown: sho});
-                        this.lastUsedTextSize = s; this.lastUsedTextColor = c; this.lastUsedTextOutline = o; this.lastUsedTextBold = b;
-                        this.lastUsedTextShadow = sh; this.lastUsedTextShadowDistance = shd; this.lastUsedTextShadowOpatown = sho;
+                        const newText = {text: v, x: world.x, y: world.y, size: s, link: l, color: c, outline: o, bold: b,
+                                         shadow: sh, shadowDistance: shd, shadowOpatown: sho, showAnchor: anc, anchorRadius: ar, align: al, anchorGap: ag, anchorOutline: ao};
+                        this.bindTextToHex(newText);
+                        this.data.texts.push(newText);
+                        this.rememberTextDefaults(s, c, o, b, sh, shd, sho, anc, ar, al, ag, ao);
                         this.render(); this.requestSave();
                     }
-                }, '', this.lastUsedTextSize, '', this.lastUsedTextColor || this.masterColor, this.lastUsedTextOutline, this.lastUsedTextBold, this.lastUsedTextShadow, this.lastUsedTextShadowDistance, this.lastUsedTextShadowOpatown, this.colorPalette, this.colorPalette2).open();
+                }, '', this.lastUsedTextSize, '', this.lastUsedTextColor || this.masterColor, this.lastUsedTextOutline, this.lastUsedTextBold, this.lastUsedTextShadow, this.lastUsedTextShadowDistance, this.lastUsedTextShadowOpatown, this.colorPalette, this.colorPalette2, this.lastUsedTextShowAnchor, this.lastUsedTextAnchorRadius, this.lastUsedTextAlign, this.lastUsedTextAnchorGap, this.lastUsedTextAnchorOutline).open();
             }
             return;
         }
@@ -7468,26 +7710,60 @@ class HexCartographerView extends ItemView {
         this.textCtx.scale(this.data.zoom, this.data.zoom);
 
         if (this.data.texts) this.data.texts.forEach(t => {
-            const weight = t.bold ? "bold " : "";
-            this.textCtx.font = `${weight}${t.size || 16}px Verdana`;
-            this.textCtx.textAlign = "center";
+            this.setTextFont(this.textCtx, t);
+            const l = this.textLayout(t, this.textCtx);
+            this.textCtx.textAlign = l.align;
 
             if (t.shadow) {
                 const distance = t.shadowDistance || 5;
                 const opatown = (t.shadowOpatown || 50) / 100;
                 this.textCtx.fillStyle = `rgba(0, 0, 0, ${opatown})`;
-                this.textCtx.fillText(t.text, t.x + distance, t.y + distance);
+                this.textCtx.fillText(t.text, l.x + distance, l.y + distance);
             }
 
             this.textCtx.strokeStyle = "black";
             this.textCtx.lineWidth = 2;
-            if (t.outline !== false) this.textCtx.strokeText(t.text, t.x, t.y);
+            if (t.outline !== false) this.textCtx.strokeText(t.text, l.x, l.y);
 
             this.textCtx.fillStyle = t.color || "white";
-            this.textCtx.fillText(t.text, t.x, t.y);
+            this.textCtx.fillText(t.text, l.x, l.y);
+
+            // The dot marks the anchor itself, so it stays at t.x/t.y.
+            if (t.showAnchor) this.drawTextAnchor(t);
         });
 
         this.textCtx.restore();
+    }
+
+    // Marks the text's own coordinate — the point x/y refers to and the one the
+    // hex offset is measured from. Uses the text color and casts the same shadow as
+    // the text. Its outline is independent of the text outline: it is drawn (black,
+    // lineWidth 2) when anchorOutline is set. All values are in world units, so the
+    // dot scales with the map zoom like the text (runs inside renderTexts' scale).
+    drawTextAnchor(t) {
+        const radius = t.anchorRadius > 0 ? t.anchorRadius : TEXT_ANCHOR_RADIUS;
+        const ctx = this.textCtx;
+        ctx.save();
+
+        if (t.shadow) {
+            const distance = t.shadowDistance || 5;
+            const opatown = (t.shadowOpatown || 50) / 100;
+            ctx.beginPath();
+            ctx.arc(t.x + distance, t.y + distance, radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(0, 0, 0, ${opatown})`;
+            ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, radius, 0, Math.PI * 2);
+        if (t.anchorOutline !== false) {
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+        }
+        ctx.fillStyle = t.color || DEFAULT_TEXT_COLOR;
+        ctx.fill();
+        ctx.restore();
     }
 
     // Computes a label for each hex based on the settings
@@ -7836,20 +8112,21 @@ class HexCartographerView extends ItemView {
             tmpCtx.save();
             tmpCtx.translate(this.data.offX, this.data.offY);
             tmpCtx.scale(this.data.zoom, this.data.zoom);
-            const weight = tx.bold ? "bold " : "";
-            tmpCtx.font = `${weight}${tx.size || 16}px Verdana`;
-            tmpCtx.textAlign = "center";
+            this.setTextFont(tmpCtx, tx);
+            const l = this.textLayout(tx, tmpCtx);
+            tmpCtx.textAlign = l.align;
             if (tx.shadow) {
                 const distance = tx.shadowDistance || 5;
                 const opatown = (tx.shadowOpatown || 50) / 100;
                 tmpCtx.fillStyle = `rgba(0, 0, 0, ${opatown})`;
-                tmpCtx.fillText(tx.text, tx.x + distance, tx.y + distance);
+                tmpCtx.fillText(tx.text, l.x + distance, l.y + distance);
             }
             tmpCtx.strokeStyle = "black";
             tmpCtx.lineWidth = 2;
-            if (tx.outline !== false) tmpCtx.strokeText(tx.text, tx.x, tx.y);
+            if (tx.outline !== false) tmpCtx.strokeText(tx.text, l.x, l.y);
             tmpCtx.fillStyle = tx.color || "white";
-            tmpCtx.fillText(tx.text, tx.x, tx.y);
+            tmpCtx.fillText(tx.text, l.x, l.y);
+            // The anchor dot is a editing aid — never exported.
             tmpCtx.restore();
         });
 
@@ -8703,6 +8980,11 @@ class HexCartographerView extends ItemView {
                     lastUsedTextShadow: this.lastUsedTextShadow,
                     lastUsedTextShadowDistance: this.lastUsedTextShadowDistance,
                     lastUsedTextShadowOpatown: this.lastUsedTextShadowOpatown,
+                    lastUsedTextShowAnchor: this.lastUsedTextShowAnchor,
+                    lastUsedTextAnchorRadius: this.lastUsedTextAnchorRadius,
+                    lastUsedTextAnchorGap: this.lastUsedTextAnchorGap,
+                    lastUsedTextAnchorOutline: this.lastUsedTextAnchorOutline,
+                    lastUsedTextAlign: this.lastUsedTextAlign,
                     viewportSaved: true,
                     hexOrientation: this.hexOrientation
                 };
@@ -8906,7 +9188,7 @@ class FileSelectorModal extends Modal {
 }
 
 class TextInputModal extends Modal {
-    constructor(app, onSubmit, val = '', size = DEFAULT_TEXT_SIZE, link = '', color = DEFAULT_TEXT_COLOR, outline = true, bold = false, shadow = false, shadowDistance = DEFAULT_SHADOW_DISTANCE, shadowOpatown = DEFAULT_SHADOW_OPACITY, colorPalette = null, colorPalette2 = null) {
+    constructor(app, onSubmit, val = '', size = DEFAULT_TEXT_SIZE, link = '', color = DEFAULT_TEXT_COLOR, outline = true, bold = false, shadow = false, shadowDistance = DEFAULT_SHADOW_DISTANCE, shadowOpatown = DEFAULT_SHADOW_OPACITY, colorPalette = null, colorPalette2 = null, showAnchor = false, anchorRadius = TEXT_ANCHOR_RADIUS, align = 'center', anchorGap = DEFAULT_ANCHOR_GAP, anchorOutline = true) {
         super(app);
         this.onSubmit = onSubmit;
         this.val = val;
@@ -8920,6 +9202,11 @@ class TextInputModal extends Modal {
         this.shadowOpatown = shadowOpatown;
         this.colorPalette = colorPalette;
         this.colorPalette2 = colorPalette2;
+        this.showAnchor = showAnchor;
+        this.anchorRadius = anchorRadius > 0 ? anchorRadius : TEXT_ANCHOR_RADIUS;
+        this.align = align || 'center';
+        this.anchorGap = Number.isFinite(anchorGap) ? anchorGap : DEFAULT_ANCHOR_GAP;
+        this.anchorOutline = anchorOutline !== false;
     }
 
     onOpen() {
@@ -8963,36 +9250,96 @@ class TextInputModal extends Modal {
             });
         });
 
-        const formatSection = contentEl.createDiv({ style: 'margin-bottom: 20px;' });
-        formatSection.createEl('label', { text: t('modal.formatting'), style: 'display: block; margin-bottom: 8px; font-weight: 500;' });
+        // Both option groups share the same block look: heading, framed body,
+        // generous spacing — the previous inline layout felt cramped.
+        // NOTE: styles must go through attr; Obsidian's createEl ignores a bare
+        // `style` key, which silently drops the whole layout.
+        const sectionStyle = 'margin-bottom: 18px; padding: 14px 16px; background: var(--background-secondary); border-radius: 6px;';
+        const headingStyle = 'display: block; margin-bottom: 12px; font-weight: 600;';
+        // padding-left keeps the box off the block edge; horizontal separation
+        // between neighbouring checkboxes comes from the container gap, not padding.
+        const checkStyle = 'display: flex; gap: 10px; align-items: center; cursor: pointer; padding: 3px 6px;';
 
-        const checkboxGrid = formatSection.createDiv({ style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 12px;' });
+        const alignSection = contentEl.createDiv({ attr: { style: sectionStyle } });
+        alignSection.createEl('label', { text: t('modal.alignment'), attr: { style: headingStyle } });
+        const alignSelect = alignSection.createEl('select');
+        alignSelect.style.width = '100%';
+        alignSelect.style.padding = '8px';
+        [['left', 'modal.alignLeft'], ['center', 'modal.alignCenter'], ['right', 'modal.alignRight']]
+            .forEach(([value, key]) => {
+                const opt = alignSelect.createEl('option', { text: t(key) });
+                opt.value = value;
+            });
+        alignSelect.value = this.align;
 
-        const outlineLabel = checkboxGrid.createEl('label', { style: 'display: flex; gap: 8px; align-items: center; cursor: pointer;' });
+        const formatSection = contentEl.createDiv({ attr: { style: sectionStyle } });
+        formatSection.createEl('label', { text: t('modal.formatting'), attr: { style: headingStyle } });
+
+        // Flex (not a rigid 1fr/1fr grid): equal columns get narrower than their
+        // label on a narrow modal, letting the text overflow into the next box.
+        // Content-sized items with a column gap keep a clear, width-independent space.
+        const checkboxGrid = formatSection.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 8px 16px;' } });
+
+        const outlineLabel = checkboxGrid.createEl('label', { attr: { style: checkStyle } });
         const outlineInput = outlineLabel.createEl('input', { type: 'checkbox' });
         outlineInput.checked = this.outline;
         outlineInput.style.cursor = 'pointer';
-        outlineInput.style.marginLeft = '4px';
         outlineLabel.appendText(t('modal.outline'));
 
-        const boldLabel = checkboxGrid.createEl('label', { style: 'display: flex; gap: 8px; align-items: center; cursor: pointer;' });
+        const boldLabel = checkboxGrid.createEl('label', { attr: { style: checkStyle } });
         const boldInput = boldLabel.createEl('input', { type: 'checkbox' });
         boldInput.checked = this.bold;
         boldInput.style.cursor = 'pointer';
-        boldInput.style.marginLeft = '4px';
         boldLabel.appendText(t('modal.bold'));
 
-        const shadowSection = contentEl.createDiv({ style: 'margin-bottom: 20px; padding: 15px; background: var(--background-secondary); border-radius: 5px;' });
-        shadowSection.createEl('label', { text: t('modal.shadowSettings'), style: 'display: block; margin-bottom: 10px; font-weight: 500;' });
+        // Anchor dot: a display aid rather than formatting, so it sits on its own
+        // row, separated by a divider. Checkbox left, radius right.
+        const anchorRow = formatSection.createDiv({
+            attr: { style: 'margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--background-modifier-border); display: flex; align-items: center; gap: 12px;' }
+        });
+        const anchorLabel = anchorRow.createEl('label', { attr: { style: checkStyle + 'flex: 1;' } });
+        const anchorInput = anchorLabel.createEl('input', { type: 'checkbox' });
+        anchorInput.checked = this.showAnchor;
+        anchorInput.style.cursor = 'pointer';
+        anchorLabel.appendText(t('modal.showAnchor'));
 
-        const shadowLabel = shadowSection.createEl('label', { style: 'display: flex; gap: 8px; align-items: center; cursor: pointer; margin-bottom: 12px;' });
+        anchorRow.createEl('span', { text: t('modal.anchorRadius'), attr: { style: 'font-size: 12px; white-space: nowrap;' } });
+        const anchorRadiusInput = anchorRow.createEl('input', { type: 'number', value: String(this.anchorRadius) });
+        anchorRadiusInput.style.width = '64px';
+        anchorRadiusInput.style.padding = '6px';
+        anchorRadiusInput.min = '1';
+        anchorRadiusInput.max = '50';
+
+        // Distance between the anchor point and the text, in pixels. Its own row
+        // below the anchor toggle, since it applies to every alignment.
+        const anchorGapRow = formatSection.createDiv({
+            attr: { style: 'margin-top: 10px; display: flex; align-items: center; gap: 12px;' }
+        });
+        anchorGapRow.createEl('span', { text: t('modal.anchorGap'), attr: { style: 'flex: 1; font-size: 12px;' } });
+        const anchorGapInput = anchorGapRow.createEl('input', { type: 'number', value: String(this.anchorGap) });
+        anchorGapInput.style.width = '64px';
+        anchorGapInput.style.padding = '6px';
+        anchorGapInput.min = '0';
+        anchorGapInput.max = '200';
+
+        // Anchor outline: independent of the text outline.
+        const anchorOutlineRow = formatSection.createDiv({ attr: { style: 'margin-top: 10px;' } });
+        const anchorOutlineLabel = anchorOutlineRow.createEl('label', { attr: { style: checkStyle } });
+        const anchorOutlineInput = anchorOutlineLabel.createEl('input', { type: 'checkbox' });
+        anchorOutlineInput.checked = this.anchorOutline;
+        anchorOutlineInput.style.cursor = 'pointer';
+        anchorOutlineLabel.appendText(t('modal.anchorOutline'));
+
+        const shadowSection = contentEl.createDiv({ style: sectionStyle });
+        shadowSection.createEl('label', { text: t('modal.shadowSettings'), style: headingStyle });
+
+        const shadowLabel = shadowSection.createEl('label', { style: checkStyle });
         const shadowInput = shadowLabel.createEl('input', { type: 'checkbox' });
         shadowInput.checked = this.shadow;
         shadowInput.style.cursor = 'pointer';
-        shadowInput.style.marginLeft = '4px';
         shadowLabel.appendText(t('modal.shadowEnable'));
 
-        const shadowParams = shadowSection.createDiv({ style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 12px;' });
+        const shadowParams = shadowSection.createDiv({ style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px;' });
 
         const distanceDiv = shadowParams.createDiv();
         distanceDiv.createEl('label', { text: t('modal.shadowDistance'), style: 'display: block; margin-bottom: 5px; font-size: 12px;' });
@@ -9051,7 +9398,7 @@ class TextInputModal extends Modal {
         cancelBtn.onclick = () => this.close();
         const deleteBtn = btnRow.createEl('button', { text: t('modal.deleteText') });
         deleteBtn.style.cssText = 'justify-self: center; color: var(--text-error);';
-        deleteBtn.onclick = () => { this.onSubmit('', 0, '', '', false, false, false, 0, 0); this.close(); };
+        deleteBtn.onclick = () => { this.onSubmit('', 0, '', '', false, false, false, 0, 0, false, TEXT_ANCHOR_RADIUS, 'center', DEFAULT_ANCHOR_GAP, true); this.close(); };
         const okBtn = btnRow.createEl('button', { text: 'OK', cls: 'mod-cta' });
         okBtn.style.justifySelf = 'end';
         okBtn.onclick = () => {
@@ -9068,7 +9415,12 @@ class TextInputModal extends Modal {
                 boldInput.checked,
                 shadowEnabled,
                 parseInt(shadowDistanceInput.value) || DEFAULT_SHADOW_DISTANCE,
-                clampedOpatown
+                clampedOpatown,
+                anchorInput.checked,
+                Math.max(1, Math.min(50, parseInt(anchorRadiusInput.value) || TEXT_ANCHOR_RADIUS)),
+                alignSelect.value,
+                Math.max(0, Math.min(200, anchorGapInput.value === '' ? DEFAULT_ANCHOR_GAP : parseInt(anchorGapInput.value))),
+                anchorOutlineInput.checked
             );
             this.close();
         };
