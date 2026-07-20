@@ -111,6 +111,26 @@ function isUserAssetKey(key) {
     return typeof key === 'string' && key.startsWith(USER_ASSET_PREFIX);
 }
 
+// Arbitrary opaque RGB color as #rrggbb.
+function randomHexColor() {
+    return '#' + Math.floor(Math.random() * 0x1000000).toString(16).padStart(6, '0');
+}
+
+// Lucide "folder-cog" icon, viewBox 0 0 24 24, stroke style (the circle is added
+// as an arc at draw time). Used for the missing-graphic placeholder on the map.
+// Kept as path strings so loading this file needs no Path2D (built lazily on draw).
+const FOLDER_COG_PATHS = [
+    'M10.3 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.98a2 2 0 0 1 1.69.9l.66 1.2A2 2 0 0 0 12 6h8a2 2 0 0 1 2 2v3.3',
+    'm14.305 19.53.923-.382',
+    'm15.228 16.852-.923-.383',
+    'm16.852 15.228-.383-.923',
+    'm16.852 20.772-.383.924',
+    'm19.148 15.228.383-.923',
+    'm19.53 21.696-.382-.924',
+    'm20.772 16.852.924-.383',
+    'm20.772 19.148.924.383',
+];
+
 // === Symbol config (size/position per symbol) ===
 const SVG_SYMBOL_CONFIG = {
     'question':    { size: 0.5,   align: 'center', marginX: 0, marginY: 0 },
@@ -290,6 +310,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': 'Thumbnails anzeigen',
         'settings.userAssetPreviewDesc': 'Zeigt im Rechtsklick-Menü Vorschaubilder der eigenen Grafiken statt nur der Namen.',
         'settings.userAssetsDesc': 'Jede Kategorie hat ihren eigenen Ordner im Vault. Bleibt ein Feld leer, verwendet die Kategorie weiterhin die mitgelieferten Grafiken. Unterstützt werden SVG, PNG, JPG, WEBP, GIF und AVIF; Unterordner werden zu Untermenüs. Formate mit Transparenz eignen sich besonders für Symbole, weil dann die Farbe oder Textur der Wabe sichtbar bleibt. Eigene Grafiken lassen sich nicht einfärben — Ausnahme sind SVGs, die aus einem einzelnen Pfad bestehen.',
+        'settings.userAssetsPlaceholderHint': 'Kann eine eigene Grafik nicht geladen werden (fehlender Ordnerpfad oder entfernte Datei), zeigt die Wabe ein kleines Ordner-Symbol und oben erscheint ein roter Hinweis, welche Kategorie fehlt. Du kannst den Ordnerinhalt oder Pfad prüfen oder mit dem vorhandenen Material weiterarbeiten.',
         'settings.userAssetsPlaceholder': 'z. B. Assets/HexGrafiken',
         'settings.userAssetsBrowse': 'Ordner auswählen',
         'settings.userAssetsClear': 'Pfad leeren',
@@ -304,6 +325,12 @@ const TRANSLATIONS = {
         'menu.system': 'System',
         'menu.color': 'Farbe',
         'notice.assetMissing': 'Grafik nicht gefunden: {name}',
+        'notice.assetsMissing': '{name} fehlen. Ordnerinhalt oder Pfad unter {settings} prüfen!',
+        'assetName.tex': 'Waben-Texturen',
+        'assetName.extras': 'Extra-Symbole',
+        'assetName.veg': 'Vegetations-Symbole',
+        'assetName.mountain': 'Berg-Symbole',
+        'assetName.building': 'Gebäude-Symbole',
         'settings.hexNumbering': 'Waben nummerieren',
         'settings.hexNumberingDesc': 'Die Waben werden mit Zahlen versehen und nummeriert.',
         'settings.hexNumberingHorizontal': 'Horizontale Zählung',
@@ -544,6 +571,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': 'Show thumbnails',
         'settings.userAssetPreviewDesc': 'Shows thumbnail previews of your graphics in the right-click menu instead of just the names.',
         'settings.userAssetsDesc': 'Each category has its own folder inside your vault. Leave a field empty and that category keeps using the built-in graphics. SVG, PNG, JPG, WEBP, GIF and AVIF are supported; subfolders become submenus. Formats with transparency work best for symbols, because the hex color or texture stays visible behind them. Custom graphics cannot be recolored — except SVGs made of a single path.',
+        'settings.userAssetsPlaceholderHint': 'If a custom graphic cannot be loaded (missing folder path or a removed file), the hex shows a small folder icon and a red bar at the top names the affected category. Check the folder contents or path, or keep working with what you have.',
         'settings.userAssetsPlaceholder': 'e.g. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Choose folder',
         'settings.userAssetsClear': 'Clear path',
@@ -558,6 +586,12 @@ const TRANSLATIONS = {
         'menu.system': 'System',
         'menu.color': 'Color',
         'notice.assetMissing': 'Graphic not found: {name}',
+        'notice.assetsMissing': '{name} missing. Check the folder contents or path in {settings}!',
+        'assetName.tex': 'Hex textures',
+        'assetName.extras': 'Extra symbols',
+        'assetName.veg': 'Vegetation symbols',
+        'assetName.mountain': 'Mountain symbols',
+        'assetName.building': 'Building symbols',
         'settings.hexNumbering': 'Number hexes',
         'settings.hexNumberingDesc': 'Hexes are labeled with numbers.',
         'settings.hexNumberingHorizontal': 'Horizontal counting',
@@ -776,6 +810,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': '显示缩略图',
         'settings.userAssetPreviewDesc': '在右键菜单中显示自定义图形的缩略图预览，而不仅是名称。',
         'settings.userAssetsDesc': '每个类别在库中都有自己的文件夹。留空则该类别继续使用内置图形。支持 SVG、PNG、JPG、WEBP、GIF 和 AVIF；子文件夹将成为子菜单。带透明度的格式最适合用作符号，因为六边形的颜色或纹理仍可透出。自定义图形无法重新着色——由单个路径构成的 SVG 除外。',
+        'settings.userAssetsPlaceholderHint': '如果自定义图形无法加载（缺少文件夹路径或文件已删除），六边形会显示一个小文件夹图标，顶部的红色提示会指出缺少的类别。你可以检查文件夹内容或路径，或使用现有素材继续工作。',
         'settings.userAssetsPlaceholder': '例如 Assets/HexGraphics',
         'settings.userAssetsBrowse': '选择文件夹',
         'settings.userAssetsClear': '清除路径',
@@ -790,6 +825,12 @@ const TRANSLATIONS = {
         'menu.system': '系统',
         'menu.color': '颜色',
         'notice.assetMissing': '未找到图形：{name}',
+        'notice.assetsMissing': '{name}缺失。请在{settings}中检查文件夹内容或路径！',
+        'assetName.tex': '六边形纹理',
+        'assetName.extras': '额外符号',
+        'assetName.veg': '植被符号',
+        'assetName.mountain': '山脉符号',
+        'assetName.building': '建筑符号',
         'settings.hexNumbering': '六边形编号',
         'settings.hexNumberingDesc': '六边形将标注数字。',
         'settings.hexNumberingHorizontal': '水平计数',
@@ -1002,6 +1043,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': 'Показывать миниатюры',
         'settings.userAssetPreviewDesc': 'Показывает миниатюры собственной графики в контекстном меню вместо одних лишь имён.',
         'settings.userAssetsDesc': 'У каждой категории своя папка в хранилище. Если поле пустое, категория продолжает использовать встроенную графику. Поддерживаются SVG, PNG, JPG, WEBP, GIF и AVIF; вложенные папки становятся подменю. Форматы с прозрачностью лучше всего подходят для символов, так как цвет или текстура соты остаются видимыми. Собственную графику нельзя перекрасить — кроме SVG из одного контура.',
+        'settings.userAssetsPlaceholderHint': 'Если пользовательская графика не загружается (нет пути к папке или файл удалён), сота показывает маленький значок папки, а красная полоса сверху называет затронутую категорию. Проверьте содержимое папки или путь либо продолжайте работать с тем, что есть.',
         'settings.userAssetsPlaceholder': 'напр. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Выбрать папку',
         'settings.userAssetsClear': 'Очистить путь',
@@ -1016,6 +1058,12 @@ const TRANSLATIONS = {
         'menu.system': 'Система',
         'menu.color': 'Цвет',
         'notice.assetMissing': 'Графика не найдена: {name}',
+        'notice.assetsMissing': '{name} отсутствуют. Проверьте содержимое папки или путь в разделе «{settings}»!',
+        'assetName.tex': 'Текстуры сот',
+        'assetName.extras': 'Дополнительные символы',
+        'assetName.veg': 'Символы растительности',
+        'assetName.mountain': 'Символы гор',
+        'assetName.building': 'Символы зданий',
         'settings.hexNumbering': 'Нумерация шестиугольников',
         'settings.hexNumberingDesc': 'Шестиугольники помечаются цифрами.',
         'settings.hexNumberingHorizontal': 'Горизонтальный счёт',
@@ -1228,6 +1276,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': 'サムネイルを表示',
         'settings.userAssetPreviewDesc': '右クリックメニューで、名前だけでなくカスタム画像のサムネイルを表示します。',
         'settings.userAssetsDesc': '各カテゴリは保管庫内にそれぞれ独自のフォルダを持ちます。空欄のままにすると、そのカテゴリは内蔵画像を使い続けます。SVG、PNG、JPG、WEBP、GIF、AVIF に対応し、サブフォルダはサブメニューになります。透過に対応した形式はヘックスの色やテクスチャが透けて見えるため、シンボルに最適です。カスタム画像は着色できません（単一パスの SVG を除く）。',
+        'settings.userAssetsPlaceholderHint': 'カスタム画像を読み込めない場合（フォルダーパスがない、またはファイルが削除された）、ヘクスに小さなフォルダーアイコンが表示され、上部の赤いバーに不足しているカテゴリが表示されます。フォルダーの内容やパスを確認するか、手持ちの素材で作業を続けられます。',
         'settings.userAssetsPlaceholder': '例: Assets/HexGraphics',
         'settings.userAssetsBrowse': 'フォルダを選択',
         'settings.userAssetsClear': 'パスをクリア',
@@ -1242,6 +1291,12 @@ const TRANSLATIONS = {
         'menu.system': 'システム',
         'menu.color': '色',
         'notice.assetMissing': '画像が見つかりません: {name}',
+        'notice.assetsMissing': '{name}がありません。{settings}でフォルダーの内容またはパスを確認してください！',
+        'assetName.tex': 'ヘクスのテクスチャ',
+        'assetName.extras': '追加シンボル',
+        'assetName.veg': '植生シンボル',
+        'assetName.mountain': '山のシンボル',
+        'assetName.building': '建物のシンボル',
         'settings.hexNumbering': 'ヘクスに番号を付ける',
         'settings.hexNumberingDesc': '各ヘクスに番号を表示します。',
         'settings.hexNumberingHorizontal': '水平カウント',
@@ -1454,6 +1509,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': 'Afficher les miniatures',
         'settings.userAssetPreviewDesc': 'Affiche des miniatures de vos graphiques dans le menu contextuel au lieu des seuls noms.',
         'settings.userAssetsDesc': 'Chaque catégorie possède son propre dossier dans le coffre. Si un champ reste vide, la catégorie continue d\'utiliser les graphiques fournis. SVG, PNG, JPG, WEBP, GIF et AVIF sont pris en charge ; les sous-dossiers deviennent des sous-menus. Les formats avec transparence conviennent particulièrement aux symboles, car la couleur ou la texture de l\'hexagone reste visible. Les graphiques personnalisés ne peuvent pas être recolorés — sauf les SVG composés d\'un seul tracé.',
+        'settings.userAssetsPlaceholderHint': 'Si un graphique personnalisé ne peut pas être chargé (chemin de dossier manquant ou fichier supprimé), l\'hexagone affiche une petite icône de dossier et une barre rouge en haut indique la catégorie concernée. Vérifiez le contenu du dossier ou le chemin, ou continuez avec ce que vous avez.',
         'settings.userAssetsPlaceholder': 'p. ex. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Choisir un dossier',
         'settings.userAssetsClear': 'Effacer le chemin',
@@ -1468,6 +1524,12 @@ const TRANSLATIONS = {
         'menu.system': 'Système',
         'menu.color': 'Couleur',
         'notice.assetMissing': 'Graphique introuvable : {name}',
+        'notice.assetsMissing': '{name} manquants. Vérifiez le contenu du dossier ou le chemin dans {settings} !',
+        'assetName.tex': 'Textures d\'hexagones',
+        'assetName.extras': 'Symboles supplémentaires',
+        'assetName.veg': 'Symboles de végétation',
+        'assetName.mountain': 'Symboles de montagne',
+        'assetName.building': 'Symboles de bâtiment',
         'settings.hexNumbering': 'Numéroter les hexagones',
         'settings.hexNumberingDesc': 'Les hexagones sont numérotés.',
         'settings.hexNumberingHorizontal': 'Comptage horizontal',
@@ -1680,6 +1742,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': 'Mostrar miniaturas',
         'settings.userAssetPreviewDesc': 'Mostra miniaturas dos seus gráficos no menu de contexto em vez de apenas os nomes.',
         'settings.userAssetsDesc': 'Cada categoria tem a sua própria pasta no cofre. Se deixar um campo vazio, essa categoria continua a usar os gráficos incluídos. São suportados SVG, PNG, JPG, WEBP, GIF e AVIF; as subpastas tornam-se submenus. Formatos com transparência são ideais para símbolos, pois a cor ou textura do hexágono continua visível. Gráficos personalizados não podem ser recoloridos — exceto SVGs compostos por um único traçado.',
+        'settings.userAssetsPlaceholderHint': 'Se um gráfico personalizado não puder ser carregado (caminho da pasta ausente ou ficheiro removido), o hexágono mostra um pequeno ícone de pasta e uma barra vermelha no topo indica a categoria afetada. Verifique o conteúdo da pasta ou o caminho, ou continue a trabalhar com o que tem.',
         'settings.userAssetsPlaceholder': 'ex.: Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Escolher pasta',
         'settings.userAssetsClear': 'Limpar caminho',
@@ -1694,6 +1757,12 @@ const TRANSLATIONS = {
         'menu.system': 'Sistema',
         'menu.color': 'Cor',
         'notice.assetMissing': 'Gráfico não encontrado: {name}',
+        'notice.assetsMissing': '{name} ausentes. Verifique o conteúdo da pasta ou o caminho em {settings}!',
+        'assetName.tex': 'Texturas de hexágonos',
+        'assetName.extras': 'Símbolos extra',
+        'assetName.veg': 'Símbolos de vegetação',
+        'assetName.mountain': 'Símbolos de montanha',
+        'assetName.building': 'Símbolos de edifício',
         'settings.hexNumbering': 'Numerar hexágonos',
         'settings.hexNumberingDesc': 'Os hexágonos são numerados.',
         'settings.hexNumberingHorizontal': 'Contagem horizontal',
@@ -1906,6 +1975,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': '썸네일 표시',
         'settings.userAssetPreviewDesc': '우클릭 메뉴에서 이름 대신 사용자 그래픽의 미리보기 썸네일을 표시합니다.',
         'settings.userAssetsDesc': '각 카테고리는 보관함 안에 고유한 폴더를 가집니다. 비워 두면 해당 카테고리는 기본 제공 그래픽을 계속 사용합니다. SVG, PNG, JPG, WEBP, GIF, AVIF를 지원하며 하위 폴더는 하위 메뉴가 됩니다. 투명도를 지원하는 형식은 헥스의 색상이나 텍스처가 비쳐 보이므로 심볼에 특히 적합합니다. 사용자 그래픽은 색을 바꿀 수 없습니다 — 단일 경로로 된 SVG는 예외입니다.',
+        'settings.userAssetsPlaceholderHint': '사용자 그래픽을 불러올 수 없으면(폴더 경로 없음 또는 파일 삭제) 헥스에 작은 폴더 아이콘이 표시되고 상단의 빨간 막대가 해당 카테고리를 알려줍니다. 폴더 내용이나 경로를 확인하거나 있는 자료로 계속 작업할 수 있습니다.',
         'settings.userAssetsPlaceholder': '예: Assets/HexGraphics',
         'settings.userAssetsBrowse': '폴더 선택',
         'settings.userAssetsClear': '경로 지우기',
@@ -1920,6 +1990,12 @@ const TRANSLATIONS = {
         'menu.system': '시스템',
         'menu.color': '색상',
         'notice.assetMissing': '그래픽을 찾을 수 없습니다: {name}',
+        'notice.assetsMissing': '{name}이(가) 없습니다. {settings}에서 폴더 내용 또는 경로를 확인하세요!',
+        'assetName.tex': '헥스 텍스처',
+        'assetName.extras': '추가 기호',
+        'assetName.veg': '식생 기호',
+        'assetName.mountain': '산 기호',
+        'assetName.building': '건물 기호',
         'settings.hexNumbering': '헥스 번호 매기기',
         'settings.hexNumberingDesc': '헥스에 번호를 표시합니다.',
         'settings.hexNumberingHorizontal': '가로 카운트',
@@ -2132,6 +2208,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': 'Mostrar miniaturas',
         'settings.userAssetPreviewDesc': 'Muestra miniaturas de tus gráficos en el menú contextual en lugar de solo los nombres.',
         'settings.userAssetsDesc': 'Cada categoría tiene su propia carpeta en el almacén. Si dejas un campo vacío, esa categoría sigue usando los gráficos incluidos. Se admiten SVG, PNG, JPG, WEBP, GIF y AVIF; las subcarpetas se convierten en submenús. Los formatos con transparencia son ideales para símbolos, ya que el color o la textura del hexágono sigue visible. Los gráficos propios no se pueden recolorear, salvo los SVG formados por un único trazado.',
+        'settings.userAssetsPlaceholderHint': 'Si un gráfico personalizado no se puede cargar (falta la ruta de la carpeta o se eliminó un archivo), el hexágono muestra un pequeño icono de carpeta y una barra roja en la parte superior indica la categoría afectada. Comprueba el contenido de la carpeta o la ruta, o sigue trabajando con lo que tienes.',
         'settings.userAssetsPlaceholder': 'p. ej. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Elegir carpeta',
         'settings.userAssetsClear': 'Borrar ruta',
@@ -2146,6 +2223,12 @@ const TRANSLATIONS = {
         'menu.system': 'Sistema',
         'menu.color': 'Color',
         'notice.assetMissing': 'Gráfico no encontrado: {name}',
+        'notice.assetsMissing': 'Faltan {name}. Comprueba el contenido de la carpeta o la ruta en {settings}!',
+        'assetName.tex': 'Texturas de hexágonos',
+        'assetName.extras': 'Símbolos adicionales',
+        'assetName.veg': 'Símbolos de vegetación',
+        'assetName.mountain': 'Símbolos de montaña',
+        'assetName.building': 'Símbolos de edificio',
         'settings.hexNumbering': 'Numerar hexágonos',
         'settings.hexNumberingDesc': 'Los hexágonos se numeran.',
         'settings.hexNumberingHorizontal': 'Conteo horizontal',
@@ -2358,6 +2441,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': 'Pokaż miniatury',
         'settings.userAssetPreviewDesc': 'Pokazuje w menu kontekstowym miniatury własnej grafiki zamiast samych nazw.',
         'settings.userAssetsDesc': 'Każda kategoria ma własny folder w sejfie. Puste pole oznacza, że kategoria nadal korzysta z wbudowanej grafiki. Obsługiwane są SVG, PNG, JPG, WEBP, GIF i AVIF; podfoldery stają się podmenu. Formaty z przezroczystością najlepiej sprawdzają się jako symbole, ponieważ kolor lub tekstura komórki pozostaje widoczna. Własnej grafiki nie można przekolorować — z wyjątkiem SVG złożonych z jednej ścieżki.',
+        'settings.userAssetsPlaceholderHint': 'Jeśli własnej grafiki nie można wczytać (brak ścieżki folderu lub usunięty plik), sześciokąt pokazuje małą ikonę folderu, a czerwony pasek u góry wskazuje, której kategorii brakuje. Sprawdź zawartość folderu lub ścieżkę albo pracuj dalej z tym, co masz.',
         'settings.userAssetsPlaceholder': 'np. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Wybierz folder',
         'settings.userAssetsClear': 'Wyczyść ścieżkę',
@@ -2372,6 +2456,12 @@ const TRANSLATIONS = {
         'menu.system': 'System',
         'menu.color': 'Kolor',
         'notice.assetMissing': 'Nie znaleziono grafiki: {name}',
+        'notice.assetsMissing': 'Brak: {name}. Sprawdź zawartość folderu lub ścieżkę w {settings}!',
+        'assetName.tex': 'Tekstury sześciokątów',
+        'assetName.extras': 'Dodatkowe symbole',
+        'assetName.veg': 'Symbole roślinności',
+        'assetName.mountain': 'Symbole gór',
+        'assetName.building': 'Symbole budynków',
         'settings.hexNumbering': 'Numeruj sześciokąty',
         'settings.hexNumberingDesc': 'Sześciokąty są oznaczane numerami.',
         'settings.hexNumberingHorizontal': 'Liczenie poziome',
@@ -2584,6 +2674,7 @@ const TRANSLATIONS = {
         'settings.userAssetPreview': 'Mostra miniature',
         'settings.userAssetPreviewDesc': 'Mostra le anteprime delle tue grafiche nel menu contestuale invece dei soli nomi.',
         'settings.userAssetsDesc': 'Ogni categoria ha una propria cartella nel vault. Se lasci un campo vuoto, quella categoria continua a usare la grafica inclusa. Sono supportati SVG, PNG, JPG, WEBP, GIF e AVIF; le sottocartelle diventano sottomenu. I formati con trasparenza sono ideali per i simboli, perché il colore o la trama dell\'esagono resta visibile. La grafica personalizzata non può essere ricolorata, tranne gli SVG composti da un solo tracciato.',
+        'settings.userAssetsPlaceholderHint': 'Se una grafica personalizzata non può essere caricata (percorso della cartella mancante o file rimosso), l\'esagono mostra una piccola icona di cartella e una barra rossa in alto indica la categoria interessata. Controlla il contenuto della cartella o il percorso, oppure continua con ciò che hai.',
         'settings.userAssetsPlaceholder': 'es. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Scegli cartella',
         'settings.userAssetsClear': 'Cancella percorso',
@@ -2598,6 +2689,12 @@ const TRANSLATIONS = {
         'menu.system': 'Sistema',
         'menu.color': 'Colore',
         'notice.assetMissing': 'Grafica non trovata: {name}',
+        'notice.assetsMissing': '{name} mancanti. Controlla il contenuto della cartella o il percorso in {settings}!',
+        'assetName.tex': 'Texture degli esagoni',
+        'assetName.extras': 'Simboli extra',
+        'assetName.veg': 'Simboli di vegetazione',
+        'assetName.mountain': 'Simboli di montagna',
+        'assetName.building': 'Simboli di edificio',
         'settings.hexNumbering': 'Numera esagoni',
         'settings.hexNumberingDesc': 'Gli esagoni vengono numerati.',
         'settings.hexNumberingHorizontal': 'Conteggio orizzontale',
@@ -3365,6 +3462,16 @@ class HexCartographerPlugin extends Plugin {
     getUserAsset(key) {
         const registry = this.getRegistryForKey(key);
         return (registry && registry.get(key)) || null;
+    }
+
+    // The category a user key belongs to (its id is part of the key), or null.
+    getCategoryForKey(key) {
+        if (!isUserAssetKey(key)) return null;
+        const rest = key.slice(USER_ASSET_PREFIX.length);
+        const sep = rest.indexOf(':');
+        if (sep < 0) return null;
+        const id = rest.slice(0, sep);
+        return USER_ASSET_CATEGORIES.find(c => c.id === id) || null;
     }
 
     // Decodes the given graphics. Called before drawing,
@@ -4442,6 +4549,12 @@ class HexCartographerView extends ItemView {
 
         this.updateToolbarState(toolbar);
 
+        // Red bar under the toolbar naming missing user graphics (one line per
+        // category). Hidden while nothing is missing; updated on every render.
+        this.assetWarningBar = container.createDiv({ cls: 'hex-asset-warning-bar' });
+        this.assetWarningBar.style.cssText = 'display: none; flex-shrink: 0; background: var(--text-error); color: #fff; padding: 4px 10px; font-size: 13px; font-weight: 500; line-height: 1.4;';
+        this._assetWarnSig = null; // fresh bar -> force a re-evaluation on next render
+
         const canvasContainer = container.createDiv();
         canvasContainer.style.position = 'relative';
         canvasContainer.style.flexGrow = '1';
@@ -5114,7 +5227,12 @@ class HexCartographerView extends ItemView {
             this.hexTexture = key;
             this.currentToolGroup = 'hexcolor';
             this.drawMode = 'pen';
-            this.masterColor = this.hexColorColor;
+            // Each texture carries its own background color: a fresh random color the
+            // first time, the same one every time after. It shows through where the
+            // texture has alpha and, if the texture goes missing, keeps the hexes of
+            // different textures visually distinct behind the folder icon. Plain color
+            // (no texture) keeps the normal color.
+            this.masterColor = key ? this.colorForTexture(key) : this.hexColorColor;
             if (this.masterColorInput) {
                 this.masterColorInput.value = this.masterColor;
                 if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
@@ -6844,6 +6962,22 @@ class HexCartographerView extends ItemView {
         return { q: rq, r: rr };
     }
 
+    // A user key that cannot be drawn: missing (folder path or file gone) or a
+    // decode failure. Pending-but-decoding keys do not count — they resolve soon.
+    isUnresolvedUserKey(key) {
+        if (!isUserAssetKey(key)) return false;
+        const asset = this.plugin.getUserAsset(key);
+        return !asset || !!asset.failed;
+    }
+
+    // Persistent per-texture background color, remembered in the map file so all
+    // hexes of a texture share one color and it survives reopening.
+    colorForTexture(key) {
+        if (!this.data.textureColors) this.data.textureColors = {};
+        if (!this.data.textureColors[key]) this.data.textureColors[key] = randomHexColor();
+        return this.data.textureColors[key];
+    }
+
     processInput(e, isInitial) {
         this.pushHistoryIfNeeded();
         const world = this.getWorldCoords(e);
@@ -7131,8 +7265,17 @@ class HexCartographerView extends ItemView {
 
     // texture === null/undefined removes an existing texture instead of keeping it.
     applyTexture(h, texture) {
-        if (texture) h.texture = texture;
+        // Never paint an unresolvable texture: clear the layer instead. So painting
+        // over a placeholder (or with a texture whose file went missing) removes the
+        // error marking rather than re-applying the missing key. Undo restores it.
+        if (texture && !this.isUnresolvedUserKey(texture)) h.texture = texture;
         else delete h.texture;
+    }
+
+    // Symbol safe to paint: an unresolvable user symbol becomes null (no symbol), so
+    // overpainting a placeholder clears its marking instead of re-applying the key.
+    paintableSymbol(symbol) {
+        return this.isUnresolvedUserKey(symbol) ? null : symbol;
     }
 
     paintHex(hex) {
@@ -7146,7 +7289,7 @@ class HexCartographerView extends ItemView {
 
         if (this.currentToolGroup === 'pattern' && this.patternData) {
             h.color = this.patternData.backgroundColor || this.patternData.color;
-            h.symbol = this.patternData.symbol;
+            h.symbol = this.paintableSymbol(this.patternData.symbol);
             h.symbolColor = this.patternData.symbolColor;
             this.applyTexture(h, this.patternData.texture);
             return;
@@ -7162,7 +7305,7 @@ class HexCartographerView extends ItemView {
 
         if (this.currentToolGroup && this.toolConfigs[this.currentToolGroup]) {
             const config = this.toolConfigs[this.currentToolGroup];
-            h.symbol = config.currentVariant;
+            h.symbol = this.paintableSymbol(config.currentVariant);
             h.symbolColor = this.masterColor;
             config.symbolColor = this.masterColor;
 
@@ -7451,6 +7594,9 @@ class HexCartographerView extends ItemView {
     // newTexture: undefined = Textur unangetastet lassen, null = entfernen, String = setzen.
     floodFillColor(startHex, targetColor, newColor, targetTexture, newTexture) {
         const keepTexture = newTexture === undefined;
+        // A missing texture is cleared, not applied (see applyTexture). Resolve it
+        // up front so the same-texture short-circuit below stays accurate.
+        if (!keepTexture && this.isUnresolvedUserKey(newTexture)) newTexture = null;
         const sameTexture = keepTexture || (newTexture || null) === (targetTexture || null);
         if (targetColor === newColor && sameTexture) return;
 
@@ -7489,7 +7635,7 @@ class HexCartographerView extends ItemView {
     // ignoring the texture would fill across texture borders.
     floodFillSymbol(startHex, targetSymbol, targetColor, applyBackground, targetTexture) {
         const config = this.toolConfigs[this.currentToolGroup];
-        const newSymbol = config.currentVariant;
+        const newSymbol = this.paintableSymbol(config.currentVariant);
         const newSymbolColor = config.symbolColor;
         const newBgColor = config.backgroundColor;
 
@@ -7562,13 +7708,13 @@ class HexCartographerView extends ItemView {
                     q: hex.q,
                     r: hex.r,
                     color: this.patternData.color,
-                    symbol: this.patternData.symbol,
+                    symbol: this.paintableSymbol(this.patternData.symbol),
                     symbolColor: this.patternData.symbolColor
                 };
                 this.applyTexture(this.data.hexes[key], this.patternData.texture);
             } else {
                 hexData.color = this.patternData.color;
-                hexData.symbol = this.patternData.symbol;
+                hexData.symbol = this.paintableSymbol(this.patternData.symbol);
                 hexData.symbolColor = this.patternData.symbolColor;
                 this.applyTexture(hexData, this.patternData.texture);
             }
@@ -7644,7 +7790,7 @@ class HexCartographerView extends ItemView {
                     q: hex.q,
                     r: hex.r,
                     color: this.patternData.color,
-                    symbol: this.patternData.symbol,
+                    symbol: this.paintableSymbol(this.patternData.symbol),
                     symbolColor: this.patternData.symbolColor,
                     backgroundColor: this.patternData.backgroundColor
                 };
@@ -7711,6 +7857,64 @@ class HexCartographerView extends ItemView {
         this.renderCrosshair();
         this.renderTexts();
         this.renderHexNumbering();
+        this.updateAssetWarningBar();
+    }
+
+    // Fills the red bar under the toolbar with one line per category that has an
+    // unresolvable graphic on the map (missing folder path or file). Hidden when
+    // nothing is missing. A signature guard keeps this to actual DOM changes, so
+    // calling it every render is cheap. Lets the user fix the folder/path or keep
+    // working with what is there.
+    updateAssetWarningBar() {
+        if (!this.assetWarningBar) return;
+
+        const missing = new Set();
+        for (const h of Object.values(this.data.hexes)) {
+            if (h.symbol && this.isUnresolvedUserKey(h.symbol)) {
+                const cat = this.plugin.getCategoryForKey(h.symbol);
+                if (cat) missing.add(cat.id);
+            }
+            if (h.texture && this.isUnresolvedUserKey(h.texture)) {
+                const cat = this.plugin.getCategoryForKey(h.texture);
+                if (cat) missing.add(cat.id);
+            }
+        }
+
+        const sig = [...missing].sort().join(',');
+        if (sig === this._assetWarnSig) return;
+        this._assetWarnSig = sig;
+
+        this.assetWarningBar.empty();
+        if (missing.size === 0) {
+            this.assetWarningBar.style.display = 'none';
+            return;
+        }
+        this.assetWarningBar.style.display = 'block';
+        // Stable order: follow the category definition order.
+        for (const cat of USER_ASSET_CATEGORIES) {
+            if (!missing.has(cat.id)) continue;
+            this.buildAssetWarningLine(this.assetWarningBar.createDiv(), t('assetName.' + cat.id));
+        }
+    }
+
+    // One warning line. The template carries {name} (the category) and {settings}
+    // (a clickable link opening the plugin settings). Built as DOM so the link works.
+    buildAssetWarningLine(lineEl, name) {
+        const withName = t('notice.assetsMissing').replace('{name}', name);
+        const parts = withName.split('{settings}');
+        lineEl.appendText(parts[0]);
+        if (parts.length > 1) {
+            const link = lineEl.createEl('a', { text: t('tooltip.settings') });
+            link.style.cssText = 'color: #fff; text-decoration: underline; cursor: pointer;';
+            link.onclick = (e) => {
+                e.preventDefault();
+                if (this.app.setting && this.app.setting.open) {
+                    this.app.setting.open();
+                    this.app.setting.openTabById('hex-cartographer');
+                }
+            };
+            lineEl.appendText(parts.slice(1).join('{settings}'));
+        }
     }
 
     renderCrosshair() {
@@ -8271,7 +8475,9 @@ class HexCartographerView extends ItemView {
         if (this.isAssetPending(asset)) return; // loaded on demand, then redrawn
 
         if (!asset || asset.failed) {
-            this.drawMissingSymbol(pos, Math.min(maxW, maxH) / 2);
+            // Any unresolvable user graphic (missing folder path OR missing file):
+            // a small folder icon. The red status bar names what is missing.
+            this.drawFolderIcon(pos, Math.min(maxW, maxH) * 0.35);
             return;
         }
 
@@ -8300,15 +8506,46 @@ class HexCartographerView extends ItemView {
         this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
     }
 
-    drawMissingSymbol(pos, radius) {
-        this.ctx.save();
-        this.ctx.strokeStyle = 'rgba(128,128,128,0.6)';
-        this.ctx.lineWidth = 1.5;
-        this.ctx.setLineDash([3, 3]);
-        this.ctx.beginPath();
-        this.ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-        this.ctx.stroke();
-        this.ctx.restore();
+    // Folder glyph marking a hex whose user graphic cannot be loaded (missing
+    // folder path or file). Language independent; a tap in the matching tool mode
+    // opens the settings.
+    drawFolderIcon(pos, size) {
+        const ctx = this.ctx;
+        // Build the Lucide folder-cog paths once (no Path2D at module load time).
+        if (!this._folderCogPaths) {
+            this._folderCogPaths = FOLDER_COG_PATHS.map(d => new Path2D(d));
+            const gear = new Path2D();
+            gear.arc(18, 18, 3, 0, Math.PI * 2);   // the cog center circle
+            this._folderCogPaths.push(gear);
+        }
+
+        // Enlarge circle + icon by 20%, but keep the border width tied to the
+        // original size (Rahmengröße unchanged).
+        const grow = 1.2;
+        ctx.save();
+
+        // White filled circle with a red border, so the red icon reads on any hex
+        // color. Radius +3 (= +6px diameter) beyond the icon for a little breathing room.
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, (size * 0.62 + 3) * grow, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = size / 12;
+        ctx.strokeStyle = '#ff0000';
+        ctx.stroke();
+
+        // Red folder-cog on top — line art, so it is stroked (a fill would blob the
+        // gear teeth together).
+        const iconSize = size * grow;
+        const s = iconSize / 24;                     // scale the 24px viewBox to size
+        ctx.translate(pos.x - iconSize / 2, pos.y - iconSize / 2);
+        ctx.scale(s, s);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 2;
+        for (const p of this._folderCogPaths) ctx.stroke(p);
+        ctx.restore();
     }
 
     drawSymbolAt(symbol, pos, color) {
@@ -8406,24 +8643,12 @@ class HexCartographerView extends ItemView {
                 this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
             }
         } else {
-            this.drawMissingTexture(pos, box);
+            // Unresolvable user texture: a small folder icon over the hex color that
+            // was picked when drawing (so different textures stay distinguishable).
+            this.drawFolderIcon(pos, Math.min(box.w, box.h) * 0.275);
         }
 
         this.ctx.restore();
-    }
-
-    // Missing graphic: subtle hatching so the hex does not look unchanged.
-    // The key is kept — if the file reappears, everything is back.
-    drawMissingTexture(pos, box) {
-        const step = 6;
-        this.ctx.strokeStyle = 'rgba(128,128,128,0.45)';
-        this.ctx.lineWidth = 1;
-        this.ctx.beginPath();
-        for (let o = -box.h; o < box.w; o += step) {
-            this.ctx.moveTo(pos.x - box.w / 2 + o, pos.y - box.h / 2);
-            this.ctx.lineTo(pos.x - box.w / 2 + o + box.h, pos.y + box.h / 2);
-        }
-        this.ctx.stroke();
     }
 
     drawBorders() {
@@ -9879,6 +10104,10 @@ class HexCartographerSettingTab extends PluginSettingTab {
         const assetsBody = assetsSection.createDiv({ cls: 'hex-settings-body' });
         assetsBody.createEl('p', {
             text: t('settings.userAssetsDesc'),
+            attr: { style: 'color: var(--text-muted); font-size: 13px; margin-top: 0;' }
+        });
+        assetsBody.createEl('p', {
+            text: t('settings.userAssetsPlaceholderHint'),
             attr: { style: 'color: var(--text-muted); font-size: 13px; margin-top: 0;' }
         });
 
