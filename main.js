@@ -248,6 +248,9 @@ const TRANSLATIONS = {
 
         // Modal — Textformatierung
         'modal.formatText': 'Text formatieren',
+        'modal.textFormatting': 'Text-Formatierung',
+        'modal.anchorSection': 'Ankerpunkt',
+        'modal.globalSettings': 'Globale Einstellungen',
         'modal.displayText': 'Anzeigetext:',
         'modal.textPlaceholder': 'Text eingeben...',
         'modal.textSize': 'Textgröße:',
@@ -499,6 +502,9 @@ const TRANSLATIONS = {
 
         // Modal — Text formatting
         'modal.formatText': 'Format Text',
+        'modal.textFormatting': 'Text formatting',
+        'modal.anchorSection': 'Anchor point',
+        'modal.globalSettings': 'Global settings',
         'modal.displayText': 'Display text:',
         'modal.textPlaceholder': 'Enter text...',
         'modal.textSize': 'Text size:',
@@ -730,6 +736,9 @@ const TRANSLATIONS = {
         'modal.removeLink': '移除链接',
         'modal.cancel': '取消',
         'modal.formatText': '格式化文本',
+        'modal.textFormatting': '文本格式',
+        'modal.anchorSection': '锚点',
+        'modal.globalSettings': '全局设置',
         'modal.displayText': '显示文本：',
         'modal.textPlaceholder': '输入文本...',
         'modal.textSize': '文本大小：',
@@ -953,6 +962,9 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Удалить ссылку',
         'modal.cancel': 'Отмена',
         'modal.formatText': 'Форматирование текста',
+        'modal.textFormatting': 'Форматирование текста',
+        'modal.anchorSection': 'Точка привязки',
+        'modal.globalSettings': 'Общие настройки',
         'modal.displayText': 'Отображаемый текст:',
         'modal.textPlaceholder': 'Введите текст...',
         'modal.textSize': 'Размер текста:',
@@ -1176,6 +1188,9 @@ const TRANSLATIONS = {
         'modal.removeLink': 'リンクを削除',
         'modal.cancel': 'キャンセル',
         'modal.formatText': 'テキストの書式設定',
+        'modal.textFormatting': 'テキストの書式',
+        'modal.anchorSection': 'アンカーポイント',
+        'modal.globalSettings': '全体設定',
         'modal.displayText': '表示テキスト：',
         'modal.textPlaceholder': 'テキストを入力...',
         'modal.textSize': 'テキストサイズ：',
@@ -1399,6 +1414,9 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Supprimer le lien',
         'modal.cancel': 'Annuler',
         'modal.formatText': 'Formater le texte',
+        'modal.textFormatting': 'Mise en forme du texte',
+        'modal.anchorSection': 'Point d\'ancrage',
+        'modal.globalSettings': 'Paramètres globaux',
         'modal.displayText': 'Texte affiché :',
         'modal.textPlaceholder': 'Saisir le texte...',
         'modal.textSize': 'Taille du texte :',
@@ -1622,6 +1640,9 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Remover link',
         'modal.cancel': 'Cancelar',
         'modal.formatText': 'Formatar texto',
+        'modal.textFormatting': 'Formatação do texto',
+        'modal.anchorSection': 'Ponto de ancoragem',
+        'modal.globalSettings': 'Configurações globais',
         'modal.displayText': 'Texto exibido:',
         'modal.textPlaceholder': 'Digitar texto...',
         'modal.textSize': 'Tamanho do texto:',
@@ -1845,6 +1866,9 @@ const TRANSLATIONS = {
         'modal.removeLink': '링크 제거',
         'modal.cancel': '취소',
         'modal.formatText': '텍스트 서식',
+        'modal.textFormatting': '텍스트 서식',
+        'modal.anchorSection': '앵커 포인트',
+        'modal.globalSettings': '전역 설정',
         'modal.displayText': '표시 텍스트:',
         'modal.textPlaceholder': '텍스트 입력...',
         'modal.textSize': '텍스트 크기:',
@@ -2068,6 +2092,9 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Eliminar enlace',
         'modal.cancel': 'Cancelar',
         'modal.formatText': 'Formatear texto',
+        'modal.textFormatting': 'Formato de texto',
+        'modal.anchorSection': 'Punto de anclaje',
+        'modal.globalSettings': 'Ajustes globales',
         'modal.displayText': 'Texto a mostrar:',
         'modal.textPlaceholder': 'Introducir texto...',
         'modal.textSize': 'Tamaño de texto:',
@@ -2291,6 +2318,9 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Usuń link',
         'modal.cancel': 'Anuluj',
         'modal.formatText': 'Formatuj tekst',
+        'modal.textFormatting': 'Formatowanie tekstu',
+        'modal.anchorSection': 'Punkt zakotwiczenia',
+        'modal.globalSettings': 'Ustawienia globalne',
         'modal.displayText': 'Wyświetlany tekst:',
         'modal.textPlaceholder': 'Wpisz tekst...',
         'modal.textSize': 'Rozmiar tekstu:',
@@ -2514,6 +2544,9 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Rimuovi link',
         'modal.cancel': 'Annulla',
         'modal.formatText': 'Formatta testo',
+        'modal.textFormatting': 'Formattazione del testo',
+        'modal.anchorSection': 'Punto di ancoraggio',
+        'modal.globalSettings': 'Impostazioni globali',
         'modal.displayText': 'Testo visualizzato:',
         'modal.textPlaceholder': 'Inserisci testo...',
         'modal.textSize': 'Dimensione testo:',
@@ -9209,199 +9242,170 @@ class TextInputModal extends Modal {
         this.anchorOutline = anchorOutline !== false;
     }
 
+    // Escape discards like Cancel. Overriding the base handler works because the
+    // Modal constructor registers `this.onEscapeKey.bind(this)` on its scope, and
+    // `this` already resolves to this subclass method. Setting `handled` before
+    // close() makes onClose skip applying.
+    onEscapeKey() {
+        this.handled = true;
+        this.close();
+        return false;
+    }
+
     onOpen() {
         const { contentEl } = this;
+        // Cancel and Escape set this so onClose discards; the X / click outside apply.
+        this.handled = false;
         contentEl.createEl('h2', { text: t('modal.formatText') });
 
-        contentEl.createEl('label', { text: t('modal.displayText'), style: 'display: block; margin-bottom: 5px; font-weight: 500;' });
-        const mainInput = contentEl.createEl('input', { value: this.val, placeholder: t('modal.textPlaceholder') });
-        mainInput.style.width = '100%';
-        mainInput.style.marginBottom = '20px';
-        mainInput.style.padding = '8px';
-
-        contentEl.createEl('label', { text: t('modal.textSize'), style: 'display: block; margin-bottom: 5px; font-weight: 500;' });
-        const sInput = contentEl.createEl('input', { type: 'number', value: this.size });
-        sInput.style.width = '100%';
-        sInput.style.marginBottom = '20px';
-        sInput.style.padding = '8px';
-
-        const colorSection = contentEl.createDiv({ style: 'margin-bottom: 20px;' });
-        colorSection.createEl('label', { text: t('modal.textColor'), style: 'display: block; margin-bottom: 5px; font-weight: 500;' });
-        const colorPicker = createColorPickerElement(colorSection, this.app, this.color, (color) => {
-            this.color = color;
-        });
-
-        const paletteContainer = colorSection.createDiv({ style: 'display: flex; flex-direction: column; gap: 3px; margin-top: 10px;' });
-        paletteContainer.createEl('span', { text: t('modal.palette'), attr: { style: 'font-size: 11px; margin-bottom: 3px;' } });
-
-        [this.colorPalette, this.colorPalette2].forEach(palette => {
-            if (!palette) return;
-            const row = paletteContainer.createDiv({ style: 'display: flex; gap: 5px;' });
-            palette.forEach(color => {
-                const paletteBtn = row.createEl('button', {
-                    attr: {
-                        style: `width: 30px; height: 30px; background: ${color}; border: 2px solid var(--divider-color); border-radius: 3px; cursor: pointer;`
-                    }
-                });
-                paletteBtn.onclick = () => {
-                    colorPicker.setColor(color);
-                    this.color = color;
-                };
-            });
-        });
-
-        // Both option groups share the same block look: heading, framed body,
-        // generous spacing — the previous inline layout felt cramped.
-        // NOTE: styles must go through attr; Obsidian's createEl ignores a bare
-        // `style` key, which silently drops the whole layout.
-        const sectionStyle = 'margin-bottom: 18px; padding: 14px 16px; background: var(--background-secondary); border-radius: 6px;';
-        const headingStyle = 'display: block; margin-bottom: 12px; font-weight: 600;';
-        // padding-left keeps the box off the block edge; horizontal separation
-        // between neighbouring checkboxes comes from the container gap, not padding.
+        // Shared block styling. Each area is a framed section with a bold heading;
+        // sub-items inside share consistent labels and rows. Styles must go through
+        // attr — Obsidian's createEl silently ignores a bare `style` key.
+        // Vertical spacing reduced ~20% from the first draft (felt too airy).
+        const sectionStyle = 'margin-bottom: 13px; padding: 11px 16px; background: var(--background-secondary); border-radius: 6px;';
+        const headingStyle = 'display: block; margin-bottom: 10px; font-weight: 600;';
+        const subHeadingStyle = 'display: block; margin: 13px 0 6px; font-weight: 600;';
+        const fieldLabelStyle = 'display: block; margin-bottom: 5px; font-weight: 500;';
+        const rowStyle = 'display: flex; align-items: center; gap: 12px; margin-top: 8px;';
         const checkStyle = 'display: flex; gap: 10px; align-items: center; cursor: pointer; padding: 3px 6px;';
+        const fullInputStyle = 'width: 100%; padding: 8px;';
 
-        const alignSection = contentEl.createDiv({ attr: { style: sectionStyle } });
-        alignSection.createEl('label', { text: t('modal.alignment'), attr: { style: headingStyle } });
-        const alignSelect = alignSection.createEl('select');
-        alignSelect.style.width = '100%';
-        alignSelect.style.padding = '8px';
+        // === Anzeigetext ===
+        const textSection = contentEl.createDiv({ attr: { style: sectionStyle } });
+        textSection.createEl('label', { text: t('modal.displayText'), attr: { style: headingStyle } });
+        const mainInput = textSection.createEl('input', { value: this.val, placeholder: t('modal.textPlaceholder'), attr: { style: fullInputStyle } });
+
+        // === Text-Formatierung ===
+        const fmtSection = contentEl.createDiv({ attr: { style: sectionStyle } });
+        fmtSection.createEl('label', { text: t('modal.textFormatting'), attr: { style: headingStyle } });
+
+        // Text size and alignment share one row (two columns).
+        const sizeAlignRow = fmtSection.createDiv({ attr: { style: 'display: flex; gap: 16px;' } });
+        const sizeCol = sizeAlignRow.createDiv({ attr: { style: 'flex: 1; min-width: 0;' } });
+        sizeCol.createEl('label', { text: t('modal.textSize'), attr: { style: fieldLabelStyle } });
+        const sInput = makeNumberInput(sizeCol, this.size, { min: 1, full: true });
+
+        const alignCol = sizeAlignRow.createDiv({ attr: { style: 'flex: 1; min-width: 0;' } });
+        alignCol.createEl('label', { text: t('modal.alignment'), attr: { style: fieldLabelStyle } });
+        const alignSelect = alignCol.createEl('select', { attr: { style: fullInputStyle } });
         [['left', 'modal.alignLeft'], ['center', 'modal.alignCenter'], ['right', 'modal.alignRight']]
-            .forEach(([value, key]) => {
-                const opt = alignSelect.createEl('option', { text: t(key) });
-                opt.value = value;
-            });
+            .forEach(([value, key]) => { const opt = alignSelect.createEl('option', { text: t(key) }); opt.value = value; });
         alignSelect.value = this.align;
 
-        const formatSection = contentEl.createDiv({ attr: { style: sectionStyle } });
-        formatSection.createEl('label', { text: t('modal.formatting'), attr: { style: headingStyle } });
+        fmtSection.createEl('label', { text: t('modal.textColor'), attr: { style: fieldLabelStyle + 'margin-top: 11px;' } });
+        // Current color as a square swatch on the left, palette rows next to it.
+        const colorRow = fmtSection.createDiv({ attr: { style: 'display: flex; gap: 10px; align-items: flex-start;' } });
+        const colorSwatchWrap = colorRow.createDiv({ attr: { style: 'flex: 0 0 auto;' } });
+        const colorPicker = createColorPickerElement(colorSwatchWrap, this.app, this.color, (color) => { this.color = color; });
+        colorPicker.btn.style.width = '62px';
+        colorPicker.btn.style.height = '62px';
 
-        // Flex (not a rigid 1fr/1fr grid): equal columns get narrower than their
-        // label on a narrow modal, letting the text overflow into the next box.
-        // Content-sized items with a column gap keep a clear, width-independent space.
-        const checkboxGrid = formatSection.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 8px 16px;' } });
+        const paletteContainer = colorRow.createDiv({ attr: { style: 'display: flex; flex-direction: column; gap: 5px;' } });
+        [this.colorPalette, this.colorPalette2].forEach(palette => {
+            if (!palette) return;
+            const row = paletteContainer.createDiv({ attr: { style: 'display: flex; gap: 5px;' } });
+            palette.forEach(color => {
+                const paletteBtn = row.createEl('button', {
+                    attr: { style: `width: 30px; height: 30px; background: ${color}; border: 2px solid var(--divider-color); border-radius: 3px; cursor: pointer;` }
+                });
+                paletteBtn.onclick = () => { colorPicker.setColor(color); this.color = color; };
+            });
+        });
 
+        fmtSection.createEl('label', { text: t('modal.formatting'), attr: { style: subHeadingStyle } });
+        const checkboxGrid = fmtSection.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 8px 16px;' } });
         const outlineLabel = checkboxGrid.createEl('label', { attr: { style: checkStyle } });
         const outlineInput = outlineLabel.createEl('input', { type: 'checkbox' });
         outlineInput.checked = this.outline;
         outlineInput.style.cursor = 'pointer';
         outlineLabel.appendText(t('modal.outline'));
-
         const boldLabel = checkboxGrid.createEl('label', { attr: { style: checkStyle } });
         const boldInput = boldLabel.createEl('input', { type: 'checkbox' });
         boldInput.checked = this.bold;
         boldInput.style.cursor = 'pointer';
         boldLabel.appendText(t('modal.bold'));
 
-        // Anchor dot: a display aid rather than formatting, so it sits on its own
-        // row, separated by a divider. Checkbox left, radius right.
-        const anchorRow = formatSection.createDiv({
-            attr: { style: 'margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--background-modifier-border); display: flex; align-items: center; gap: 12px;' }
-        });
+        // === Ankerpunkt ===
+        const anchorSection = contentEl.createDiv({ attr: { style: sectionStyle } });
+        anchorSection.createEl('label', { text: t('modal.anchorSection'), attr: { style: headingStyle } });
+
+        const anchorRow = anchorSection.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 12px;' } });
         const anchorLabel = anchorRow.createEl('label', { attr: { style: checkStyle + 'flex: 1;' } });
         const anchorInput = anchorLabel.createEl('input', { type: 'checkbox' });
         anchorInput.checked = this.showAnchor;
         anchorInput.style.cursor = 'pointer';
         anchorLabel.appendText(t('modal.showAnchor'));
+        anchorRow.createEl('span', { text: t('modal.anchorRadius'), attr: { style: 'white-space: nowrap;' } });
+        const anchorRadiusInput = makeNumberInput(anchorRow, this.anchorRadius, { min: 1, max: 50 });
 
-        anchorRow.createEl('span', { text: t('modal.anchorRadius'), attr: { style: 'font-size: 12px; white-space: nowrap;' } });
-        const anchorRadiusInput = anchorRow.createEl('input', { type: 'number', value: String(this.anchorRadius) });
-        anchorRadiusInput.style.width = '64px';
-        anchorRadiusInput.style.padding = '6px';
-        anchorRadiusInput.min = '1';
-        anchorRadiusInput.max = '50';
+        // Same label size as "show anchor" (no shrunk font), input on the right.
+        const anchorGapRow = anchorSection.createDiv({ attr: { style: rowStyle } });
+        anchorGapRow.createEl('span', { text: t('modal.anchorGap'), attr: { style: 'flex: 1;' } });
+        const anchorGapInput = makeNumberInput(anchorGapRow, this.anchorGap, { min: 0, max: 200 });
 
-        // Distance between the anchor point and the text, in pixels. Its own row
-        // below the anchor toggle, since it applies to every alignment.
-        const anchorGapRow = formatSection.createDiv({
-            attr: { style: 'margin-top: 10px; display: flex; align-items: center; gap: 12px;' }
-        });
-        anchorGapRow.createEl('span', { text: t('modal.anchorGap'), attr: { style: 'flex: 1; font-size: 12px;' } });
-        const anchorGapInput = anchorGapRow.createEl('input', { type: 'number', value: String(this.anchorGap) });
-        anchorGapInput.style.width = '64px';
-        anchorGapInput.style.padding = '6px';
-        anchorGapInput.min = '0';
-        anchorGapInput.max = '200';
-
-        // Anchor outline: independent of the text outline.
-        const anchorOutlineRow = formatSection.createDiv({ attr: { style: 'margin-top: 10px;' } });
+        const anchorOutlineRow = anchorSection.createDiv({ attr: { style: 'margin-top: 8px;' } });
         const anchorOutlineLabel = anchorOutlineRow.createEl('label', { attr: { style: checkStyle } });
         const anchorOutlineInput = anchorOutlineLabel.createEl('input', { type: 'checkbox' });
         anchorOutlineInput.checked = this.anchorOutline;
         anchorOutlineInput.style.cursor = 'pointer';
         anchorOutlineLabel.appendText(t('modal.anchorOutline'));
 
-        const shadowSection = contentEl.createDiv({ style: sectionStyle });
-        shadowSection.createEl('label', { text: t('modal.shadowSettings'), style: headingStyle });
+        // === Globale Einstellungen ===
+        const globalSection = contentEl.createDiv({ attr: { style: sectionStyle } });
+        globalSection.createEl('label', { text: t('modal.globalSettings'), attr: { style: headingStyle } });
 
-        const shadowLabel = shadowSection.createEl('label', { style: checkStyle });
+        globalSection.createEl('label', { text: t('modal.shadowSettings'), attr: { style: subHeadingStyle + 'margin-top: 0;' } });
+        const shadowLabel = globalSection.createEl('label', { attr: { style: checkStyle } });
         const shadowInput = shadowLabel.createEl('input', { type: 'checkbox' });
         shadowInput.checked = this.shadow;
         shadowInput.style.cursor = 'pointer';
         shadowLabel.appendText(t('modal.shadowEnable'));
 
-        const shadowParams = shadowSection.createDiv({ style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px;' });
+        const shadowDistanceRow = globalSection.createDiv({ attr: { style: rowStyle } });
+        shadowDistanceRow.createEl('span', { text: t('modal.shadowDistance'), attr: { style: 'flex: 1;' } });
+        const shadowDistanceInput = makeNumberInput(shadowDistanceRow, this.shadowDistance, { min: 0 });
 
-        const distanceDiv = shadowParams.createDiv();
-        distanceDiv.createEl('label', { text: t('modal.shadowDistance'), style: 'display: block; margin-bottom: 5px; font-size: 12px;' });
-        const shadowDistanceInput = distanceDiv.createEl('input', {
-            type: 'number',
-            value: this.shadowDistance.toString()
-        });
-        shadowDistanceInput.style.width = '100%';
-        shadowDistanceInput.style.padding = '6px';
+        const shadowOpatownRow = globalSection.createDiv({ attr: { style: rowStyle } });
+        shadowOpatownRow.createEl('span', { text: t('modal.shadowOpacity'), attr: { style: 'flex: 1;' } });
+        const shadowOpatownInput = makeNumberInput(shadowOpatownRow, this.shadowOpatown, { min: 0, max: 100 });
 
-        const opatownDiv = shadowParams.createDiv();
-        opatownDiv.createEl('label', { text: t('modal.shadowOpacity'), style: 'display: block; margin-bottom: 5px; font-size: 12px;' });
-        const shadowOpatownInput = opatownDiv.createEl('input', {
-            type: 'number',
-            value: this.shadowOpatown.toString()
-        });
-        shadowOpatownInput.style.width = '100%';
-        shadowOpatownInput.style.padding = '6px';
-        shadowOpatownInput.min = '0';
-        shadowOpatownInput.max = '100';
-
-        const linkSection = contentEl.createDiv({ style: 'margin-bottom: 20px;' });
-        linkSection.createEl('label', { text: t('modal.linkToFile'), style: 'display: block; margin-bottom: 5px; font-weight: 500;' });
-
-        const linkDisplayRow = linkSection.createDiv({ style: 'display: flex; gap: 8px; align-items: stretch;' });
+        // === Link zu MD-Datei ===
+        const linkSection = contentEl.createDiv({ attr: { style: sectionStyle } });
+        linkSection.createEl('label', { text: t('modal.linkToFile'), attr: { style: headingStyle } });
+        const linkDisplayRow = linkSection.createDiv({ attr: { style: 'display: flex; gap: 8px; align-items: stretch;' } });
         const linkDisplay = linkDisplayRow.createEl('input', {
             value: this.link,
             placeholder: t('modal.noLinkSelected'),
-            attr: { readonly: 'true' }
+            attr: { readonly: 'true', style: 'flex: 1; background: var(--background-secondary); cursor: default; padding: 8px;' }
         });
-        linkDisplay.style.flex = '1';
-        linkDisplay.style.background = 'var(--background-secondary)';
-        linkDisplay.style.cursor = 'default';
-        linkDisplay.style.padding = '8px';
-
-        const selectLinkBtn = linkDisplayRow.createEl('button', { text: t('modal.selectFileBtn') });
-        selectLinkBtn.style.padding = '8px 16px';
-        selectLinkBtn.style.whiteSpace = 'nowrap';
+        const selectLinkBtn = linkDisplayRow.createEl('button', { text: t('modal.selectFileBtn'), attr: { style: 'padding: 8px 16px; white-space: nowrap;' } });
         selectLinkBtn.onclick = () => {
             const selector = new FileSelectorModal(this.app, (selectedPath) => {
                 linkDisplay.value = selectedPath;
                 this.link = selectedPath;
-
-                setTimeout(() => {
-                    selectLinkBtn.focus();
-                }, 100);
+                setTimeout(() => { selectLinkBtn.focus(); }, 100);
             }, linkDisplay.value);
-
             selector.open();
         };
+
+        const removeLinkBtn = linkDisplayRow.createEl('button', { text: t('modal.removeLink'), attr: { style: 'padding: 8px 16px; white-space: nowrap;' } });
+        removeLinkBtn.onclick = () => { this.link = ''; linkDisplay.value = ''; };
+
 
         const btnRow = contentEl.createDiv();
         btnRow.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr 1fr; width: 100%; margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--background-modifier-border);';
         const cancelBtn = btnRow.createEl('button', { text: t('modal.cancel') });
         cancelBtn.style.justifySelf = 'start';
-        cancelBtn.onclick = () => this.close();
+        cancelBtn.onclick = () => { this.handled = true; this.close(); };
         const deleteBtn = btnRow.createEl('button', { text: t('modal.deleteText') });
         deleteBtn.style.cssText = 'justify-self: center; color: var(--text-error);';
-        deleteBtn.onclick = () => { this.onSubmit('', 0, '', '', false, false, false, 0, 0, false, TEXT_ANCHOR_RADIUS, 'center', DEFAULT_ANCHOR_GAP, true); this.close(); };
+        deleteBtn.onclick = () => { this.handled = true; this.onSubmit('', 0, '', '', false, false, false, 0, 0, false, TEXT_ANCHOR_RADIUS, 'center', DEFAULT_ANCHOR_GAP, true); this.close(); };
         const okBtn = btnRow.createEl('button', { text: 'OK', cls: 'mod-cta' });
         okBtn.style.justifySelf = 'end';
-        okBtn.onclick = () => {
+
+        // Read the fields and submit. Called by OK and, unless a button already
+        // handled the close, by onClose (X / click outside / Escape apply too).
+        this._apply = () => {
             const opatownValue = shadowOpatownInput.value === '' ? 0 : parseInt(shadowOpatownInput.value);
             const clampedOpatown = Math.max(0, Math.min(100, opatownValue));
             const shadowEnabled = clampedOpatown === 0 ? false : shadowInput.checked;
@@ -9422,10 +9426,17 @@ class TextInputModal extends Modal {
                 Math.max(0, Math.min(200, anchorGapInput.value === '' ? DEFAULT_ANCHOR_GAP : parseInt(anchorGapInput.value))),
                 anchorOutlineInput.checked
             );
-            this.close();
         };
+        okBtn.onclick = () => { this.handled = true; this._apply(); this.close(); };
 
         mainInput.focus();
+    }
+
+    onClose() {
+        // Closing via the X or a click outside applies the changes like OK. Cancel
+        // and Escape set `handled` first (see onEscapeKey), so they discard instead.
+        if (!this.handled && this._apply) this._apply();
+        this.contentEl.empty();
     }
 }
 
@@ -9577,6 +9588,38 @@ class ColorPickerModal extends Modal {
         ctx.lineWidth = 1;
         ctx.stroke();
     }
+}
+
+// Number input with explicit up/down stepper buttons (Obsidian hides the native
+// spin buttons). Returns the <input> so callers read .value as before. `full`
+// makes the input fill its column; otherwise it is a compact fixed-width field.
+function makeNumberInput(parent, value, opts = {}) {
+    const { min, max, step = 1, full = false } = opts;
+    const wrap = parent.createDiv({ attr: { style: `display: inline-flex; align-items: stretch;${full ? ' width: 100%;' : ''}` } });
+    const inputStyle = `${full ? 'flex: 1; min-width: 0;' : 'width: 48px;'} padding: 6px; box-sizing: border-box; appearance: textfield; -webkit-appearance: textfield; margin: 0;`;
+    const input = wrap.createEl('input', { type: 'number', value: String(value), attr: { style: inputStyle } });
+    if (min !== undefined) input.min = String(min);
+    if (max !== undefined) input.max = String(max);
+    input.step = String(step);
+
+    const col = wrap.createDiv({ attr: { style: 'display: flex; flex-direction: column; margin-left: 2px;' } });
+    const makeBtn = (label, dir) => {
+        const b = col.createEl('button', { text: label, attr: { style: 'width: 20px; height: 15px; padding: 0; line-height: 1; font-size: 9px; cursor: pointer;' } });
+        b.type = 'button';
+        b.onclick = (e) => {
+            e.preventDefault();
+            let v = parseFloat(input.value);
+            if (!isFinite(v)) v = 0;
+            v += dir * step;
+            if (min !== undefined) v = Math.max(Number(min), v);
+            if (max !== undefined) v = Math.min(Number(max), v);
+            input.value = String(v);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+    };
+    makeBtn('▲', 1);
+    makeBtn('▼', -1);
+    return input;
 }
 
 function createColorPickerElement(containerEl, app, initialColor, onChange) {
