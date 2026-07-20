@@ -287,7 +287,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': 'Eigene Grafiken',
-        'settings.userAssetPreview': 'Grafikvorschau',
+        'settings.userAssetPreview': 'Thumbnails anzeigen',
         'settings.userAssetPreviewDesc': 'Zeigt im Rechtsklick-Menü Vorschaubilder der eigenen Grafiken statt nur der Namen.',
         'settings.userAssetsDesc': 'Jede Kategorie hat ihren eigenen Ordner im Vault. Bleibt ein Feld leer, verwendet die Kategorie weiterhin die mitgelieferten Grafiken. Unterstützt werden SVG, PNG, JPG, WEBP, GIF und AVIF; Unterordner werden zu Untermenüs. Formate mit Transparenz eignen sich besonders für Symbole, weil dann die Farbe oder Textur der Wabe sichtbar bleibt. Eigene Grafiken lassen sich nicht einfärben — Ausnahme sind SVGs, die aus einem einzelnen Pfad bestehen.',
         'settings.userAssetsPlaceholder': 'z. B. Assets/HexGrafiken',
@@ -541,7 +541,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': 'Custom graphics',
-        'settings.userAssetPreview': 'Graphic preview',
+        'settings.userAssetPreview': 'Show thumbnails',
         'settings.userAssetPreviewDesc': 'Shows thumbnail previews of your graphics in the right-click menu instead of just the names.',
         'settings.userAssetsDesc': 'Each category has its own folder inside your vault. Leave a field empty and that category keeps using the built-in graphics. SVG, PNG, JPG, WEBP, GIF and AVIF are supported; subfolders become submenus. Formats with transparency work best for symbols, because the hex color or texture stays visible behind them. Custom graphics cannot be recolored — except SVGs made of a single path.',
         'settings.userAssetsPlaceholder': 'e.g. Assets/HexGraphics',
@@ -773,7 +773,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': '自定义图形',
-        'settings.userAssetPreview': '图形预览',
+        'settings.userAssetPreview': '显示缩略图',
         'settings.userAssetPreviewDesc': '在右键菜单中显示自定义图形的缩略图预览，而不仅是名称。',
         'settings.userAssetsDesc': '每个类别在库中都有自己的文件夹。留空则该类别继续使用内置图形。支持 SVG、PNG、JPG、WEBP、GIF 和 AVIF；子文件夹将成为子菜单。带透明度的格式最适合用作符号，因为六边形的颜色或纹理仍可透出。自定义图形无法重新着色——由单个路径构成的 SVG 除外。',
         'settings.userAssetsPlaceholder': '例如 Assets/HexGraphics',
@@ -999,7 +999,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': 'Собственная графика',
-        'settings.userAssetPreview': 'Предпросмотр графики',
+        'settings.userAssetPreview': 'Показывать миниатюры',
         'settings.userAssetPreviewDesc': 'Показывает миниатюры собственной графики в контекстном меню вместо одних лишь имён.',
         'settings.userAssetsDesc': 'У каждой категории своя папка в хранилище. Если поле пустое, категория продолжает использовать встроенную графику. Поддерживаются SVG, PNG, JPG, WEBP, GIF и AVIF; вложенные папки становятся подменю. Форматы с прозрачностью лучше всего подходят для символов, так как цвет или текстура соты остаются видимыми. Собственную графику нельзя перекрасить — кроме SVG из одного контура.',
         'settings.userAssetsPlaceholder': 'напр. Assets/HexGraphics',
@@ -1225,7 +1225,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': 'カスタム画像',
-        'settings.userAssetPreview': '画像プレビュー',
+        'settings.userAssetPreview': 'サムネイルを表示',
         'settings.userAssetPreviewDesc': '右クリックメニューで、名前だけでなくカスタム画像のサムネイルを表示します。',
         'settings.userAssetsDesc': '各カテゴリは保管庫内にそれぞれ独自のフォルダを持ちます。空欄のままにすると、そのカテゴリは内蔵画像を使い続けます。SVG、PNG、JPG、WEBP、GIF、AVIF に対応し、サブフォルダはサブメニューになります。透過に対応した形式はヘックスの色やテクスチャが透けて見えるため、シンボルに最適です。カスタム画像は着色できません（単一パスの SVG を除く）。',
         'settings.userAssetsPlaceholder': '例: Assets/HexGraphics',
@@ -1451,7 +1451,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': 'Graphiques personnalisés',
-        'settings.userAssetPreview': 'Aperçu graphique',
+        'settings.userAssetPreview': 'Afficher les miniatures',
         'settings.userAssetPreviewDesc': 'Affiche des miniatures de vos graphiques dans le menu contextuel au lieu des seuls noms.',
         'settings.userAssetsDesc': 'Chaque catégorie possède son propre dossier dans le coffre. Si un champ reste vide, la catégorie continue d\'utiliser les graphiques fournis. SVG, PNG, JPG, WEBP, GIF et AVIF sont pris en charge ; les sous-dossiers deviennent des sous-menus. Les formats avec transparence conviennent particulièrement aux symboles, car la couleur ou la texture de l\'hexagone reste visible. Les graphiques personnalisés ne peuvent pas être recolorés — sauf les SVG composés d\'un seul tracé.',
         'settings.userAssetsPlaceholder': 'p. ex. Assets/HexGraphics',
@@ -1677,7 +1677,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': 'Gráficos personalizados',
-        'settings.userAssetPreview': 'Pré-visualização gráfica',
+        'settings.userAssetPreview': 'Mostrar miniaturas',
         'settings.userAssetPreviewDesc': 'Mostra miniaturas dos seus gráficos no menu de contexto em vez de apenas os nomes.',
         'settings.userAssetsDesc': 'Cada categoria tem a sua própria pasta no cofre. Se deixar um campo vazio, essa categoria continua a usar os gráficos incluídos. São suportados SVG, PNG, JPG, WEBP, GIF e AVIF; as subpastas tornam-se submenus. Formatos com transparência são ideais para símbolos, pois a cor ou textura do hexágono continua visível. Gráficos personalizados não podem ser recoloridos — exceto SVGs compostos por um único traçado.',
         'settings.userAssetsPlaceholder': 'ex.: Assets/HexGraphics',
@@ -1903,7 +1903,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': '사용자 그래픽',
-        'settings.userAssetPreview': '그래픽 미리보기',
+        'settings.userAssetPreview': '썸네일 표시',
         'settings.userAssetPreviewDesc': '우클릭 메뉴에서 이름 대신 사용자 그래픽의 미리보기 썸네일을 표시합니다.',
         'settings.userAssetsDesc': '각 카테고리는 보관함 안에 고유한 폴더를 가집니다. 비워 두면 해당 카테고리는 기본 제공 그래픽을 계속 사용합니다. SVG, PNG, JPG, WEBP, GIF, AVIF를 지원하며 하위 폴더는 하위 메뉴가 됩니다. 투명도를 지원하는 형식은 헥스의 색상이나 텍스처가 비쳐 보이므로 심볼에 특히 적합합니다. 사용자 그래픽은 색을 바꿀 수 없습니다 — 단일 경로로 된 SVG는 예외입니다.',
         'settings.userAssetsPlaceholder': '예: Assets/HexGraphics',
@@ -2129,7 +2129,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': 'Gráficos propios',
-        'settings.userAssetPreview': 'Vista previa de gráficos',
+        'settings.userAssetPreview': 'Mostrar miniaturas',
         'settings.userAssetPreviewDesc': 'Muestra miniaturas de tus gráficos en el menú contextual en lugar de solo los nombres.',
         'settings.userAssetsDesc': 'Cada categoría tiene su propia carpeta en el almacén. Si dejas un campo vacío, esa categoría sigue usando los gráficos incluidos. Se admiten SVG, PNG, JPG, WEBP, GIF y AVIF; las subcarpetas se convierten en submenús. Los formatos con transparencia son ideales para símbolos, ya que el color o la textura del hexágono sigue visible. Los gráficos propios no se pueden recolorear, salvo los SVG formados por un único trazado.',
         'settings.userAssetsPlaceholder': 'p. ej. Assets/HexGraphics',
@@ -2355,7 +2355,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': 'Własna grafika',
-        'settings.userAssetPreview': 'Podgląd grafiki',
+        'settings.userAssetPreview': 'Pokaż miniatury',
         'settings.userAssetPreviewDesc': 'Pokazuje w menu kontekstowym miniatury własnej grafiki zamiast samych nazw.',
         'settings.userAssetsDesc': 'Każda kategoria ma własny folder w sejfie. Puste pole oznacza, że kategoria nadal korzysta z wbudowanej grafiki. Obsługiwane są SVG, PNG, JPG, WEBP, GIF i AVIF; podfoldery stają się podmenu. Formaty z przezroczystością najlepiej sprawdzają się jako symbole, ponieważ kolor lub tekstura komórki pozostaje widoczna. Własnej grafiki nie można przekolorować — z wyjątkiem SVG złożonych z jednej ścieżki.',
         'settings.userAssetsPlaceholder': 'np. Assets/HexGraphics',
@@ -2581,7 +2581,7 @@ const TRANSLATIONS = {
 
         // Custom graphics (user assets)
         'settings.userAssets': 'Grafica personalizzata',
-        'settings.userAssetPreview': 'Anteprima grafica',
+        'settings.userAssetPreview': 'Mostra miniature',
         'settings.userAssetPreviewDesc': 'Mostra le anteprime delle tue grafiche nel menu contestuale invece dei soli nomi.',
         'settings.userAssetsDesc': 'Ogni categoria ha una propria cartella nel vault. Se lasci un campo vuoto, quella categoria continua a usare la grafica inclusa. Sono supportati SVG, PNG, JPG, WEBP, GIF e AVIF; le sottocartelle diventano sottomenu. I formati con trasparenza sono ideali per i simboli, perché il colore o la trama dell\'esagono resta visibile. La grafica personalizzata non può essere ricolorata, tranne gli SVG composti da un solo tracciato.',
         'settings.userAssetsPlaceholder': 'es. Assets/HexGraphics',
@@ -9856,6 +9856,19 @@ class HexCartographerSettingTab extends PluginSettingTab {
 
         this.buildHexNumberingSettings(containerEl);
 
+        // Thumbnails toggle: shows graphic thumbnails in the right-click menu
+        // instead of plain names. Applies to all user-graphics categories.
+        new Setting(containerEl)
+            .setName(t('settings.userAssetPreview'))
+            .setDesc(t('settings.userAssetPreviewDesc'))
+            .addToggle(toggle => {
+                toggle.setValue(this.plugin.settings.userAssetPreview)
+                    .onChange(async (value) => {
+                        this.plugin.settings.userAssetPreview = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
+
         // ── Custom graphics ───────────────────────────────────────
         // Collapsible via native <details> — Obsidian has no official
         // API. Already configured -> open, otherwise collapsed ("on demand").
@@ -9868,19 +9881,6 @@ class HexCartographerSettingTab extends PluginSettingTab {
             text: t('settings.userAssetsDesc'),
             attr: { style: 'color: var(--text-muted); font-size: 13px; margin-top: 0;' }
         });
-
-        // Graphic preview: shows thumbnails in the right-click menu instead of plain names.
-        // Placed before the paths, applies to all categories.
-        new Setting(assetsBody)
-            .setName(t('settings.userAssetPreview'))
-            .setDesc(t('settings.userAssetPreviewDesc'))
-            .addToggle(toggle => {
-                toggle.setValue(this.plugin.settings.userAssetPreview)
-                    .onChange(async (value) => {
-                        this.plugin.settings.userAssetPreview = value;
-                        await this.plugin.saveSettings();
-                    });
-            });
 
         const addFolderSetting = (name, desc, settingKey, registry, categoryId) => {
             const setting = new Setting(assetsBody).setName(name).setDesc(desc);
