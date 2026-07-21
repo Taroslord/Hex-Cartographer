@@ -5973,6 +5973,65 @@ class HexCartographerView extends ItemView {
         this.lastUsedTextAnchorOutline = anchorOutline;
     }
 
+    // Opens the text editor with a live preview: every change is applied to the text
+    // on the map immediately. `target` = existing text to edit, or null to create a
+    // new one at `world`. Cancel/Escape reverts (or removes the new text); OK / X /
+    // click outside keep the result.
+    openTextModal(target, world) {
+        const isNew = !target;
+        const PROPS = ['text', 'size', 'link', 'color', 'outline', 'bold', 'shadow',
+            'shadowDistance', 'shadowOpatown', 'showAnchor', 'anchorRadius', 'align',
+            'anchorGap', 'anchorOutline'];
+
+        let obj = target;
+        let snapshot = null;
+        if (isNew) {
+            obj = {
+                text: '', x: world.x, y: world.y,
+                size: this.lastUsedTextSize, link: '',
+                color: this.lastUsedTextColor || this.masterColor,
+                outline: this.lastUsedTextOutline, bold: this.lastUsedTextBold,
+                shadow: this.lastUsedTextShadow, shadowDistance: this.lastUsedTextShadowDistance,
+                shadowOpatown: this.lastUsedTextShadowOpatown, showAnchor: this.lastUsedTextShowAnchor,
+                anchorRadius: this.lastUsedTextAnchorRadius, align: this.lastUsedTextAlign,
+                anchorGap: this.lastUsedTextAnchorGap, anchorOutline: this.lastUsedTextAnchorOutline,
+            };
+            this.bindTextToHex(obj);
+            this.data.texts.push(obj);
+        } else {
+            snapshot = {};
+            for (const p of PROPS) snapshot[p] = obj[p];
+        }
+
+        const apply = (v, s, l, c, o, b, sh, shd, sho, anc, ar, al, ag, ao) => {
+            obj.text = v; obj.size = s; obj.link = l; obj.color = c; obj.outline = o; obj.bold = b;
+            obj.shadow = sh; obj.shadowDistance = shd; obj.shadowOpatown = sho;
+            obj.showAnchor = anc; obj.anchorRadius = ar; obj.align = al; obj.anchorGap = ag; obj.anchorOutline = ao;
+        };
+        const removeObj = () => { this.data.texts = this.data.texts.filter(x => x !== obj); };
+
+        const onPreview = (...vals) => { apply(...vals); this.render(); };
+        const onCommit = (...vals) => {
+            if (!vals[0]) { removeObj(); this.render(); this.requestSave(); return; }
+            apply(...vals);
+            this.rememberTextDefaults(vals[1], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9], vals[10], vals[11], vals[12], vals[13]);
+            this.render(); this.requestSave();
+        };
+        const onCancel = () => {
+            if (isNew) removeObj();
+            else for (const p of PROPS) obj[p] = snapshot[p];
+            this.render();
+        };
+
+        new TextInputModal(this.app, onCommit,
+            obj.text, obj.size, obj.link || '', obj.color, obj.outline, obj.bold,
+            obj.shadow, obj.shadowDistance, obj.shadowOpatown, this.colorPalette, this.colorPalette2,
+            obj.showAnchor, obj.anchorRadius, obj.align, obj.anchorGap, obj.anchorOutline,
+            onPreview, onCancel).open();
+
+        this.render(); // show the new (still empty) text or the target as-is
+    }
+
     getTextAt(worldX, worldY) {
         if (!this.data.texts) return null;
         return this.data.texts.find(t => {
@@ -6291,18 +6350,7 @@ class HexCartographerView extends ItemView {
                         // open the editor when the press began elsewhere (placing a text).
                         const target = this.draggedText;
                         if (target && !this.draggedTextMoved) {
-                            new TextInputModal(this.app, (v, s, l, c, o, b, sh, shd, sho, anc, ar, al, ag, ao) => {
-                                if (v) {
-                                    target.text = v; target.size = s; target.link = l;
-                                    target.color = c; target.outline = o; target.bold = b;
-                                    target.shadow = sh; target.shadowDistance = shd; target.shadowOpatown = sho;
-                                    target.showAnchor = anc; target.anchorRadius = ar; target.align = al; target.anchorGap = ag; target.anchorOutline = ao;
-                                    this.rememberTextDefaults(s, c, o, b, sh, shd, sho, anc, ar, al, ag, ao);
-                                } else {
-                                    this.data.texts = this.data.texts.filter(t => t !== target);
-                                }
-                                this.render(); this.requestSave();
-                            }, target.text, target.size, target.link, target.color, target.outline, target.bold, target.shadow, target.shadowDistance, target.shadowOpatown, this.colorPalette, this.colorPalette2, target.showAnchor, target.anchorRadius, target.align, target.anchorGap, target.anchorOutline).open();
+                            this.openTextModal(target, null);
                         }
                     } else {
                         const hitText = this.getTextAt(world.x, world.y);
@@ -6851,18 +6899,7 @@ class HexCartographerView extends ItemView {
                             // draggedTextMoved — see the mouse handler.
                             const target = this.draggedText;
                             if (target && !this.draggedTextMoved) {
-                                new TextInputModal(this.app, (v, s, l, c, o, b, sh, shd, sho, anc, ar, al, ag, ao) => {
-                                    if (v) {
-                                        target.text = v; target.size = s; target.link = l;
-                                        target.color = c; target.outline = o; target.bold = b;
-                                        target.shadow = sh; target.shadowDistance = shd; target.shadowOpatown = sho;
-                                        target.showAnchor = anc; target.anchorRadius = ar; target.align = al; target.anchorGap = ag; target.anchorOutline = ao;
-                                        this.rememberTextDefaults(s, c, o, b, sh, shd, sho, anc, ar, al, ag, ao);
-                                    } else {
-                                        this.data.texts = this.data.texts.filter(t => t !== target);
-                                    }
-                                    this.render(); this.requestSave();
-                                }, target.text, target.size, target.link, target.color, target.outline, target.bold, target.shadow, target.shadowDistance, target.shadowOpatown, this.colorPalette, this.colorPalette2, target.showAnchor, target.anchorRadius, target.align, target.anchorGap, target.anchorOutline).open();
+                                this.openTextModal(target, null);
                             }
                         } else {
                             const hitText = this.getTextAt(world.x, world.y);
@@ -6995,16 +7032,7 @@ class HexCartographerView extends ItemView {
                 // next release (e.g. reopen the editor of a nearby text).
                 this.isMouseDown = false;
                 this.draggedText = null;
-                new TextInputModal(this.app, (v, s, l, c, o, b, sh, shd, sho, anc, ar, al, ag, ao) => {
-                    if(v) {
-                        const newText = {text: v, x: world.x, y: world.y, size: s, link: l, color: c, outline: o, bold: b,
-                                         shadow: sh, shadowDistance: shd, shadowOpatown: sho, showAnchor: anc, anchorRadius: ar, align: al, anchorGap: ag, anchorOutline: ao};
-                        this.bindTextToHex(newText);
-                        this.data.texts.push(newText);
-                        this.rememberTextDefaults(s, c, o, b, sh, shd, sho, anc, ar, al, ag, ao);
-                        this.render(); this.requestSave();
-                    }
-                }, '', this.lastUsedTextSize, '', this.lastUsedTextColor || this.masterColor, this.lastUsedTextOutline, this.lastUsedTextBold, this.lastUsedTextShadow, this.lastUsedTextShadowDistance, this.lastUsedTextShadowOpatown, this.colorPalette, this.colorPalette2, this.lastUsedTextShowAnchor, this.lastUsedTextAnchorRadius, this.lastUsedTextAlign, this.lastUsedTextAnchorGap, this.lastUsedTextAnchorOutline).open();
+                this.openTextModal(null, world);
             }
             return;
         }
@@ -9446,9 +9474,12 @@ class FileSelectorModal extends Modal {
 }
 
 class TextInputModal extends Modal {
-    constructor(app, onSubmit, val = '', size = DEFAULT_TEXT_SIZE, link = '', color = DEFAULT_TEXT_COLOR, outline = true, bold = false, shadow = false, shadowDistance = DEFAULT_SHADOW_DISTANCE, shadowOpatown = DEFAULT_SHADOW_OPACITY, colorPalette = null, colorPalette2 = null, showAnchor = false, anchorRadius = TEXT_ANCHOR_RADIUS, align = 'center', anchorGap = DEFAULT_ANCHOR_GAP, anchorOutline = true) {
+    constructor(app, onSubmit, val = '', size = DEFAULT_TEXT_SIZE, link = '', color = DEFAULT_TEXT_COLOR, outline = true, bold = false, shadow = false, shadowDistance = DEFAULT_SHADOW_DISTANCE, shadowOpatown = DEFAULT_SHADOW_OPACITY, colorPalette = null, colorPalette2 = null, showAnchor = false, anchorRadius = TEXT_ANCHOR_RADIUS, align = 'center', anchorGap = DEFAULT_ANCHOR_GAP, anchorOutline = true, onPreview = null, onCancel = null) {
         super(app);
         this.onSubmit = onSubmit;
+        // Live preview: onPreview fires on every change; onCancel reverts on discard.
+        this.onPreview = onPreview;
+        this.onCancelEdit = onCancel;
         this.val = val;
         this.size = size;
         this.link = link;
@@ -9473,15 +9504,71 @@ class TextInputModal extends Modal {
     // close() makes onClose skip applying.
     onEscapeKey() {
         this.handled = true;
+        if (this.onCancelEdit) this.onCancelEdit();
         this.close();
         return false;
+    }
+
+    // Lets the user drag the dialog by `handle`. Pointer Events cover mouse (desktop)
+    // and touch/pen (iPad) uniformly. The offset is a transform (does not fight the
+    // left-dock margins); a clamp keeps the title bar reachable on screen.
+    makeDraggableByHandle(handle) {
+        const modal = this.modalEl;
+        if (!modal || !handle) return;
+        handle.style.cursor = 'move';
+        handle.style.touchAction = 'none';   // stop the iPad from scrolling while dragging
+        handle.style.userSelect = 'none';
+
+        let dragging = false, startX = 0, startY = 0, baseX = 0, baseY = 0;
+        let baseLeft = 0, baseTop = 0, width = 0;
+
+        handle.addEventListener('pointerdown', (e) => {
+            dragging = true;
+            startX = e.clientX; startY = e.clientY;
+            baseX = this._modalDX || 0; baseY = this._modalDY || 0;
+            const rect = modal.getBoundingClientRect();
+            baseLeft = rect.left - baseX; baseTop = rect.top - baseY; width = rect.width;
+            try { handle.setPointerCapture(e.pointerId); } catch (err) { /* older webviews */ }
+            e.preventDefault();
+        });
+        handle.addEventListener('pointermove', (e) => {
+            if (!dragging) return;
+            const win = modal.ownerDocument.defaultView || window;
+            let dx = baseX + (e.clientX - startX);
+            let dy = baseY + (e.clientY - startY);
+            // Keep ~120px of the dialog and its title bar on screen.
+            dx = Math.min(win.innerWidth - 120 - baseLeft, Math.max(120 - width - baseLeft, dx));
+            dy = Math.min(win.innerHeight - 40 - baseTop, Math.max(-baseTop, dy));
+            this._modalDX = dx; this._modalDY = dy;
+            modal.style.transform = `translate(${dx}px, ${dy}px)`;
+        });
+        const stop = (e) => { dragging = false; try { handle.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ } };
+        handle.addEventListener('pointerup', stop);
+        handle.addEventListener('pointercancel', stop);
     }
 
     onOpen() {
         const { contentEl } = this;
         // Cancel and Escape set this so onClose discards; the X / click outside apply.
         this.handled = false;
-        contentEl.createEl('h2', { text: t('modal.formatText') });
+
+        // Live preview: keep the map visible (no dim) and dock the dialog to the left
+        // so the edited text stays in view next to it. These are undocumented but
+        // stable Obsidian internals — guard defensively.
+        if (this.onPreview) {
+            if (this.bgEl) this.bgEl.style.backgroundColor = 'transparent';
+            if (this.modalEl) {
+                this.modalEl.style.marginLeft = '16px';
+                this.modalEl.style.marginRight = 'auto';
+            }
+        }
+
+        // The native window header (.modal-header — the strip beside the close X) is
+        // the drag handle: that is where users expect to grab the dialog. Put the
+        // title there; the grip glyph hints at draggability (helps on iPad, no cursor).
+        if (this.titleEl) this.titleEl.setText('⠿  ' + t('modal.formatText'));
+        else contentEl.createEl('h2', { text: t('modal.formatText') });
+        if (this.headerEl) this.makeDraggableByHandle(this.headerEl);
 
         // Shared block styling. Each area is a framed section with a bold heading;
         // sub-items inside share consistent labels and rows. Styles must go through
@@ -9521,7 +9608,7 @@ class TextInputModal extends Modal {
         // Current color as a square swatch on the left, palette rows next to it.
         const colorRow = fmtSection.createDiv({ attr: { style: 'display: flex; gap: 10px; align-items: flex-start;' } });
         const colorSwatchWrap = colorRow.createDiv({ attr: { style: 'flex: 0 0 auto;' } });
-        const colorPicker = createColorPickerElement(colorSwatchWrap, this.app, this.color, (color) => { this.color = color; });
+        const colorPicker = createColorPickerElement(colorSwatchWrap, this.app, this.color, (color) => { this.color = color; if (this._previewFn) this._previewFn(); });
         colorPicker.btn.style.width = '62px';
         colorPicker.btn.style.height = '62px';
 
@@ -9533,7 +9620,7 @@ class TextInputModal extends Modal {
                 const paletteBtn = row.createEl('button', {
                     attr: { style: `width: 30px; height: 30px; background: ${color}; border: 2px solid var(--divider-color); border-radius: 3px; cursor: pointer;` }
                 });
-                paletteBtn.onclick = () => { colorPicker.setColor(color); this.color = color; };
+                paletteBtn.onclick = () => { colorPicker.setColor(color); this.color = color; if (this._previewFn) this._previewFn(); };
             });
         });
 
@@ -9608,36 +9695,35 @@ class TextInputModal extends Modal {
             const selector = new FileSelectorModal(this.app, (selectedPath) => {
                 linkDisplay.value = selectedPath;
                 this.link = selectedPath;
+                if (this._previewFn) this._previewFn();
                 setTimeout(() => { selectLinkBtn.focus(); }, 100);
             }, linkDisplay.value);
             selector.open();
         };
 
         const removeLinkBtn = linkDisplayRow.createEl('button', { text: t('modal.removeLink'), attr: { style: 'padding: 8px 16px; white-space: nowrap;' } });
-        removeLinkBtn.onclick = () => { this.link = ''; linkDisplay.value = ''; };
+        removeLinkBtn.onclick = () => { this.link = ''; linkDisplay.value = ''; if (this._previewFn) this._previewFn(); };
 
 
         const btnRow = contentEl.createDiv();
         btnRow.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr 1fr; width: 100%; margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--background-modifier-border);';
         const cancelBtn = btnRow.createEl('button', { text: t('modal.cancel') });
         cancelBtn.style.justifySelf = 'start';
-        cancelBtn.onclick = () => { this.handled = true; this.close(); };
+        cancelBtn.onclick = () => { this.handled = true; if (this.onCancelEdit) this.onCancelEdit(); this.close(); };
         const deleteBtn = btnRow.createEl('button', { text: t('modal.deleteText') });
         deleteBtn.style.cssText = 'justify-self: center; color: var(--text-error);';
         deleteBtn.onclick = () => { this.handled = true; this.onSubmit('', 0, '', '', false, false, false, 0, 0, false, TEXT_ANCHOR_RADIUS, 'center', DEFAULT_ANCHOR_GAP, true); this.close(); };
         const okBtn = btnRow.createEl('button', { text: 'OK', cls: 'mod-cta' });
         okBtn.style.justifySelf = 'end';
 
-        // Read the fields and submit. Called by OK and, unless a button already
-        // handled the close, by onClose (X / click outside / Escape apply too).
-        this._apply = () => {
+        // Reads every field into the positional value tuple used by onSubmit/onPreview.
+        const readValues = () => {
             const opatownValue = shadowOpatownInput.value === '' ? 0 : parseInt(shadowOpatownInput.value);
             const clampedOpatown = Math.max(0, Math.min(100, opatownValue));
             const shadowEnabled = clampedOpatown === 0 ? false : shadowInput.checked;
-
-            this.onSubmit(
+            return [
                 mainInput.value,
-                parseInt(sInput.value),
+                parseInt(sInput.value) || DEFAULT_TEXT_SIZE,
                 linkDisplay.value,
                 this.color,
                 outlineInput.checked,
@@ -9650,9 +9736,24 @@ class TextInputModal extends Modal {
                 alignSelect.value,
                 Math.max(0, Math.min(200, anchorGapInput.value === '' ? DEFAULT_ANCHOR_GAP : parseInt(anchorGapInput.value))),
                 anchorOutlineInput.checked
-            );
+            ];
         };
+
+        // Commit: called by OK and, unless a button already handled the close, by
+        // onClose (X / click outside apply too).
+        this._apply = () => { this.onSubmit(...readValues()); };
         okBtn.onclick = () => { this.handled = true; this._apply(); this.close(); };
+
+        // Live preview: every change is pushed to the map immediately. Delegated on
+        // contentEl so all text/number/select/checkbox inputs are covered; color,
+        // palette and link changes call _previewFn directly (no matching DOM event).
+        if (this.onPreview) {
+            const preview = () => this.onPreview(...readValues());
+            this._previewFn = preview;
+            contentEl.addEventListener('input', preview);
+            contentEl.addEventListener('change', preview);
+            preview(); // initial sync
+        }
 
         mainInput.focus();
     }
