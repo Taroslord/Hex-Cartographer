@@ -268,9 +268,7 @@ const TRANSLATIONS = {
 
         // Modal — Textformatierung
         'modal.formatText': 'Text formatieren',
-        'modal.textFormatting': 'Text-Formatierung',
         'modal.anchorSection': 'Ankerpunkt',
-        'modal.globalSettings': 'Globale Einstellungen',
         'modal.displayText': 'Anzeigetext:',
         'modal.textPlaceholder': 'Text eingeben...',
         'modal.textSize': 'Textgröße:',
@@ -284,12 +282,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': 'Linksbündig',
         'modal.alignCenter': 'Zentriert',
         'modal.alignRight': 'Rechtsbündig',
-        'modal.anchorRadius': 'Radius (px)',
-        'modal.anchorGap': 'Ankerpunkt Text-Abstand',
-        'modal.anchorOutline': 'Ankerpunkt-Outline',
-        'modal.shadowSettings': 'Schatten-Einstellungen:',
+        'modal.anchorRadius': 'Radius',
+        'modal.anchorGap': 'Text-Abstand',
+        'modal.anchorOutline': 'Outline',
+        'modal.shadowSettings': 'Schatten',
         'modal.shadowEnable': 'Schatten aktivieren',
-        'modal.shadowDistance': 'Abstand (px):',
+        'modal.shadowDistance': 'Abstand:',
         'modal.shadowOpacity': 'Transparenz (%):',
         'modal.linkToFile': 'Link zu MD-Datei:',
         'modal.noLinkSelected': 'Kein Link ausgewählt',
@@ -545,9 +543,7 @@ const TRANSLATIONS = {
 
         // Modal — Text formatting
         'modal.formatText': 'Format Text',
-        'modal.textFormatting': 'Text formatting',
         'modal.anchorSection': 'Anchor point',
-        'modal.globalSettings': 'Global settings',
         'modal.displayText': 'Display text:',
         'modal.textPlaceholder': 'Enter text...',
         'modal.textSize': 'Text size:',
@@ -561,12 +557,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': 'Left',
         'modal.alignCenter': 'Centered',
         'modal.alignRight': 'Right',
-        'modal.anchorRadius': 'Radius (px)',
-        'modal.anchorGap': 'Anchor text distance',
-        'modal.anchorOutline': 'Anchor outline',
-        'modal.shadowSettings': 'Shadow Settings:',
+        'modal.anchorRadius': 'Radius',
+        'modal.anchorGap': 'Text distance',
+        'modal.anchorOutline': 'Outline',
+        'modal.shadowSettings': 'Shadow',
         'modal.shadowEnable': 'Enable shadow',
-        'modal.shadowDistance': 'Distance (px):',
+        'modal.shadowDistance': 'Distance:',
         'modal.shadowOpacity': 'Opacity (%):',
         'modal.linkToFile': 'Link to MD file:',
         'modal.noLinkSelected': 'No link selected',
@@ -802,9 +798,7 @@ const TRANSLATIONS = {
         'modal.removeLink': '移除链接',
         'modal.cancel': '取消',
         'modal.formatText': '格式化文本',
-        'modal.textFormatting': '文本格式',
         'modal.anchorSection': '锚点',
-        'modal.globalSettings': '全局设置',
         'modal.displayText': '显示文本：',
         'modal.textPlaceholder': '输入文本...',
         'modal.textSize': '文本大小：',
@@ -818,12 +812,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': '左对齐',
         'modal.alignCenter': '居中',
         'modal.alignRight': '右对齐',
-        'modal.anchorRadius': '半径 (px)',
-        'modal.anchorGap': '锚点文字间距',
-        'modal.anchorOutline': '锚点描边',
-        'modal.shadowSettings': '阴影设置：',
+        'modal.anchorRadius': '半径',
+        'modal.anchorGap': '文本间距',
+        'modal.anchorOutline': '描边',
+        'modal.shadowSettings': '阴影',
         'modal.shadowEnable': '启用阴影',
-        'modal.shadowDistance': '距离 (px)：',
+        'modal.shadowDistance': '距离：',
         'modal.shadowOpacity': '透明度 (%)：',
         'modal.linkToFile': '链接到 MD 文件：',
         'modal.noLinkSelected': '未选择链接',
@@ -1051,9 +1045,7 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Удалить ссылку',
         'modal.cancel': 'Отмена',
         'modal.formatText': 'Форматирование текста',
-        'modal.textFormatting': 'Форматирование текста',
         'modal.anchorSection': 'Точка привязки',
-        'modal.globalSettings': 'Общие настройки',
         'modal.displayText': 'Отображаемый текст:',
         'modal.textPlaceholder': 'Введите текст...',
         'modal.textSize': 'Размер текста:',
@@ -1067,12 +1059,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': 'По левому краю',
         'modal.alignCenter': 'По центру',
         'modal.alignRight': 'По правому краю',
-        'modal.anchorRadius': 'Радиус (px)',
-        'modal.anchorGap': 'Отступ текста от точки привязки',
-        'modal.anchorOutline': 'Обводка точки привязки',
-        'modal.shadowSettings': 'Настройки тени:',
+        'modal.anchorRadius': 'Радиус',
+        'modal.anchorGap': 'Отступ от текста',
+        'modal.anchorOutline': 'Обводка',
+        'modal.shadowSettings': 'Тень',
         'modal.shadowEnable': 'Включить тень',
-        'modal.shadowDistance': 'Расстояние (px):',
+        'modal.shadowDistance': 'Расстояние:',
         'modal.shadowOpacity': 'Прозрачность (%):',
         'modal.linkToFile': 'Ссылка на MD-файл:',
         'modal.noLinkSelected': 'Ссылка не выбрана',
@@ -1300,9 +1292,7 @@ const TRANSLATIONS = {
         'modal.removeLink': 'リンクを削除',
         'modal.cancel': 'キャンセル',
         'modal.formatText': 'テキストの書式設定',
-        'modal.textFormatting': 'テキストの書式',
         'modal.anchorSection': 'アンカーポイント',
-        'modal.globalSettings': '全体設定',
         'modal.displayText': '表示テキスト：',
         'modal.textPlaceholder': 'テキストを入力...',
         'modal.textSize': 'テキストサイズ：',
@@ -1316,12 +1306,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': '左揃え',
         'modal.alignCenter': '中央揃え',
         'modal.alignRight': '右揃え',
-        'modal.anchorRadius': '半径 (px)',
-        'modal.anchorGap': 'アンカーとテキストの間隔',
-        'modal.anchorOutline': 'アンカーのアウトライン',
-        'modal.shadowSettings': '影の設定：',
+        'modal.anchorRadius': '半径',
+        'modal.anchorGap': 'テキスト間隔',
+        'modal.anchorOutline': '縁取り',
+        'modal.shadowSettings': '影',
         'modal.shadowEnable': '影を有効にする',
-        'modal.shadowDistance': '距離 (px)：',
+        'modal.shadowDistance': '距離：',
         'modal.shadowOpacity': '透明度 (%)：',
         'modal.linkToFile': 'MD ファイルへのリンク：',
         'modal.noLinkSelected': 'リンクが選択されていません',
@@ -1549,9 +1539,7 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Supprimer le lien',
         'modal.cancel': 'Annuler',
         'modal.formatText': 'Formater le texte',
-        'modal.textFormatting': 'Mise en forme du texte',
         'modal.anchorSection': 'Point d\'ancrage',
-        'modal.globalSettings': 'Paramètres globaux',
         'modal.displayText': 'Texte affiché :',
         'modal.textPlaceholder': 'Saisir le texte...',
         'modal.textSize': 'Taille du texte :',
@@ -1565,12 +1553,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': 'À gauche',
         'modal.alignCenter': 'Centré',
         'modal.alignRight': 'À droite',
-        'modal.anchorRadius': 'Rayon (px)',
-        'modal.anchorGap': 'Distance texte-ancrage',
-        'modal.anchorOutline': 'Contour de l\'ancrage',
-        'modal.shadowSettings': 'Paramètres d\'ombre :',
+        'modal.anchorRadius': 'Rayon',
+        'modal.anchorGap': 'Distance au texte',
+        'modal.anchorOutline': 'Contour',
+        'modal.shadowSettings': 'Ombre',
         'modal.shadowEnable': 'Activer l\'ombre',
-        'modal.shadowDistance': 'Distance (px) :',
+        'modal.shadowDistance': 'Distance :',
         'modal.shadowOpacity': 'Opacité (%) :',
         'modal.linkToFile': 'Lien vers fichier MD :',
         'modal.noLinkSelected': 'Aucun lien sélectionné',
@@ -1798,9 +1786,7 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Remover link',
         'modal.cancel': 'Cancelar',
         'modal.formatText': 'Formatar texto',
-        'modal.textFormatting': 'Formatação do texto',
         'modal.anchorSection': 'Ponto de ancoragem',
-        'modal.globalSettings': 'Configurações globais',
         'modal.displayText': 'Texto exibido:',
         'modal.textPlaceholder': 'Digitar texto...',
         'modal.textSize': 'Tamanho do texto:',
@@ -1814,12 +1800,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': 'À esquerda',
         'modal.alignCenter': 'Centralizado',
         'modal.alignRight': 'À direita',
-        'modal.anchorRadius': 'Raio (px)',
-        'modal.anchorGap': 'Distância do texto à âncora',
-        'modal.anchorOutline': 'Contorno da âncora',
-        'modal.shadowSettings': 'Configurações de sombra:',
+        'modal.anchorRadius': 'Raio',
+        'modal.anchorGap': 'Distância ao texto',
+        'modal.anchorOutline': 'Contorno',
+        'modal.shadowSettings': 'Sombra',
         'modal.shadowEnable': 'Ativar sombra',
-        'modal.shadowDistance': 'Distância (px):',
+        'modal.shadowDistance': 'Distância:',
         'modal.shadowOpacity': 'Opacidade (%):',
         'modal.linkToFile': 'Link para arquivo MD:',
         'modal.noLinkSelected': 'Nenhum link selecionado',
@@ -2047,9 +2033,7 @@ const TRANSLATIONS = {
         'modal.removeLink': '링크 제거',
         'modal.cancel': '취소',
         'modal.formatText': '텍스트 서식',
-        'modal.textFormatting': '텍스트 서식',
         'modal.anchorSection': '앵커 포인트',
-        'modal.globalSettings': '전역 설정',
         'modal.displayText': '표시 텍스트:',
         'modal.textPlaceholder': '텍스트 입력...',
         'modal.textSize': '텍스트 크기:',
@@ -2063,12 +2047,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': '왼쪽 정렬',
         'modal.alignCenter': '가운데 정렬',
         'modal.alignRight': '오른쪽 정렬',
-        'modal.anchorRadius': '반지름 (px)',
-        'modal.anchorGap': '앵커-텍스트 간격',
-        'modal.anchorOutline': '앵커 외곽선',
-        'modal.shadowSettings': '그림자 설정:',
+        'modal.anchorRadius': '반지름',
+        'modal.anchorGap': '텍스트 간격',
+        'modal.anchorOutline': '외곽선',
+        'modal.shadowSettings': '그림자',
         'modal.shadowEnable': '그림자 활성화',
-        'modal.shadowDistance': '거리 (px):',
+        'modal.shadowDistance': '거리:',
         'modal.shadowOpacity': '불투명도 (%):',
         'modal.linkToFile': 'MD 파일 링크:',
         'modal.noLinkSelected': '선택된 링크 없음',
@@ -2296,9 +2280,7 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Eliminar enlace',
         'modal.cancel': 'Cancelar',
         'modal.formatText': 'Formatear texto',
-        'modal.textFormatting': 'Formato de texto',
         'modal.anchorSection': 'Punto de anclaje',
-        'modal.globalSettings': 'Ajustes globales',
         'modal.displayText': 'Texto a mostrar:',
         'modal.textPlaceholder': 'Introducir texto...',
         'modal.textSize': 'Tamaño de texto:',
@@ -2312,12 +2294,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': 'A la izquierda',
         'modal.alignCenter': 'Centrado',
         'modal.alignRight': 'A la derecha',
-        'modal.anchorRadius': 'Radio (px)',
-        'modal.anchorGap': 'Distancia texto-ancla',
-        'modal.anchorOutline': 'Contorno del ancla',
-        'modal.shadowSettings': 'Ajustes de sombra:',
+        'modal.anchorRadius': 'Radio',
+        'modal.anchorGap': 'Distancia al texto',
+        'modal.anchorOutline': 'Contorno',
+        'modal.shadowSettings': 'Sombra',
         'modal.shadowEnable': 'Activar sombra',
-        'modal.shadowDistance': 'Distancia (px):',
+        'modal.shadowDistance': 'Distancia:',
         'modal.shadowOpacity': 'Transparencia (%):',
         'modal.linkToFile': 'Enlace a archivo MD:',
         'modal.noLinkSelected': 'Ningún enlace seleccionado',
@@ -2545,9 +2527,7 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Usuń link',
         'modal.cancel': 'Anuluj',
         'modal.formatText': 'Formatuj tekst',
-        'modal.textFormatting': 'Formatowanie tekstu',
         'modal.anchorSection': 'Punkt zakotwiczenia',
-        'modal.globalSettings': 'Ustawienia globalne',
         'modal.displayText': 'Wyświetlany tekst:',
         'modal.textPlaceholder': 'Wpisz tekst...',
         'modal.textSize': 'Rozmiar tekstu:',
@@ -2561,12 +2541,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': 'Do lewej',
         'modal.alignCenter': 'Wyśrodkowane',
         'modal.alignRight': 'Do prawej',
-        'modal.anchorRadius': 'Promień (px)',
-        'modal.anchorGap': 'Odstęp tekstu od kotwicy',
-        'modal.anchorOutline': 'Obrys kotwicy',
-        'modal.shadowSettings': 'Ustawienia cienia:',
+        'modal.anchorRadius': 'Promień',
+        'modal.anchorGap': 'Odstęp od tekstu',
+        'modal.anchorOutline': 'Obrys',
+        'modal.shadowSettings': 'Cień',
         'modal.shadowEnable': 'Włącz cień',
-        'modal.shadowDistance': 'Odległość (px):',
+        'modal.shadowDistance': 'Odległość:',
         'modal.shadowOpacity': 'Przezroczystość (%):',
         'modal.linkToFile': 'Link do pliku MD:',
         'modal.noLinkSelected': 'Nie wybrano linku',
@@ -2794,9 +2774,7 @@ const TRANSLATIONS = {
         'modal.removeLink': 'Rimuovi link',
         'modal.cancel': 'Annulla',
         'modal.formatText': 'Formatta testo',
-        'modal.textFormatting': 'Formattazione del testo',
         'modal.anchorSection': 'Punto di ancoraggio',
-        'modal.globalSettings': 'Impostazioni globali',
         'modal.displayText': 'Testo visualizzato:',
         'modal.textPlaceholder': 'Inserisci testo...',
         'modal.textSize': 'Dimensione testo:',
@@ -2810,12 +2788,12 @@ const TRANSLATIONS = {
         'modal.alignLeft': 'A sinistra',
         'modal.alignCenter': 'Centrato',
         'modal.alignRight': 'A destra',
-        'modal.anchorRadius': 'Raggio (px)',
-        'modal.anchorGap': 'Distanza testo-ancora',
-        'modal.anchorOutline': 'Contorno dell\'ancora',
-        'modal.shadowSettings': 'Impostazioni ombra:',
+        'modal.anchorRadius': 'Raggio',
+        'modal.anchorGap': 'Distanza dal testo',
+        'modal.anchorOutline': 'Contorno',
+        'modal.shadowSettings': 'Ombra',
         'modal.shadowEnable': 'Attiva ombra',
-        'modal.shadowDistance': 'Distanza (px):',
+        'modal.shadowDistance': 'Distanza:',
         'modal.shadowOpacity': 'Trasparenza (%):',
         'modal.linkToFile': 'Link a file MD:',
         'modal.noLinkSelected': 'Nessun link selezionato',
@@ -3523,10 +3501,6 @@ class HexCartographerPlugin extends Plugin {
     }
 
     async createNewHexMap(targetFile = null) {
-        const now = new Date();
-        const pad = (n) => String(n).padStart(2, '0');
-        const fileName = `HexMap_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}-${pad(now.getDate())}${pad(now.getMonth() + 1)}${String(now.getFullYear()).slice(-2)}${this.targetHexExt()}`;
-
         let folderPath = '';
         if (targetFile) {
             if (targetFile.children) {
@@ -3537,7 +3511,8 @@ class HexCartographerPlugin extends Plugin {
             }
         }
 
-        const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+        const filePath = this.uniqueNewMapPath(folderPath);
+        const fileName = filePath.split('/').pop();
 
         const initialData = {
             hexes: {},
@@ -3556,7 +3531,17 @@ class HexCartographerPlugin extends Plugin {
                 drawMode: 'pen',
                 currentToolGroup: 'hexcolor',
                 patternData: null,
-                patternSourceHex: null
+                patternSourceHex: null,
+                // A new map is empty, so there is nothing to view — start in edit mode.
+                editMode: true,
+                // true = flat top (see hexOrientation in the view).
+                hexOrientation: true,
+                // Always start on the hex tool with the first system colour. Written
+                // explicitly because the loader only applies keys that are present —
+                // and the view is reused across maps in fast-load mode, so a colour or
+                // texture picked on the previous map would otherwise carry over.
+                hexColorColor: DEFAULT_PALETTE[0],
+                hexTexture: null
             }
         };
 
@@ -3574,6 +3559,19 @@ class HexCartographerPlugin extends Plugin {
                 active: true,
                 state: { file: file.path }
             });
+
+            // Offer naming right away, using Obsidian's own rename dialog so the file
+            // behaves like any other. Escape keeps the generated name. Should the user
+            // clear the extension, the vault 'rename' handler restores it.
+            // Internal API — guarded so a future Obsidian change cannot break creation.
+            const fm = this.app.fileManager;
+            if (fm && typeof fm.promptForFileRename === 'function') {
+                try {
+                    fm.promptForFileRename(file);
+                } catch (e) {
+                    console.error('Hex-Cartographer: rename prompt unavailable', e);
+                }
+            }
         } catch (err) {
             new Notice(t('notice.fileCreateError', { error: err }));
         }
@@ -3638,13 +3636,31 @@ class HexCartographerPlugin extends Plugin {
     // Timestamped name for the old variant, sortable (unlike a day-first format).
     // Uses the file's own save date: the suffix should say when that version was
     // written, not when it happened to be archived.
+    // Shared timestamp format: sortable, minute resolution. Used both for new maps and
+    // for archiving the outdated variant of a duplicate, so names read alike.
+    hexStamp(date) {
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+            + `_${pad(date.getHours())}${pad(date.getMinutes())}`;
+    }
+
     timestampedHexPath(file) {
         const base = this.hexMapBase(file.path);
         const ext = file.path.endsWith(HEX_EXT_FULL) ? HEX_EXT_FULL : HEX_EXT_FAST;
         const d = new Date(file.stat && file.stat.mtime ? file.stat.mtime : Date.now());
-        const pad = (n) => String(n).padStart(2, '0');
-        const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
-        return `${base}_${stamp}${ext}`;
+        return `${base}_${this.hexStamp(d)}${ext}`;
+    }
+
+    // Minute resolution collides when maps are created in quick succession. Checks BOTH
+    // extensions: a twin under the other one would instantly count as a duplicate map.
+    uniqueNewMapPath(folderPath) {
+        const join = (n) => (folderPath ? `${folderPath}/${n}` : n);
+        const taken = (n) => !!this.app.vault.getAbstractFileByPath(join(n) + HEX_EXT_FAST)
+                          || !!this.app.vault.getAbstractFileByPath(join(n) + HEX_EXT_FULL);
+        const base = `HexMap_${this.hexStamp(new Date())}`;
+        let name = base;
+        for (let i = 2; taken(name); i++) name = `${base}-${i}`;
+        return join(name) + this.targetHexExt();
     }
 
     // Renames a map to match the fast-load setting (.hexcartographer vs
@@ -4546,7 +4562,8 @@ class HexCartographerView extends ItemView {
                     if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
                 }
                 if (this.currentToolGroup === 'hexcolor') {
-                    this.masterColor = this.hexColorColor;
+                    // newData, not this.data: the map data is only swapped in further below.
+                    this.masterColor = this.hexToolColor(newData.textureColors);
                     if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
                 } else if (this.currentToolGroup && this.toolConfigs[this.currentToolGroup]) {
                     this.masterColor = this.toolConfigs[this.currentToolGroup].symbolColor;
@@ -4973,7 +4990,7 @@ class HexCartographerView extends ItemView {
                 this.currentToolGroup = this._savedToolGroup !== undefined ? this._savedToolGroup : 'hexcolor';
                 this.drawMode = this._savedDrawMode || 'pen';
                 if (this.currentToolGroup === 'hexcolor') {
-                    this.masterColor = this.hexColorColor;
+                    this.masterColor = this.hexToolColor();
                 } else if (this.currentToolGroup && this.toolConfigs[this.currentToolGroup]) {
                     this.masterColor = this.toolConfigs[this.currentToolGroup].symbolColor;
                 }
@@ -5054,7 +5071,7 @@ class HexCartographerView extends ItemView {
             } else {
                 this.currentToolGroup = 'hexcolor';
                 this.drawMode = 'pen';
-                this.masterColor = this.hexColorColor;
+                this.masterColor = this.hexToolColor();
                 if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
             }
             this.updateToolbarState(toolbar);
@@ -5950,7 +5967,7 @@ class HexCartographerView extends ItemView {
         } else {
             this.currentToolGroup = this.lastToolGroup;
             if (this.currentToolGroup === 'hexcolor') {
-                this.masterColor = this.hexColorColor;
+                this.masterColor = this.hexToolColor();
             } else if (this.currentToolGroup && this.toolConfigs[this.currentToolGroup]) {
                 this.masterColor = this.toolConfigs[this.currentToolGroup].symbolColor;
             }
@@ -6314,7 +6331,11 @@ class HexCartographerView extends ItemView {
     textLayout(t, ctx) {
         const align = t.align || 'center';
         const width = ctx.measureText(t.text).width;
-        const gap = Number.isFinite(t.anchorGap) ? t.anchorGap : DEFAULT_ANCHOR_GAP;
+        // The gap keeps the text clear of the anchor dot. Without a visible anchor there
+        // is nothing to keep clear of, so the text sits right on its position.
+        const gap = t.showAnchor
+            ? (Number.isFinite(t.anchorGap) ? t.anchorGap : DEFAULT_ANCHOR_GAP)
+            : 0;
         let x = t.x, y = t.y, left, right;
 
         if (align === 'left') {
@@ -7390,6 +7411,17 @@ class HexCartographerView extends ItemView {
         return this.data.textureColors[key];
     }
 
+    // Master color of the hex tool: a texture carries its own background color, only a
+    // plain color tool uses hexColorColor. Every place that restores the tool state has
+    // to agree with selectTexture(), hence one helper. `textureColors` may be passed in
+    // for the load path, where this.data still holds the previously opened map.
+    // No color is generated here — restoring a tool must not invent one.
+    hexToolColor(textureColors) {
+        if (!this.hexTexture) return this.hexColorColor;
+        const known = (textureColors || this.data.textureColors || {})[this.hexTexture];
+        return known || this.hexColorColor;
+    }
+
     processInput(e, isInitial) {
         this.pushHistoryIfNeeded();
         const world = this.getWorldCoords(e);
@@ -8376,8 +8408,8 @@ class HexCartographerView extends ItemView {
             this.textCtx.textAlign = l.align;
 
             if (t.shadow) {
-                const distance = t.shadowDistance || 5;
-                const opatown = (t.shadowOpatown || 50) / 100;
+                const distance = Number.isFinite(t.shadowDistance) ? t.shadowDistance : DEFAULT_SHADOW_DISTANCE;
+                const opatown = (Number.isFinite(t.shadowOpatown) ? t.shadowOpatown : DEFAULT_SHADOW_OPACITY) / 100;
                 this.textCtx.fillStyle = `rgba(0, 0, 0, ${opatown})`;
                 this.textCtx.fillText(t.text, l.x + distance, l.y + distance);
             }
@@ -8407,8 +8439,8 @@ class HexCartographerView extends ItemView {
         ctx.save();
 
         if (t.shadow) {
-            const distance = t.shadowDistance || 5;
-            const opatown = (t.shadowOpatown || 50) / 100;
+            const distance = Number.isFinite(t.shadowDistance) ? t.shadowDistance : DEFAULT_SHADOW_DISTANCE;
+            const opatown = (Number.isFinite(t.shadowOpatown) ? t.shadowOpatown : DEFAULT_SHADOW_OPACITY) / 100;
             ctx.beginPath();
             ctx.arc(t.x + distance, t.y + distance, radius, 0, Math.PI * 2);
             ctx.fillStyle = `rgba(0, 0, 0, ${opatown})`;
@@ -8777,8 +8809,8 @@ class HexCartographerView extends ItemView {
             const l = this.textLayout(tx, tmpCtx);
             tmpCtx.textAlign = l.align;
             if (tx.shadow) {
-                const distance = tx.shadowDistance || 5;
-                const opatown = (tx.shadowOpatown || 50) / 100;
+                const distance = Number.isFinite(tx.shadowDistance) ? tx.shadowDistance : DEFAULT_SHADOW_DISTANCE;
+                const opatown = (Number.isFinite(tx.shadowOpatown) ? tx.shadowOpatown : DEFAULT_SHADOW_OPACITY) / 100;
                 tmpCtx.fillStyle = `rgba(0, 0, 0, ${opatown})`;
                 tmpCtx.fillText(tx.text, l.x + distance, l.y + distance);
             }
@@ -9985,31 +10017,30 @@ class TextInputModal extends Modal {
         const checkStyle = 'display: flex; gap: 10px; align-items: center; cursor: pointer; padding: 3px 6px;';
         const fullInputStyle = 'width: 100%; padding: 8px;';
 
-        // === Anzeigetext ===
+        // === Anzeigetext (text and its formatting share one section) ===
         const textSection = contentEl.createDiv({ attr: { style: sectionStyle } });
         textSection.createEl('label', { text: t('modal.displayText'), attr: { style: headingStyle } });
         const mainInput = textSection.createEl('input', { value: this.val, placeholder: t('modal.textPlaceholder'), attr: { style: fullInputStyle } });
 
-        // === Text-Formatierung ===
-        const fmtSection = contentEl.createDiv({ attr: { style: sectionStyle } });
-        fmtSection.createEl('label', { text: t('modal.textFormatting'), attr: { style: headingStyle } });
-
         // Text size and alignment share one row (two columns).
-        const sizeAlignRow = fmtSection.createDiv({ attr: { style: 'display: flex; gap: 16px;' } });
+        const sizeAlignRow = textSection.createDiv({ attr: { style: 'display: flex; gap: 16px; margin-top: 13px;' } });
         const sizeCol = sizeAlignRow.createDiv({ attr: { style: 'flex: 1; min-width: 0;' } });
         sizeCol.createEl('label', { text: t('modal.textSize'), attr: { style: fieldLabelStyle } });
         const sInput = makeNumberInput(sizeCol, this.size, { min: 1, full: true });
 
         const alignCol = sizeAlignRow.createDiv({ attr: { style: 'flex: 1; min-width: 0;' } });
         alignCol.createEl('label', { text: t('modal.alignment'), attr: { style: fieldLabelStyle } });
-        const alignSelect = alignCol.createEl('select', { attr: { style: fullInputStyle } });
+        // A select inherits the theme's tight line-height; together with the padding the
+        // content box ends up shorter than the font and clips descenders ("Rechtsbündig").
+        // Letting the line box and height grow fixes it without overriding the theme.
+        const alignSelect = alignCol.createEl('select', { attr: { style: fullInputStyle + 'line-height: normal; height: auto;' } });
         [['left', 'modal.alignLeft'], ['center', 'modal.alignCenter'], ['right', 'modal.alignRight']]
             .forEach(([value, key]) => { const opt = alignSelect.createEl('option', { text: t(key) }); opt.value = value; });
         alignSelect.value = this.align;
 
-        fmtSection.createEl('label', { text: t('modal.textColor'), attr: { style: fieldLabelStyle + 'margin-top: 11px;' } });
+        textSection.createEl('label', { text: t('modal.textColor'), attr: { style: fieldLabelStyle + 'margin-top: 11px;' } });
         // Current color as a square swatch on the left, palette rows next to it.
-        const colorRow = fmtSection.createDiv({ attr: { style: 'display: flex; gap: 10px; align-items: flex-start;' } });
+        const colorRow = textSection.createDiv({ attr: { style: 'display: flex; gap: 10px; align-items: flex-start;' } });
         const colorSwatchWrap = colorRow.createDiv({ attr: { style: 'flex: 0 0 auto;' } });
         const colorPicker = createColorPickerElement(colorSwatchWrap, this.app, this.color, (color) => { this.color = color; if (this._previewFn) this._previewFn(); });
         colorPicker.btn.style.width = '62px';
@@ -10027,8 +10058,8 @@ class TextInputModal extends Modal {
             });
         });
 
-        fmtSection.createEl('label', { text: t('modal.formatting'), attr: { style: subHeadingStyle } });
-        const checkboxGrid = fmtSection.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 8px 16px;' } });
+        textSection.createEl('label', { text: t('modal.formatting'), attr: { style: subHeadingStyle } });
+        const checkboxGrid = textSection.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 8px 16px;' } });
         const outlineLabel = checkboxGrid.createEl('label', { attr: { style: checkStyle } });
         const outlineInput = outlineLabel.createEl('input', { type: 'checkbox' });
         outlineInput.checked = this.outline;
@@ -10053,6 +10084,9 @@ class TextInputModal extends Modal {
         anchorRow.createEl('span', { text: t('modal.anchorRadius'), attr: { style: 'white-space: nowrap;' } });
         const anchorRadiusInput = makeNumberInput(anchorRow, this.anchorRadius, { min: 1, max: 50 });
 
+        // Same subheading as in the text section, so both read alike.
+        anchorSection.createEl('label', { text: t('modal.formatting'), attr: { style: subHeadingStyle } });
+
         // Same label size as "show anchor" (no shrunk font), input on the right.
         const anchorGapRow = anchorSection.createDiv({ attr: { style: rowStyle } });
         anchorGapRow.createEl('span', { text: t('modal.anchorGap'), attr: { style: 'flex: 1;' } });
@@ -10065,11 +10099,9 @@ class TextInputModal extends Modal {
         anchorOutlineInput.style.cursor = 'pointer';
         anchorOutlineLabel.appendText(t('modal.anchorOutline'));
 
-        // === Globale Einstellungen ===
+        // === Schatten (own section, no extra "global settings" wrapper) ===
         const globalSection = contentEl.createDiv({ attr: { style: sectionStyle } });
-        globalSection.createEl('label', { text: t('modal.globalSettings'), attr: { style: headingStyle } });
-
-        globalSection.createEl('label', { text: t('modal.shadowSettings'), attr: { style: subHeadingStyle + 'margin-top: 0;' } });
+        globalSection.createEl('label', { text: t('modal.shadowSettings'), attr: { style: headingStyle } });
         const shadowLabel = globalSection.createEl('label', { attr: { style: checkStyle } });
         const shadowInput = shadowLabel.createEl('input', { type: 'checkbox' });
         shadowInput.checked = this.shadow;
@@ -10123,6 +10155,10 @@ class TextInputModal extends Modal {
         const readValues = () => {
             const opatownValue = shadowOpatownInput.value === '' ? 0 : parseInt(shadowOpatownInput.value);
             const clampedOpatown = Math.max(0, Math.min(100, opatownValue));
+            // A distance of 0 is valid (shadow straight behind the text), so it must not
+            // be treated as "empty" — only a blank or unreadable field falls back.
+            const distanceValue = shadowDistanceInput.value === '' ? DEFAULT_SHADOW_DISTANCE : parseInt(shadowDistanceInput.value);
+            const clampedDistance = Math.max(0, Number.isFinite(distanceValue) ? distanceValue : DEFAULT_SHADOW_DISTANCE);
             const shadowEnabled = clampedOpatown === 0 ? false : shadowInput.checked;
             return [
                 mainInput.value,
@@ -10132,7 +10168,7 @@ class TextInputModal extends Modal {
                 outlineInput.checked,
                 boldInput.checked,
                 shadowEnabled,
-                parseInt(shadowDistanceInput.value) || DEFAULT_SHADOW_DISTANCE,
+                clampedDistance,
                 clampedOpatown,
                 anchorInput.checked,
                 Math.max(1, Math.min(50, parseInt(anchorRadiusInput.value) || TEXT_ANCHOR_RADIUS)),
