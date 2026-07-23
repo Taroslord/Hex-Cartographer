@@ -93,37 +93,20 @@
     border-left: 2px solid var(--background-modifier-border);
 }
 
-/* File type badge in the file explorer (like CANVAS) */
-/* Place the badge directly after the file name */
-.nav-file-title.hex-cartographer-file .nav-file-title-content::after {
-    content: "HEXCARTOGRAPHER";
-    display: inline-block;
-    margin-left: 4px;
-    padding: 1px 4px;
-    background-color: transparent;
-    color: var(--text-muted);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 2px;
-    font-size: 9px;
-    font-weight: 500;
-    text-transform: uppercase;
-    vertical-align: middle;
-    line-height: 1;
+/* A map that exists under both extensions. Both rows show the same name, so they are
+   indistinguishable without this hint. Colour only — no layout change, to stay
+   compatible with third-party themes. */
+.nav-file-title.hex-cartographer-duplicate .nav-file-title-content {
+    color: var(--text-error);
 }
 
-/* Fallback for files that do not have the class yet */
-.nav-file-title[data-path$=".hexcartographer.md"]:not(.hex-cartographer-file) .nav-file-title-content::after {
-    content: "HEXCARTOGRAPHER";
-    display: inline-block;
-    margin-left: 4px;
-    padding: 1px 4px;
-    background-color: transparent;
-    color: var(--text-muted);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 2px;
-    font-size: 9px;
-    font-weight: 500;
-    text-transform: uppercase;
-    vertical-align: middle;
-    line-height: 1;
+.nav-file-title.hex-cartographer-duplicate .nav-file-tag {
+    color: var(--text-error);
+    border: 1px solid var(--text-error);
 }
+
+/* File type tag in the file explorer.
+   `.hexcartographer` files get Obsidian's own `.nav-file-tag`; for
+   `.hexcartographer.md` (which Obsidian treats as Markdown) the plugin inserts the
+   very same element, so both look alike and inherit the active theme. No styling
+   of our own on purpose — overriding it here would break third-party themes. */

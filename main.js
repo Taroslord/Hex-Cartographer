@@ -299,6 +299,22 @@ const TRANSLATIONS = {
 
         // Einstellungen
         'settings.exportWidth': 'Standard-Breite für Bildexport in Pixeln.',
+        'settings.fastLoad': 'Schnelles Laden',
+        'settings.fastLoadDesc': 'Lädt Karten schneller. Wichtig: Karten werden dann vom Sync-Dienst von Obsidian nicht automatisch synchronisiert. Damit Hex-Cartographer-Karten synchronisiert werden, aktivieren Sie in den Sync-Einstellungen von Obsidian „Alle anderen Dateien synchronisieren". Das Zahnrad-Symbol öffnet die Sync-Einstellungen. Wenn Sie nur lokal arbeiten, müssen Sie nichts ändern.',
+        'notice.duplicateMaps': 'Achtung: {count} Karte(n) sind doppelt vorhanden.',
+        'notice.duplicateMapTooltip': 'Diese Karte existiert zweimal — einmal als .hexcartographer, einmal als .hexcartographer.md.',
+        'duplicate.barText': '{count} Karte(n) doppelt vorhanden. {action}',
+        'duplicate.resolve': 'Jetzt prüfen',
+        'duplicate.title': 'Doppelte Karten',
+        'duplicate.intro': 'Diese Karten liegen zweimal vor: einmal als .hexcartographer und einmal als .hexcartographer.md. Solange beide denselben Namen tragen, bleibt die alte Fassung unverändert und beide sehen im Explorer gleich aus. Das Umbenennen hängt einen Zeitstempel an die alte Fassung — es wird nichts gelöscht.',
+        'duplicate.none': 'Keine weiteren doppelten Hex Cartographer Karten gefunden.',
+        'duplicate.checking': 'Wird geprüft …',
+        'duplicate.identical': 'Inhalt identisch',
+        'duplicate.different': 'Inhalte unterschiedlich — bitte beide prüfen',
+        'duplicate.modified': 'geändert',
+        'duplicate.renameOld': 'Alte Fassung umbenennen',
+        'duplicate.command': 'Doppelte Karten prüfen',
+        'settings.openSyncSettings': 'Sync-Einstellungen öffnen',
         'settings.exportWidthDesc': 'Standardbreite in Pixeln beim Exportieren als Bild.',
         'settings.showCrosshair': 'Fadenkreuz anzeigen',
         'settings.showCrosshairDesc': 'Zeigt ein Fadenkreuz im Zentrum der Karte an.',
@@ -308,9 +324,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Eigene Grafiken',
         'settings.userAssetPreview': 'Thumbnails anzeigen',
-        'settings.userAssetPreviewDesc': 'Zeigt im Rechtsklick-Menü Vorschaubilder der eigenen Grafiken statt nur der Namen.',
-        'settings.userAssetsDesc': 'Jede Kategorie hat ihren eigenen Ordner im Vault. Bleibt ein Feld leer, verwendet die Kategorie weiterhin die mitgelieferten Grafiken. Unterstützt werden SVG, PNG, JPG, WEBP, GIF und AVIF; Unterordner werden zu Untermenüs. Formate mit Transparenz eignen sich besonders für Symbole, weil dann die Farbe oder Textur der Wabe sichtbar bleibt. Eigene Grafiken lassen sich nicht einfärben — Ausnahme sind SVGs, die aus einem einzelnen Pfad bestehen.',
-        'settings.userAssetsPlaceholderHint': 'Kann eine eigene Grafik nicht geladen werden (fehlender Ordnerpfad oder entfernte Datei), zeigt die Wabe ein kleines Ordner-Symbol und oben erscheint ein roter Hinweis, welche Kategorie fehlt. Du kannst den Ordnerinhalt oder Pfad prüfen oder mit dem vorhandenen Material weiterarbeiten.',
+        'settings.userAssetPreviewDesc': 'Zeigt im Auswahlmenü Vorschaubilder der eigenen Grafiken statt nur der Namen.',
+        'settings.userAssetsDesc': 'Jede Kategorie hat ihren eigenen Ordner im Vault. Bleibt ein Feld leer, verwendet die Kategorie weiterhin die mitgelieferten Grafiken. Unterstützt werden SVG, PNG, JPG, WEBP, GIF und AVIF; Unterordner werden zu Untermenüs. Grafiken mit transparentem Hintergrund eignen sich besonders für Symbole, weil dann die Farbe oder Textur der Wabe sichtbar bleibt. Eigene Grafiken lassen sich nicht einfärben (nur sehr einfache SVG-Grafiken sind eine Ausnahme).',
+        'settings.userAssetsPlaceholderHint': 'Kann eine eigene Grafik nicht geladen werden (fehlender Ordnerpfad oder entfernte Datei), zeigt die Wabe ein kleines Ordner-Symbol und oben erscheint ein roter Hinweis, welche Kategorie fehlt. Sie können den Ordnerinhalt oder Pfad prüfen oder mit dem vorhandenen Material weiterarbeiten.',
         'settings.userAssetsPlaceholder': 'z. B. Assets/HexGrafiken',
         'settings.userAssetsBrowse': 'Ordner auswählen',
         'settings.userAssetsClear': 'Pfad leeren',
@@ -319,9 +335,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': 'Ordner nicht gefunden oder ohne unterstützte Grafiken.',
         'settings.userAssetsTruncated': 'Nur die ersten {max} werden geladen.',
         'settings.userTexturePath': 'Ordner für Waben-Texturen',
-        'settings.userTexturePathDesc': 'Vault-relativer Pfad. Leer lassen, um nur Farben zu verwenden.',
+        'settings.userTexturePathDesc': 'Ordner in Ihrem Vault. Leer lassen, um nur Farben zu verwenden.',
         'settings.userSymbolPathFor': 'Ordner für Symbole: {name}',
-        'settings.userSymbolPathDesc': 'Vault-relativer Pfad. Leer lassen, um nur die mitgelieferten Symbole zu verwenden.',
+        'settings.userSymbolPathDesc': 'Ordner in Ihrem Vault. Leer lassen, um nur die mitgelieferten Symbole zu verwenden.',
         'menu.system': 'System',
         'menu.color': 'Farbe',
         'notice.assetMissing': 'Grafik nicht gefunden: {name}',
@@ -332,7 +348,7 @@ const TRANSLATIONS = {
         'assetName.mountain': 'Berg-Symbole',
         'assetName.building': 'Gebäude-Symbole',
         'settings.hexNumbering': 'Waben nummerieren',
-        'settings.hexNumberingDesc': 'Die Waben werden mit Zahlen versehen und nummeriert.',
+        'settings.hexNumberingDesc': 'Versieht die Waben mit Nummern.',
         'settings.hexNumberingHorizontal': 'Horizontale Zählung',
         'settings.hexNumberingHorizontalDesc': 'Es wird oben links, bei der ersten Wabe begonnen und dann von links nach rechts gezählt. Am Ende jeder Wabenzeile wird in die nächste Zeile gewechselt und dort weiter gezählt.',
         'settings.hexNumberingVertical': 'Vertikale Zählung',
@@ -371,7 +387,7 @@ const TRANSLATIONS = {
         'guide.symbols.groups': 'Werkzeuggruppe wählen (Extras, Vegetation, Berg, Gebäude).',
         'guide.symbols.variant': 'Rechtsklick = Auswahl der Symbolvariante.',
         'guide.symbols.colors': 'Die aktuelle Master-Farbe bestimmt die Symbolfarbe.',
-        'guide.symbols.userSymbols': 'Eigene Symbole erscheinen im Rechtsklick-Menü unterhalb von "System", benannt nach deinem Ordner.',
+        'guide.symbols.userSymbols': 'Eigene Symbole erscheinen im Auswahlmenü unterhalb von "System", benannt nach Ihrem Ordner.',
         'guide.drawing': 'Zeichenmodi',
         'guide.drawing.pen': 'Zum Zeichnen klicken oder ziehen.',
         'guide.drawing.fill': 'Fläche mit aktiver Farbe oder Symbol füllen.',
@@ -560,6 +576,22 @@ const TRANSLATIONS = {
 
         // Settings
         'settings.exportWidth': 'Default width for image export in pixels.',
+        'settings.fastLoad': 'Fast loading',
+        'settings.fastLoadDesc': 'Loads maps faster. Important: maps are then not synced automatically by Obsidian\'s Sync service. To sync Hex Cartographer maps, turn on "Sync all other file types" in Obsidian\'s Sync settings. The gear icon opens the Sync settings. If you only work locally, you don\'t need to change anything.',
+        'notice.duplicateMaps': 'Warning: {count} map(s) exist twice.',
+        'notice.duplicateMapTooltip': 'This map exists twice — once as .hexcartographer and once as .hexcartographer.md.',
+        'duplicate.barText': '{count} map(s) exist twice. {action}',
+        'duplicate.resolve': 'Check now',
+        'duplicate.title': 'Duplicate maps',
+        'duplicate.intro': 'These maps exist twice: once as .hexcartographer and once as .hexcartographer.md. While both share a name, the old variant stays as it is and both look identical in the explorer. Renaming appends a timestamp to the old variant — nothing is deleted.',
+        'duplicate.none': 'No further duplicate Hex Cartographer maps found.',
+        'duplicate.checking': 'Checking …',
+        'duplicate.identical': 'Contents are identical',
+        'duplicate.different': 'Contents differ — please check both',
+        'duplicate.modified': 'modified',
+        'duplicate.renameOld': 'Rename old variant',
+        'duplicate.command': 'Check for duplicate maps',
+        'settings.openSyncSettings': 'Open Sync settings',
         'settings.exportWidthDesc': 'Default width in pixels when exporting as image.',
         'settings.showCrosshair': 'Show crosshair',
         'settings.showCrosshairDesc': 'Displays a crosshair at the center of the map.',
@@ -569,8 +601,8 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Custom graphics',
         'settings.userAssetPreview': 'Show thumbnails',
-        'settings.userAssetPreviewDesc': 'Shows thumbnail previews of your graphics in the right-click menu instead of just the names.',
-        'settings.userAssetsDesc': 'Each category has its own folder inside your vault. Leave a field empty and that category keeps using the built-in graphics. SVG, PNG, JPG, WEBP, GIF and AVIF are supported; subfolders become submenus. Formats with transparency work best for symbols, because the hex color or texture stays visible behind them. Custom graphics cannot be recolored — except SVGs made of a single path.',
+        'settings.userAssetPreviewDesc': 'Shows thumbnail previews of your graphics in the selection menu instead of just the names.',
+        'settings.userAssetsDesc': 'Each category has its own folder in your vault. Leave a field empty and that category keeps using the built-in graphics. SVG, PNG, JPG, WEBP, GIF and AVIF are supported; subfolders become submenus. Graphics with a transparent background work best for symbols, because the hex color or texture stays visible behind them. Custom graphics cannot be recolored (only very simple SVG graphics are an exception).',
         'settings.userAssetsPlaceholderHint': 'If a custom graphic cannot be loaded (missing folder path or a removed file), the hex shows a small folder icon and a red bar at the top names the affected category. Check the folder contents or path, or keep working with what you have.',
         'settings.userAssetsPlaceholder': 'e.g. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Choose folder',
@@ -580,9 +612,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': 'Folder not found or contains no supported graphics.',
         'settings.userAssetsTruncated': 'Only the first {max} are loaded.',
         'settings.userTexturePath': 'Hex texture folder',
-        'settings.userTexturePathDesc': 'Vault-relative path. Leave empty to use colors only.',
+        'settings.userTexturePathDesc': 'Folder in your vault. Leave empty to use colors only.',
         'settings.userSymbolPathFor': 'Symbol folder: {name}',
-        'settings.userSymbolPathDesc': 'Vault-relative path. Leave empty to use the built-in symbols only.',
+        'settings.userSymbolPathDesc': 'Folder in your vault. Leave empty to use the built-in symbols only.',
         'menu.system': 'System',
         'menu.color': 'Color',
         'notice.assetMissing': 'Graphic not found: {name}',
@@ -799,6 +831,22 @@ const TRANSLATIONS = {
         'modal.deleteText': '删除文本',
         'modal.confirmDeleteText': '确定要删除文本吗？',
         'settings.exportWidth': '图片导出的默认宽度（像素）。',
+        'settings.fastLoad': '快速加载',
+        'settings.fastLoadDesc': '更快地加载地图。重要提示：这样地图不会由 Obsidian 的同步服务自动同步。若要同步 Hex Cartographer 地图，请在 Obsidian 的同步设置中打开“同步所有其他文件类型”。齿轮图标可打开同步设置。如果您只在本地使用，则无需更改任何设置。',
+        'notice.duplicateMaps': '注意：有 {count} 张地图重复存在。',
+        'notice.duplicateMapTooltip': '此地图存在两份——一份为 .hexcartographer，一份为 .hexcartographer.md。',
+        'duplicate.barText': '有 {count} 张地图重复。{action}',
+        'duplicate.resolve': '立即检查',
+        'duplicate.title': '重复的地图',
+        'duplicate.intro': '这些地图存在两份：一份为 .hexcartographer，一份为 .hexcartographer.md。只要两者同名，旧版本就会保持不变，并且在文件列表中看起来完全一样。重命名会给旧版本加上时间戳——不会删除任何内容。',
+        'duplicate.none': '未发现其他重复的 Hex Cartographer 地图。',
+        'duplicate.checking': '正在检查……',
+        'duplicate.identical': '内容相同',
+        'duplicate.different': '内容不同——请检查两者',
+        'duplicate.modified': '修改于',
+        'duplicate.renameOld': '重命名旧版本',
+        'duplicate.command': '检查重复的地图',
+        'settings.openSyncSettings': '打开同步设置',
         'settings.exportWidthDesc': '导出为图片时的默认宽度（像素）。',
         'settings.showCrosshair': '显示十字准线',
         'settings.showCrosshairDesc': '在地图中心显示十字准线。',
@@ -808,9 +856,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': '自定义图形',
         'settings.userAssetPreview': '显示缩略图',
-        'settings.userAssetPreviewDesc': '在右键菜单中显示自定义图形的缩略图预览，而不仅是名称。',
-        'settings.userAssetsDesc': '每个类别在库中都有自己的文件夹。留空则该类别继续使用内置图形。支持 SVG、PNG、JPG、WEBP、GIF 和 AVIF；子文件夹将成为子菜单。带透明度的格式最适合用作符号，因为六边形的颜色或纹理仍可透出。自定义图形无法重新着色——由单个路径构成的 SVG 除外。',
-        'settings.userAssetsPlaceholderHint': '如果自定义图形无法加载（缺少文件夹路径或文件已删除），六边形会显示一个小文件夹图标，顶部的红色提示会指出缺少的类别。你可以检查文件夹内容或路径，或使用现有素材继续工作。',
+        'settings.userAssetPreviewDesc': '在选择菜单中显示自定义图形的缩略图预览，而不仅是名称。',
+        'settings.userAssetsDesc': '每个类别在库中都有自己的文件夹。留空某个字段，该类别将继续使用内置图形。支持 SVG、PNG、JPG、WEBP、GIF 和 AVIF；子文件夹会变成子菜单。背景透明的图形最适合做符号，因为六边形的颜色或纹理仍可见。自定义图形无法重新着色（只有非常简单的 SVG 图形例外）。',
+        'settings.userAssetsPlaceholderHint': '如果自定义图形无法加载（缺少文件夹路径或文件已删除），六边形会显示一个小文件夹图标，顶部的红色提示会指出缺少的类别。您可以检查文件夹内容或路径，或使用现有素材继续工作。',
         'settings.userAssetsPlaceholder': '例如 Assets/HexGraphics',
         'settings.userAssetsBrowse': '选择文件夹',
         'settings.userAssetsClear': '清除路径',
@@ -819,9 +867,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': '未找到文件夹，或其中没有支持的图形。',
         'settings.userAssetsTruncated': '仅加载前 {max} 个。',
         'settings.userTexturePath': '六边形纹理文件夹',
-        'settings.userTexturePathDesc': '相对于库的路径。留空则仅使用颜色。',
+        'settings.userTexturePathDesc': '库中的文件夹。留空则仅使用颜色。',
         'settings.userSymbolPathFor': '符号文件夹：{name}',
-        'settings.userSymbolPathDesc': '相对于库的路径。留空则仅使用内置符号。',
+        'settings.userSymbolPathDesc': '库中的文件夹。留空则仅使用内置符号。',
         'menu.system': '系统',
         'menu.color': '颜色',
         'notice.assetMissing': '未找到图形：{name}',
@@ -1032,6 +1080,22 @@ const TRANSLATIONS = {
         'modal.deleteText': 'Удалить текст',
         'modal.confirmDeleteText': 'Действительно удалить текст?',
         'settings.exportWidth': 'Стандартная ширина для экспорта изображений в пикселях.',
+        'settings.fastLoad': 'Быстрая загрузка',
+        'settings.fastLoadDesc': 'Загружает карты быстрее. Важно: тогда карты не синхронизируются автоматически службой синхронизации Obsidian. Чтобы карты Hex Cartographer синхронизировались, включите в настройках синхронизации Obsidian «Синхронизировать все прочие файлы». Значок шестерёнки открывает настройки синхронизации. Если вы работаете только локально, ничего менять не нужно.',
+        'notice.duplicateMaps': 'Внимание: {count} карт(ы) существуют дважды.',
+        'notice.duplicateMapTooltip': 'Эта карта существует дважды — как .hexcartographer и как .hexcartographer.md.',
+        'duplicate.barText': '{count} карт(ы) существуют дважды. {action}',
+        'duplicate.resolve': 'Проверить',
+        'duplicate.title': 'Дублирующиеся карты',
+        'duplicate.intro': 'Эти карты существуют дважды: как .hexcartographer и как .hexcartographer.md. Пока имена совпадают, старый вариант остаётся без изменений, и в проводнике оба выглядят одинаково. Переименование добавляет к старому варианту метку времени — ничего не удаляется.',
+        'duplicate.none': 'Других дублирующихся карт Hex Cartographer не найдено.',
+        'duplicate.checking': 'Проверка …',
+        'duplicate.identical': 'Содержимое одинаково',
+        'duplicate.different': 'Содержимое различается — проверьте оба файла',
+        'duplicate.modified': 'изменено',
+        'duplicate.renameOld': 'Переименовать старый вариант',
+        'duplicate.command': 'Проверить дублирующиеся карты',
+        'settings.openSyncSettings': 'Открыть настройки синхронизации',
         'settings.exportWidthDesc': 'Стандартная ширина в пикселях при экспорте в изображение.',
         'settings.showCrosshair': 'Показать перекрестие',
         'settings.showCrosshairDesc': 'Отображает перекрестие в центре карты.',
@@ -1041,8 +1105,8 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Собственная графика',
         'settings.userAssetPreview': 'Показывать миниатюры',
-        'settings.userAssetPreviewDesc': 'Показывает миниатюры собственной графики в контекстном меню вместо одних лишь имён.',
-        'settings.userAssetsDesc': 'У каждой категории своя папка в хранилище. Если поле пустое, категория продолжает использовать встроенную графику. Поддерживаются SVG, PNG, JPG, WEBP, GIF и AVIF; вложенные папки становятся подменю. Форматы с прозрачностью лучше всего подходят для символов, так как цвет или текстура соты остаются видимыми. Собственную графику нельзя перекрасить — кроме SVG из одного контура.',
+        'settings.userAssetPreviewDesc': 'Показывает миниатюры собственной графики в меню выбора вместо одних лишь имён.',
+        'settings.userAssetsDesc': 'У каждой категории есть своя папка в хранилище. Оставьте поле пустым — категория продолжит использовать встроенную графику. Поддерживаются SVG, PNG, JPG, WEBP, GIF и AVIF; вложенные папки становятся подменю. Для символов лучше всего подходит графика с прозрачным фоном, так как за ней остаётся виден цвет или текстура соты. Собственную графику нельзя перекрашивать (исключение — очень простые SVG-файлы).',
         'settings.userAssetsPlaceholderHint': 'Если пользовательская графика не загружается (нет пути к папке или файл удалён), сота показывает маленький значок папки, а красная полоса сверху называет затронутую категорию. Проверьте содержимое папки или путь либо продолжайте работать с тем, что есть.',
         'settings.userAssetsPlaceholder': 'напр. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Выбрать папку',
@@ -1052,9 +1116,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': 'Папка не найдена или не содержит поддерживаемой графики.',
         'settings.userAssetsTruncated': 'Загружаются только первые {max}.',
         'settings.userTexturePath': 'Папка текстур сот',
-        'settings.userTexturePathDesc': 'Путь относительно хранилища. Оставьте пустым, чтобы использовать только цвета.',
+        'settings.userTexturePathDesc': 'Папка в вашем хранилище. Оставьте пустым, чтобы использовать только цвета.',
         'settings.userSymbolPathFor': 'Папка символов: {name}',
-        'settings.userSymbolPathDesc': 'Путь относительно хранилища. Оставьте пустым, чтобы использовать только встроенные символы.',
+        'settings.userSymbolPathDesc': 'Папка в вашем хранилище. Оставьте пустым, чтобы использовать только встроенные символы.',
         'menu.system': 'Система',
         'menu.color': 'Цвет',
         'notice.assetMissing': 'Графика не найдена: {name}',
@@ -1265,6 +1329,22 @@ const TRANSLATIONS = {
         'modal.deleteText': 'テキストを削除',
         'modal.confirmDeleteText': '本当にテキストを削除しますか？',
         'settings.exportWidth': '画像エクスポートのデフォルト幅（ピクセル）。',
+        'settings.fastLoad': '高速読み込み',
+        'settings.fastLoadDesc': 'マップをより速く読み込みます。重要：この場合、マップは Obsidian の同期サービスで自動的に同期されません。Hex Cartographer のマップを同期するには、Obsidian の同期設定で「その他のすべてのファイルを同期」をオンにしてください。歯車アイコンで同期設定を開けます。ローカルのみで使う場合は、何も変更する必要はありません。',
+        'notice.duplicateMaps': '注意：{count} 件のマップが二重に存在します。',
+        'notice.duplicateMapTooltip': 'このマップは二重に存在します（.hexcartographer と .hexcartographer.md）。',
+        'duplicate.barText': '{count} 件のマップが二重に存在します。{action}',
+        'duplicate.resolve': '今すぐ確認',
+        'duplicate.title': '重複したマップ',
+        'duplicate.intro': 'これらのマップは .hexcartographer と .hexcartographer.md の二重に存在します。名前が同じ間は古い方はそのままで、エクスプローラーでは見分けがつきません。名前の変更は古い方にタイムスタンプを付けるだけで、削除は行いません。',
+        'duplicate.none': 'ほかに重複した Hex Cartographer のマップはありません。',
+        'duplicate.checking': '確認中 …',
+        'duplicate.identical': '内容は同一です',
+        'duplicate.different': '内容が異なります — 両方をご確認ください',
+        'duplicate.modified': '更新',
+        'duplicate.renameOld': '古い方の名前を変更',
+        'duplicate.command': '重複したマップを確認',
+        'settings.openSyncSettings': '同期設定を開く',
         'settings.exportWidthDesc': '画像としてエクスポートする際のデフォルト幅（ピクセル）。',
         'settings.showCrosshair': '十字線を表示',
         'settings.showCrosshairDesc': 'マップの中心に十字線を表示します。',
@@ -1274,8 +1354,8 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'カスタム画像',
         'settings.userAssetPreview': 'サムネイルを表示',
-        'settings.userAssetPreviewDesc': '右クリックメニューで、名前だけでなくカスタム画像のサムネイルを表示します。',
-        'settings.userAssetsDesc': '各カテゴリは保管庫内にそれぞれ独自のフォルダを持ちます。空欄のままにすると、そのカテゴリは内蔵画像を使い続けます。SVG、PNG、JPG、WEBP、GIF、AVIF に対応し、サブフォルダはサブメニューになります。透過に対応した形式はヘックスの色やテクスチャが透けて見えるため、シンボルに最適です。カスタム画像は着色できません（単一パスの SVG を除く）。',
+        'settings.userAssetPreviewDesc': '選択メニューで、名前だけでなくカスタム画像のサムネイルを表示します。',
+        'settings.userAssetsDesc': '各カテゴリは保管庫内に独自のフォルダーを持ちます。フィールドを空にすると、そのカテゴリは内蔵グラフィックを使い続けます。SVG、PNG、JPG、WEBP、GIF、AVIF に対応し、サブフォルダーはサブメニューになります。背景が透明な画像はシンボルに最適です。ヘクスの色やテクスチャが背後に見えるためです。カスタム画像は色を変更できません（ごく単純な SVG 画像のみ例外）。',
         'settings.userAssetsPlaceholderHint': 'カスタム画像を読み込めない場合（フォルダーパスがない、またはファイルが削除された）、ヘクスに小さなフォルダーアイコンが表示され、上部の赤いバーに不足しているカテゴリが表示されます。フォルダーの内容やパスを確認するか、手持ちの素材で作業を続けられます。',
         'settings.userAssetsPlaceholder': '例: Assets/HexGraphics',
         'settings.userAssetsBrowse': 'フォルダを選択',
@@ -1285,9 +1365,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': 'フォルダが見つからないか、対応する画像がありません。',
         'settings.userAssetsTruncated': '最初の {max} 個のみ読み込まれます。',
         'settings.userTexturePath': 'ヘックステクスチャのフォルダ',
-        'settings.userTexturePathDesc': '保管庫からの相対パス。空欄にすると色のみを使用します。',
+        'settings.userTexturePathDesc': '保管庫内のフォルダー。空欄にすると色のみを使用します。',
         'settings.userSymbolPathFor': 'シンボルのフォルダ: {name}',
-        'settings.userSymbolPathDesc': '保管庫からの相対パス。空欄にすると内蔵シンボルのみを使用します。',
+        'settings.userSymbolPathDesc': '保管庫内のフォルダー。空欄にすると内蔵シンボルのみを使用します。',
         'menu.system': 'システム',
         'menu.color': '色',
         'notice.assetMissing': '画像が見つかりません: {name}',
@@ -1498,6 +1578,22 @@ const TRANSLATIONS = {
         'modal.deleteText': 'Supprimer le texte',
         'modal.confirmDeleteText': 'Vraiment supprimer le texte ?',
         'settings.exportWidth': 'Largeur par défaut pour l\'export d\'image en pixels.',
+        'settings.fastLoad': 'Chargement rapide',
+        'settings.fastLoadDesc': 'Charge les cartes plus vite. Important : les cartes ne sont alors pas synchronisées automatiquement par le service de synchronisation d\'Obsidian. Pour synchroniser les cartes Hex Cartographer, activez « Synchroniser tous les autres fichiers » dans les paramètres de synchronisation d\'Obsidian. L\'icône d\'engrenage ouvre ces paramètres. Si vous travaillez uniquement en local, vous n\'avez rien à changer.',
+        'notice.duplicateMaps': 'Attention : {count} carte(s) existent en double.',
+        'notice.duplicateMapTooltip': 'Cette carte existe en double — une fois en .hexcartographer et une fois en .hexcartographer.md.',
+        'duplicate.barText': '{count} carte(s) en double. {action}',
+        'duplicate.resolve': 'Vérifier',
+        'duplicate.title': 'Cartes en double',
+        'duplicate.intro': 'Ces cartes existent en double : une fois en .hexcartographer et une fois en .hexcartographer.md. Tant qu\'elles portent le même nom, l\'ancienne version reste inchangée et les deux sont identiques dans l\'explorateur. Le renommage ajoute un horodatage à l\'ancienne version — rien n\'est supprimé.',
+        'duplicate.none': 'Aucune autre carte Hex Cartographer en double n\'a été trouvée.',
+        'duplicate.checking': 'Vérification …',
+        'duplicate.identical': 'Contenus identiques',
+        'duplicate.different': 'Contenus différents — vérifiez les deux',
+        'duplicate.modified': 'modifié',
+        'duplicate.renameOld': 'Renommer l\'ancienne version',
+        'duplicate.command': 'Rechercher les cartes en double',
+        'settings.openSyncSettings': 'Ouvrir les paramètres de synchronisation',
         'settings.exportWidthDesc': 'Largeur par défaut en pixels lors de l\'export en image.',
         'settings.showCrosshair': 'Afficher le réticule',
         'settings.showCrosshairDesc': 'Affiche un réticule au centre de la carte.',
@@ -1507,8 +1603,8 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Graphiques personnalisés',
         'settings.userAssetPreview': 'Afficher les miniatures',
-        'settings.userAssetPreviewDesc': 'Affiche des miniatures de vos graphiques dans le menu contextuel au lieu des seuls noms.',
-        'settings.userAssetsDesc': 'Chaque catégorie possède son propre dossier dans le coffre. Si un champ reste vide, la catégorie continue d\'utiliser les graphiques fournis. SVG, PNG, JPG, WEBP, GIF et AVIF sont pris en charge ; les sous-dossiers deviennent des sous-menus. Les formats avec transparence conviennent particulièrement aux symboles, car la couleur ou la texture de l\'hexagone reste visible. Les graphiques personnalisés ne peuvent pas être recolorés — sauf les SVG composés d\'un seul tracé.',
+        'settings.userAssetPreviewDesc': 'Affiche des miniatures de vos graphiques dans le menu de sélection au lieu des seuls noms.',
+        'settings.userAssetsDesc': 'Chaque catégorie a son propre dossier dans le coffre. Laissez un champ vide et la catégorie continue d\'utiliser les graphiques fournis. SVG, PNG, JPG, WEBP, GIF et AVIF sont pris en charge ; les sous-dossiers deviennent des sous-menus. Les images à fond transparent conviennent particulièrement aux symboles, car la couleur ou la texture de l\'hexagone reste visible. Les graphiques personnalisés ne peuvent pas être recolorés (seules les images SVG très simples font exception).',
         'settings.userAssetsPlaceholderHint': 'Si un graphique personnalisé ne peut pas être chargé (chemin de dossier manquant ou fichier supprimé), l\'hexagone affiche une petite icône de dossier et une barre rouge en haut indique la catégorie concernée. Vérifiez le contenu du dossier ou le chemin, ou continuez avec ce que vous avez.',
         'settings.userAssetsPlaceholder': 'p. ex. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Choisir un dossier',
@@ -1518,9 +1614,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': 'Dossier introuvable ou sans graphiques pris en charge.',
         'settings.userAssetsTruncated': 'Seuls les {max} premiers sont chargés.',
         'settings.userTexturePath': 'Dossier des textures d\'hexagone',
-        'settings.userTexturePathDesc': 'Chemin relatif au coffre. Laisser vide pour n\'utiliser que des couleurs.',
+        'settings.userTexturePathDesc': 'Dossier dans votre coffre. Laissez vide pour n\'utiliser que des couleurs.',
         'settings.userSymbolPathFor': 'Dossier des symboles : {name}',
-        'settings.userSymbolPathDesc': 'Chemin relatif au coffre. Laisser vide pour n\'utiliser que les symboles fournis.',
+        'settings.userSymbolPathDesc': 'Dossier dans votre coffre. Laissez vide pour n\'utiliser que les symboles fournis.',
         'menu.system': 'Système',
         'menu.color': 'Couleur',
         'notice.assetMissing': 'Graphique introuvable : {name}',
@@ -1731,6 +1827,22 @@ const TRANSLATIONS = {
         'modal.deleteText': 'Excluir texto',
         'modal.confirmDeleteText': 'Realmente excluir o texto?',
         'settings.exportWidth': 'Largura padrão para exportação de imagem em pixels.',
+        'settings.fastLoad': 'Carregamento rápido',
+        'settings.fastLoadDesc': 'Carrega os mapas mais depressa. Importante: os mapas deixam de ser sincronizados automaticamente pelo serviço de sincronização do Obsidian. Para sincronizar os mapas do Hex Cartographer, ative "Sincronizar todos os outros ficheiros" nas definições de sincronização do Obsidian. O ícone de engrenagem abre essas definições. Se trabalha apenas localmente, não precisa de alterar nada.',
+        'notice.duplicateMaps': 'Atenção: {count} mapa(s) existem em duplicado.',
+        'notice.duplicateMapTooltip': 'Este mapa existe duas vezes — como .hexcartographer e como .hexcartographer.md.',
+        'duplicate.barText': '{count} mapa(s) em duplicado. {action}',
+        'duplicate.resolve': 'Verificar agora',
+        'duplicate.title': 'Mapas duplicados',
+        'duplicate.intro': 'Estes mapas existem duas vezes: como .hexcartographer e como .hexcartographer.md. Enquanto tiverem o mesmo nome, a versão antiga fica inalterada e ambas parecem iguais no explorador. Renomear acrescenta uma data e hora à versão antiga — nada é eliminado.',
+        'duplicate.none': 'Não foram encontrados mais mapas duplicados do Hex Cartographer.',
+        'duplicate.checking': 'A verificar …',
+        'duplicate.identical': 'Conteúdos idênticos',
+        'duplicate.different': 'Conteúdos diferentes — verifique ambos',
+        'duplicate.modified': 'modificado',
+        'duplicate.renameOld': 'Renomear versão antiga',
+        'duplicate.command': 'Verificar mapas duplicados',
+        'settings.openSyncSettings': 'Abrir configurações de sincronização',
         'settings.exportWidthDesc': 'Largura padrão em pixels ao exportar como imagem.',
         'settings.showCrosshair': 'Mostrar retículo',
         'settings.showCrosshairDesc': 'Exibe um retículo no centro do mapa.',
@@ -1740,8 +1852,8 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Gráficos personalizados',
         'settings.userAssetPreview': 'Mostrar miniaturas',
-        'settings.userAssetPreviewDesc': 'Mostra miniaturas dos seus gráficos no menu de contexto em vez de apenas os nomes.',
-        'settings.userAssetsDesc': 'Cada categoria tem a sua própria pasta no cofre. Se deixar um campo vazio, essa categoria continua a usar os gráficos incluídos. São suportados SVG, PNG, JPG, WEBP, GIF e AVIF; as subpastas tornam-se submenus. Formatos com transparência são ideais para símbolos, pois a cor ou textura do hexágono continua visível. Gráficos personalizados não podem ser recoloridos — exceto SVGs compostos por um único traçado.',
+        'settings.userAssetPreviewDesc': 'Mostra miniaturas dos seus gráficos no menu de seleção em vez de apenas os nomes.',
+        'settings.userAssetsDesc': 'Cada categoria tem a sua própria pasta no cofre. Se deixar um campo vazio, essa categoria continua a usar os gráficos incluídos. São suportados SVG, PNG, JPG, WEBP, GIF e AVIF; as subpastas tornam-se submenus. As imagens com fundo transparente são ideais para símbolos, porque a cor ou textura do hexágono continua visível. Os gráficos personalizados não podem ser recoloridos (só as imagens SVG muito simples são exceção).',
         'settings.userAssetsPlaceholderHint': 'Se um gráfico personalizado não puder ser carregado (caminho da pasta ausente ou ficheiro removido), o hexágono mostra um pequeno ícone de pasta e uma barra vermelha no topo indica a categoria afetada. Verifique o conteúdo da pasta ou o caminho, ou continue a trabalhar com o que tem.',
         'settings.userAssetsPlaceholder': 'ex.: Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Escolher pasta',
@@ -1751,9 +1863,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': 'Pasta não encontrada ou sem gráficos suportados.',
         'settings.userAssetsTruncated': 'Apenas os primeiros {max} são carregados.',
         'settings.userTexturePath': 'Pasta de texturas de hexágono',
-        'settings.userTexturePathDesc': 'Caminho relativo ao cofre. Deixe vazio para usar apenas cores.',
+        'settings.userTexturePathDesc': 'Pasta no seu cofre. Deixe vazio para usar apenas cores.',
         'settings.userSymbolPathFor': 'Pasta de símbolos: {name}',
-        'settings.userSymbolPathDesc': 'Caminho relativo ao cofre. Deixe vazio para usar apenas os símbolos incluídos.',
+        'settings.userSymbolPathDesc': 'Pasta no seu cofre. Deixe vazio para usar apenas os símbolos incluídos.',
         'menu.system': 'Sistema',
         'menu.color': 'Cor',
         'notice.assetMissing': 'Gráfico não encontrado: {name}',
@@ -1964,6 +2076,22 @@ const TRANSLATIONS = {
         'modal.deleteText': '텍스트 삭제',
         'modal.confirmDeleteText': '텍스트를 정말 삭제하시겠습니까?',
         'settings.exportWidth': '이미지 내보내기의 기본 너비(픽셀).',
+        'settings.fastLoad': '빠른 로딩',
+        'settings.fastLoadDesc': '지도를 더 빠르게 불러옵니다. 중요: 이 경우 지도는 Obsidian 동기화 서비스로 자동 동기화되지 않습니다. Hex Cartographer 지도를 동기화하려면 Obsidian 동기화 설정에서 "기타 모든 파일 동기화"를 켜세요. 톱니바퀴 아이콘으로 동기화 설정을 열 수 있습니다. 로컬에서만 사용한다면 아무것도 바꿀 필요가 없습니다.',
+        'notice.duplicateMaps': '주의: {count}개의 지도가 중복되어 있습니다.',
+        'notice.duplicateMapTooltip': '이 지도는 .hexcartographer와 .hexcartographer.md로 두 번 존재합니다.',
+        'duplicate.barText': '{count}개의 지도가 중복되어 있습니다. {action}',
+        'duplicate.resolve': '지금 확인',
+        'duplicate.title': '중복된 지도',
+        'duplicate.intro': '이 지도들은 .hexcartographer와 .hexcartographer.md로 두 번 존재합니다. 이름이 같은 동안에는 예전 파일이 그대로 남고 탐색기에서 구별할 수 없습니다. 이름 변경은 예전 파일에 시간 표시를 붙일 뿐, 삭제하지 않습니다.',
+        'duplicate.none': '중복된 Hex Cartographer 지도가 더 이상 없습니다.',
+        'duplicate.checking': '확인 중 …',
+        'duplicate.identical': '내용이 동일합니다',
+        'duplicate.different': '내용이 다릅니다 — 두 파일을 모두 확인하세요',
+        'duplicate.modified': '수정됨',
+        'duplicate.renameOld': '예전 파일 이름 변경',
+        'duplicate.command': '중복된 지도 확인',
+        'settings.openSyncSettings': '동기화 설정 열기',
         'settings.exportWidthDesc': '이미지로 내보낼 때 기본 너비(픽셀)입니다.',
         'settings.showCrosshair': '십자선 표시',
         'settings.showCrosshairDesc': '지도 중심에 십자선을 표시합니다.',
@@ -1973,8 +2101,8 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': '사용자 그래픽',
         'settings.userAssetPreview': '썸네일 표시',
-        'settings.userAssetPreviewDesc': '우클릭 메뉴에서 이름 대신 사용자 그래픽의 미리보기 썸네일을 표시합니다.',
-        'settings.userAssetsDesc': '각 카테고리는 보관함 안에 고유한 폴더를 가집니다. 비워 두면 해당 카테고리는 기본 제공 그래픽을 계속 사용합니다. SVG, PNG, JPG, WEBP, GIF, AVIF를 지원하며 하위 폴더는 하위 메뉴가 됩니다. 투명도를 지원하는 형식은 헥스의 색상이나 텍스처가 비쳐 보이므로 심볼에 특히 적합합니다. 사용자 그래픽은 색을 바꿀 수 없습니다 — 단일 경로로 된 SVG는 예외입니다.',
+        'settings.userAssetPreviewDesc': '선택 메뉴에서 이름 대신 사용자 그래픽의 미리보기 썸네일을 표시합니다.',
+        'settings.userAssetsDesc': '각 카테고리는 보관함 안에 고유한 폴더를 가집니다. 항목을 비워 두면 해당 카테고리는 계속 기본 제공 그래픽을 사용합니다. SVG, PNG, JPG, WEBP, GIF, AVIF를 지원하며 하위 폴더는 하위 메뉴가 됩니다. 배경이 투명한 이미지는 헥스의 색상이나 텍스처가 뒤로 비치므로 기호에 특히 적합합니다. 사용자 그래픽은 색을 바꿀 수 없습니다(아주 단순한 SVG 이미지만 예외).',
         'settings.userAssetsPlaceholderHint': '사용자 그래픽을 불러올 수 없으면(폴더 경로 없음 또는 파일 삭제) 헥스에 작은 폴더 아이콘이 표시되고 상단의 빨간 막대가 해당 카테고리를 알려줍니다. 폴더 내용이나 경로를 확인하거나 있는 자료로 계속 작업할 수 있습니다.',
         'settings.userAssetsPlaceholder': '예: Assets/HexGraphics',
         'settings.userAssetsBrowse': '폴더 선택',
@@ -1984,9 +2112,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': '폴더를 찾을 수 없거나 지원되는 그래픽이 없습니다.',
         'settings.userAssetsTruncated': '처음 {max}개만 불러옵니다.',
         'settings.userTexturePath': '헥스 텍스처 폴더',
-        'settings.userTexturePathDesc': '보관함 기준 상대 경로. 비워 두면 색상만 사용합니다.',
+        'settings.userTexturePathDesc': '보관함 안의 폴더. 비워 두면 색상만 사용합니다.',
         'settings.userSymbolPathFor': '심볼 폴더: {name}',
-        'settings.userSymbolPathDesc': '보관함 기준 상대 경로. 비워 두면 기본 제공 심볼만 사용합니다.',
+        'settings.userSymbolPathDesc': '보관함 안의 폴더. 비워 두면 기본 제공 심볼만 사용합니다.',
         'menu.system': '시스템',
         'menu.color': '색상',
         'notice.assetMissing': '그래픽을 찾을 수 없습니다: {name}',
@@ -2197,6 +2325,22 @@ const TRANSLATIONS = {
         'modal.deleteText': 'Eliminar texto',
         'modal.confirmDeleteText': '¿Eliminar texto realmente?',
         'settings.exportWidth': 'Ancho predeterminado para exportación de imagen en píxeles.',
+        'settings.fastLoad': 'Carga rápida',
+        'settings.fastLoadDesc': 'Carga los mapas más rápido. Importante: los mapas ya no se sincronizan automáticamente con el servicio de sincronización de Obsidian. Para sincronizar los mapas de Hex Cartographer, active "Sincronizar todos los demás archivos" en los ajustes de sincronización de Obsidian. El icono de engranaje abre esos ajustes. Si solo trabaja en local, no necesita cambiar nada.',
+        'notice.duplicateMaps': 'Atención: {count} mapa(s) existen por duplicado.',
+        'notice.duplicateMapTooltip': 'Este mapa existe dos veces: como .hexcartographer y como .hexcartographer.md.',
+        'duplicate.barText': '{count} mapa(s) duplicados. {action}',
+        'duplicate.resolve': 'Comprobar ahora',
+        'duplicate.title': 'Mapas duplicados',
+        'duplicate.intro': 'Estos mapas existen dos veces: como .hexcartographer y como .hexcartographer.md. Mientras compartan el nombre, la versión antigua permanece intacta y ambas se ven iguales en el explorador. Cambiar el nombre añade una marca de tiempo a la versión antigua; no se elimina nada.',
+        'duplicate.none': 'No se han encontrado más mapas duplicados de Hex Cartographer.',
+        'duplicate.checking': 'Comprobando …',
+        'duplicate.identical': 'Contenidos idénticos',
+        'duplicate.different': 'Los contenidos difieren: revise ambos',
+        'duplicate.modified': 'modificado',
+        'duplicate.renameOld': 'Renombrar versión antigua',
+        'duplicate.command': 'Buscar mapas duplicados',
+        'settings.openSyncSettings': 'Abrir ajustes de sincronización',
         'settings.exportWidthDesc': 'Ancho predeterminado en píxeles al exportar como imagen.',
         'settings.showCrosshair': 'Mostrar retícula',
         'settings.showCrosshairDesc': 'Muestra una retícula en el centro del mapa.',
@@ -2206,9 +2350,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Gráficos propios',
         'settings.userAssetPreview': 'Mostrar miniaturas',
-        'settings.userAssetPreviewDesc': 'Muestra miniaturas de tus gráficos en el menú contextual en lugar de solo los nombres.',
-        'settings.userAssetsDesc': 'Cada categoría tiene su propia carpeta en el almacén. Si dejas un campo vacío, esa categoría sigue usando los gráficos incluidos. Se admiten SVG, PNG, JPG, WEBP, GIF y AVIF; las subcarpetas se convierten en submenús. Los formatos con transparencia son ideales para símbolos, ya que el color o la textura del hexágono sigue visible. Los gráficos propios no se pueden recolorear, salvo los SVG formados por un único trazado.',
-        'settings.userAssetsPlaceholderHint': 'Si un gráfico personalizado no se puede cargar (falta la ruta de la carpeta o se eliminó un archivo), el hexágono muestra un pequeño icono de carpeta y una barra roja en la parte superior indica la categoría afectada. Comprueba el contenido de la carpeta o la ruta, o sigue trabajando con lo que tienes.',
+        'settings.userAssetPreviewDesc': 'Muestra miniaturas de sus gráficos en el menú de selección en lugar de solo los nombres.',
+        'settings.userAssetsDesc': 'Cada categoría tiene su propia carpeta en el almacén. Si deja un campo vacío, esa categoría seguirá usando los gráficos incluidos. Se admiten SVG, PNG, JPG, WEBP, GIF y AVIF; las subcarpetas se convierten en submenús. Las imágenes con fondo transparente son ideales para símbolos, porque el color o la textura del hexágono sigue siendo visible. Los gráficos propios no se pueden recolorear (solo las imágenes SVG muy simples son una excepción).',
+        'settings.userAssetsPlaceholderHint': 'Si un gráfico personalizado no se puede cargar (falta la ruta de la carpeta o se eliminó un archivo), el hexágono muestra un pequeño icono de carpeta y una barra roja en la parte superior indica la categoría afectada. Puede comprobar el contenido de la carpeta o la ruta, o seguir trabajando con lo que tiene.',
         'settings.userAssetsPlaceholder': 'p. ej. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Elegir carpeta',
         'settings.userAssetsClear': 'Borrar ruta',
@@ -2217,9 +2361,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': 'Carpeta no encontrada o sin gráficos compatibles.',
         'settings.userAssetsTruncated': 'Solo se cargan los primeros {max}.',
         'settings.userTexturePath': 'Carpeta de texturas de hexágono',
-        'settings.userTexturePathDesc': 'Ruta relativa al almacén. Déjalo vacío para usar solo colores.',
+        'settings.userTexturePathDesc': 'Carpeta en su almacén. Déjelo vacío para usar solo colores.',
         'settings.userSymbolPathFor': 'Carpeta de símbolos: {name}',
-        'settings.userSymbolPathDesc': 'Ruta relativa al almacén. Déjalo vacío para usar solo los símbolos incluidos.',
+        'settings.userSymbolPathDesc': 'Carpeta en su almacén. Déjelo vacío para usar solo los símbolos incluidos.',
         'menu.system': 'Sistema',
         'menu.color': 'Color',
         'notice.assetMissing': 'Gráfico no encontrado: {name}',
@@ -2430,6 +2574,22 @@ const TRANSLATIONS = {
         'modal.deleteText': 'Usuń tekst',
         'modal.confirmDeleteText': 'Czy na pewno usunąć tekst?',
         'settings.exportWidth': 'Domyślna szerokość eksportu obrazu w pikselach.',
+        'settings.fastLoad': 'Szybkie ładowanie',
+        'settings.fastLoadDesc': 'Wczytuje mapy szybciej. Ważne: mapy nie będą wtedy automatycznie synchronizowane przez usługę synchronizacji Obsidiana. Aby mapy Hex Cartographer były synchronizowane, należy włączyć „Synchronizuj wszystkie inne pliki" w ustawieniach synchronizacji Obsidiana. Ikona koła zębatego otwiera te ustawienia. Przy pracy wyłącznie lokalnie nie trzeba nic zmieniać.',
+        'notice.duplicateMaps': 'Uwaga: {count} mapa(y) występują podwójnie.',
+        'notice.duplicateMapTooltip': 'Ta mapa istnieje dwukrotnie — jako .hexcartographer i jako .hexcartographer.md.',
+        'duplicate.barText': '{count} mapa(y) podwójnie. {action}',
+        'duplicate.resolve': 'Sprawdź teraz',
+        'duplicate.title': 'Zduplikowane mapy',
+        'duplicate.intro': 'Te mapy istnieją dwukrotnie: jako .hexcartographer i jako .hexcartographer.md. Dopóki mają tę samą nazwę, stara wersja pozostaje nietknięta, a obie wyglądają tak samo w eksploratorze. Zmiana nazwy dodaje do starej wersji znacznik czasu — nic nie jest usuwane.',
+        'duplicate.none': 'Nie znaleziono więcej zduplikowanych map Hex Cartographer.',
+        'duplicate.checking': 'Sprawdzanie …',
+        'duplicate.identical': 'Zawartość identyczna',
+        'duplicate.different': 'Zawartość różna — sprawdź obie',
+        'duplicate.modified': 'zmieniono',
+        'duplicate.renameOld': 'Zmień nazwę starej wersji',
+        'duplicate.command': 'Sprawdź zduplikowane mapy',
+        'settings.openSyncSettings': 'Otwórz ustawienia synchronizacji',
         'settings.exportWidthDesc': 'Domyślna szerokość w pikselach przy eksporcie jako obraz.',
         'settings.showCrosshair': 'Pokaż celownik',
         'settings.showCrosshairDesc': 'Wyświetla celownik w centrum mapy.',
@@ -2439,9 +2599,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Własna grafika',
         'settings.userAssetPreview': 'Pokaż miniatury',
-        'settings.userAssetPreviewDesc': 'Pokazuje w menu kontekstowym miniatury własnej grafiki zamiast samych nazw.',
-        'settings.userAssetsDesc': 'Każda kategoria ma własny folder w sejfie. Puste pole oznacza, że kategoria nadal korzysta z wbudowanej grafiki. Obsługiwane są SVG, PNG, JPG, WEBP, GIF i AVIF; podfoldery stają się podmenu. Formaty z przezroczystością najlepiej sprawdzają się jako symbole, ponieważ kolor lub tekstura komórki pozostaje widoczna. Własnej grafiki nie można przekolorować — z wyjątkiem SVG złożonych z jednej ścieżki.',
-        'settings.userAssetsPlaceholderHint': 'Jeśli własnej grafiki nie można wczytać (brak ścieżki folderu lub usunięty plik), sześciokąt pokazuje małą ikonę folderu, a czerwony pasek u góry wskazuje, której kategorii brakuje. Sprawdź zawartość folderu lub ścieżkę albo pracuj dalej z tym, co masz.',
+        'settings.userAssetPreviewDesc': 'Pokazuje w menu wyboru miniatury własnej grafiki zamiast samych nazw.',
+        'settings.userAssetsDesc': 'Każda kategoria ma własny folder w sejfie. Puste pole oznacza, że kategoria nadal używa wbudowanej grafiki. Obsługiwane są SVG, PNG, JPG, WEBP, GIF i AVIF; podfoldery stają się podmenu. Grafiki z przezroczystym tłem najlepiej nadają się na symbole, ponieważ kolor lub tekstura sześciokąta pozostaje widoczna. Własnej grafiki nie można przebarwiać (wyjątkiem są tylko bardzo proste pliki SVG).',
+        'settings.userAssetsPlaceholderHint': 'Jeśli własnej grafiki nie można wczytać (brak ścieżki folderu lub usunięty plik), sześciokąt pokazuje małą ikonę folderu, a czerwony pasek u góry wskazuje, której kategorii brakuje. Można sprawdzić zawartość folderu lub ścieżkę albo pracować dalej z tym, co jest.',
         'settings.userAssetsPlaceholder': 'np. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Wybierz folder',
         'settings.userAssetsClear': 'Wyczyść ścieżkę',
@@ -2450,9 +2610,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': 'Nie znaleziono folderu lub nie zawiera obsługiwanej grafiki.',
         'settings.userAssetsTruncated': 'Ładowanych jest tylko pierwszych {max}.',
         'settings.userTexturePath': 'Folder tekstur komórek',
-        'settings.userTexturePathDesc': 'Ścieżka względem sejfu. Pozostaw puste, aby używać tylko kolorów.',
+        'settings.userTexturePathDesc': 'Folder w sejfie. Pozostaw puste, aby używać tylko kolorów.',
         'settings.userSymbolPathFor': 'Folder symboli: {name}',
-        'settings.userSymbolPathDesc': 'Ścieżka względem sejfu. Pozostaw puste, aby używać tylko wbudowanych symboli.',
+        'settings.userSymbolPathDesc': 'Folder w sejfie. Pozostaw puste, aby używać tylko wbudowanych symboli.',
         'menu.system': 'System',
         'menu.color': 'Kolor',
         'notice.assetMissing': 'Nie znaleziono grafiki: {name}',
@@ -2663,6 +2823,22 @@ const TRANSLATIONS = {
         'modal.deleteText': 'Elimina testo',
         'modal.confirmDeleteText': 'Eliminare davvero il testo?',
         'settings.exportWidth': 'Larghezza predefinita per l\'esportazione di immagini in pixel.',
+        'settings.fastLoad': 'Caricamento rapido',
+        'settings.fastLoadDesc': 'Carica le mappe più velocemente. Importante: le mappe non vengono più sincronizzate automaticamente dal servizio di sincronizzazione di Obsidian. Per sincronizzare le mappe di Hex Cartographer, attivare "Sincronizza tutti gli altri file" nelle impostazioni di sincronizzazione di Obsidian. L\'icona a forma di ingranaggio apre quelle impostazioni. Lavorando solo in locale, non occorre cambiare nulla.',
+        'notice.duplicateMaps': 'Attenzione: {count} mappa/e esistono in doppio.',
+        'notice.duplicateMapTooltip': 'Questa mappa esiste due volte — come .hexcartographer e come .hexcartographer.md.',
+        'duplicate.barText': '{count} mappa/e in doppio. {action}',
+        'duplicate.resolve': 'Controlla ora',
+        'duplicate.title': 'Mappe duplicate',
+        'duplicate.intro': 'Queste mappe esistono due volte: come .hexcartographer e come .hexcartographer.md. Finché hanno lo stesso nome, la versione vecchia resta invariata ed entrambe appaiono identiche nell\'esploratore. La rinomina aggiunge un orario alla versione vecchia: non viene eliminato nulla.',
+        'duplicate.none': 'Non sono state trovate altre mappe Hex Cartographer duplicate.',
+        'duplicate.checking': 'Controllo in corso …',
+        'duplicate.identical': 'Contenuti identici',
+        'duplicate.different': 'Contenuti diversi — controlla entrambe',
+        'duplicate.modified': 'modificato',
+        'duplicate.renameOld': 'Rinomina versione vecchia',
+        'duplicate.command': 'Cerca mappe duplicate',
+        'settings.openSyncSettings': 'Apri impostazioni di sincronizzazione',
         'settings.exportWidthDesc': 'Larghezza predefinita in pixel durante l\'esportazione come immagine.',
         'settings.showCrosshair': 'Mostra mirino',
         'settings.showCrosshairDesc': 'Mostra un mirino al centro della mappa.',
@@ -2672,9 +2848,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Grafica personalizzata',
         'settings.userAssetPreview': 'Mostra miniature',
-        'settings.userAssetPreviewDesc': 'Mostra le anteprime delle tue grafiche nel menu contestuale invece dei soli nomi.',
-        'settings.userAssetsDesc': 'Ogni categoria ha una propria cartella nel vault. Se lasci un campo vuoto, quella categoria continua a usare la grafica inclusa. Sono supportati SVG, PNG, JPG, WEBP, GIF e AVIF; le sottocartelle diventano sottomenu. I formati con trasparenza sono ideali per i simboli, perché il colore o la trama dell\'esagono resta visibile. La grafica personalizzata non può essere ricolorata, tranne gli SVG composti da un solo tracciato.',
-        'settings.userAssetsPlaceholderHint': 'Se una grafica personalizzata non può essere caricata (percorso della cartella mancante o file rimosso), l\'esagono mostra una piccola icona di cartella e una barra rossa in alto indica la categoria interessata. Controlla il contenuto della cartella o il percorso, oppure continua con ciò che hai.',
+        'settings.userAssetPreviewDesc': 'Mostra le anteprime delle sue grafiche nel menu di selezione invece dei soli nomi.',
+        'settings.userAssetsDesc': 'Ogni categoria ha la propria cartella nel vault. Lasciando un campo vuoto, la categoria continua a usare le grafiche incluse. Sono supportati SVG, PNG, JPG, WEBP, GIF e AVIF; le sottocartelle diventano sottomenu. Le immagini con sfondo trasparente sono ideali per i simboli, perché il colore o la texture dell\'esagono resta visibile. Le grafiche personalizzate non possono essere ricolorate (fanno eccezione solo le immagini SVG molto semplici).',
+        'settings.userAssetsPlaceholderHint': 'Se una grafica personalizzata non può essere caricata (percorso della cartella mancante o file rimosso), l\'esagono mostra una piccola icona di cartella e una barra rossa in alto indica la categoria interessata. È possibile controllare il contenuto della cartella o il percorso, oppure continuare con ciò che si ha.',
         'settings.userAssetsPlaceholder': 'es. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Scegli cartella',
         'settings.userAssetsClear': 'Cancella percorso',
@@ -2683,9 +2859,9 @@ const TRANSLATIONS = {
         'settings.userAssetsNotFound': 'Cartella non trovata o senza grafiche supportate.',
         'settings.userAssetsTruncated': 'Vengono caricate solo le prime {max}.',
         'settings.userTexturePath': 'Cartella texture esagoni',
-        'settings.userTexturePathDesc': 'Percorso relativo al vault. Lascia vuoto per usare solo i colori.',
+        'settings.userTexturePathDesc': 'Cartella nel vault. Lasciare vuoto per usare solo i colori.',
         'settings.userSymbolPathFor': 'Cartella simboli: {name}',
-        'settings.userSymbolPathDesc': 'Percorso relativo al vault. Lascia vuoto per usare solo i simboli inclusi.',
+        'settings.userSymbolPathDesc': 'Cartella nel vault. Lasciare vuoto per usare solo i simboli inclusi.',
         'menu.system': 'Sistema',
         'menu.color': 'Colore',
         'notice.assetMissing': 'Grafica non trovata: {name}',
@@ -3117,8 +3293,14 @@ class UserAssetRegistry {
     }
 }
 
+// Map file extensions. `.hexcartographer.md` opens as a Markdown view first (the
+// slow "flash"); the single `.hexcartographer` extension opens the map view directly.
+const HEX_EXT_FULL = '.hexcartographer.md';
+const HEX_EXT_FAST = '.hexcartographer';
+
 const DEFAULT_SETTINGS = {
     userAssetPreview: false,
+    fastLoad: false, // save/rename maps as .hexcartographer (no Markdown flash)
     userTexturePath: '',
     userExtrasPath: '',
     userVegetationPath: '',
@@ -3157,7 +3339,11 @@ class HexCartographerPlugin extends Plugin {
 
         this.registerView('hex-cartographer', (leaf) => new HexCartographerView(leaf, this));
 
-        this.registerExtensions(['hexcartographer.md'], 'hex-cartographer');
+        // Register the single extension so `.hexcartographer` maps open directly in
+        // the map view (no Markdown flash). The `.hexcartographer.md` entry stays for
+        // clarity, though Obsidian resolves those by their `md` extension and the
+        // file-open/active-leaf-change handlers below swap them to the map view.
+        this.registerExtensions(['hexcartographer', 'hexcartographer.md'], 'hex-cartographer');
 
         this.registerEvent(
             this.app.workspace.on('file-open', async (file) => {
@@ -3167,6 +3353,7 @@ class HexCartographerPlugin extends Plugin {
                     const leaves = this.app.workspace.getLeavesOfType('markdown');
                     for (const leaf of leaves) {
                         if (leaf.view.file && leaf.view.file.path === file.path) {
+                            this.maskLeafDuringSwap(leaf);
                             await leaf.setViewState({
                                 type: 'hex-cartographer',
                                 state: { file: file.path }
@@ -3181,6 +3368,7 @@ class HexCartographerPlugin extends Plugin {
             this.app.workspace.on('active-leaf-change', async (leaf) => {
                 if (leaf && leaf.view && leaf.view.getViewType() === 'markdown' &&
                     leaf.view.file && leaf.view.file.path.endsWith('.hexcartographer.md')) {
+                    this.maskLeafDuringSwap(leaf);
                     await leaf.setViewState({
                         type: 'hex-cartographer',
                         state: { file: leaf.view.file.path }
@@ -3194,17 +3382,27 @@ class HexCartographerPlugin extends Plugin {
         }, 500);
 
         this.registerEvent(this.app.vault.on('rename', async (file, oldPath) => {
-            if (oldPath.endsWith('.hexcartographer.md') && !file.path.endsWith('.hexcartographer.md')) {
-                const newName = file.name.replace(/\.md$/, '') + '.hexcartographer.md';
+            // Keep maps a hex file if the user renames them away from either extension.
+            // Renames BETWEEN the two hex extensions (our own ensureHexExtension) end on
+            // a hex path, so they fall through to the explorer refresh — no fight.
+            if (this.isHexMapPath(oldPath) && !this.isHexMapPath(file.path)) {
+                const newName = file.name.replace(/\.md$/, '') + this.targetHexExt();
                 const newPath = file.parent ? `${file.parent.path}/${newName}` : newName;
                 await this.app.fileManager.renameFile(file, newPath);
-            } else if (file.path.endsWith('.hexcartographer.md')) {
+            } else if (this.isHexMapPath(file.path)) {
                 this.hideHexExtensionInExplorer();
             }
         }));
 
         this.addRibbonIcon('map', 'Create Hex Map', async () => {
             await this.createNewHexMap();
+        });
+
+        // Reachable even when no map is open and the warning bar is therefore absent.
+        this.addCommand({
+            id: 'check-duplicate-maps',
+            name: t('duplicate.command'),
+            callback: () => new DuplicateMapsModal(this.app, this).open(),
         });
 
         this.registerEvent(
@@ -3327,7 +3525,7 @@ class HexCartographerPlugin extends Plugin {
     async createNewHexMap(targetFile = null) {
         const now = new Date();
         const pad = (n) => String(n).padStart(2, '0');
-        const fileName = `HexMap_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}-${pad(now.getDate())}${pad(now.getMonth() + 1)}${String(now.getFullYear()).slice(-2)}.hexcartographer.md`;
+        const fileName = `HexMap_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}-${pad(now.getDate())}${pad(now.getMonth() + 1)}${String(now.getFullYear()).slice(-2)}${this.targetHexExt()}`;
 
         let folderPath = '';
         if (targetFile) {
@@ -3366,7 +3564,8 @@ class HexCartographerPlugin extends Plugin {
             const now = new Date().toISOString().split('T')[0];
             const frontmatter = `---\ntype: hexcartographer\ncreated: ${now}\n---\n\n`;
             const jsonData = JSON.stringify(initialData, null, 2);
-            const content = `${frontmatter}# ${fileName.replace('.hexcartographer.md', '')}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
+            const mapTitle = fileName.replace(HEX_EXT_FULL, '').replace(HEX_EXT_FAST, '');
+            const content = `${frontmatter}# ${mapTitle}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
 
             const file = await this.app.vault.create(filePath, content);
             const leaf = this.app.workspace.getLeaf(false);
@@ -3380,17 +3579,137 @@ class HexCartographerPlugin extends Plugin {
         }
     }
 
+    isHexMapPath(path) {
+        return typeof path === 'string' && (path.endsWith(HEX_EXT_FULL) || path.endsWith(HEX_EXT_FAST));
+    }
+
+    // The extension new/renamed maps should use for the current fast-load setting.
+    targetHexExt() {
+        return this.settings.fastLoad ? HEX_EXT_FAST : HEX_EXT_FULL;
+    }
+
+    // The path this map should have for the current fast-load setting.
+    // Path without the hex extension — the identity both variants of a map share.
+    hexMapBase(path) {
+        if (!this.isHexMapPath(path)) return null;
+        return path.endsWith(HEX_EXT_FULL) ? path.slice(0, -HEX_EXT_FULL.length)
+                                           : path.slice(0, -HEX_EXT_FAST.length);
+    }
+
+    desiredHexPath(path) {
+        const base = this.hexMapBase(path);
+        return base === null ? path : base + this.targetHexExt();
+    }
+
+    // Maps present under BOTH extensions. Sync treats those as two unrelated files and
+    // never merges them, and ensureHexExtension refuses to rename onto an existing
+    // file — so such a pair stays until the user resolves it. Both entries also look
+    // identical in the explorer, hence the warnings built on top of this.
+    findDuplicateHexMaps() {
+        const byBase = new Map();
+        for (const f of this.app.vault.getFiles()) {
+            const base = this.hexMapBase(f.path);
+            if (base === null) continue;
+            let pair = byBase.get(base);
+            if (!pair) { pair = { base, fast: null, full: null }; byBase.set(base, pair); }
+            if (f.path.endsWith(HEX_EXT_FULL)) pair.full = f;
+            else pair.fast = f;
+        }
+        return [...byBase.values()].filter(p => p.fast && p.full);
+    }
+
+    refreshDuplicateHexMaps() {
+        this.duplicateHexMaps = this.findDuplicateHexMaps();
+        this.duplicateHexBases = new Set(this.duplicateHexMaps.map(p => p.base));
+        return this.duplicateHexMaps;
+    }
+
+    // Startup hint for users who only ever look at the explorer.
+    reportDuplicateHexMaps() {
+        const count = this.duplicateHexMaps.length;
+        if (count > 0) new Notice(t('notice.duplicateMaps').replace('{count}', String(count)), 10000);
+    }
+
+    isDuplicateHexPath(path) {
+        const base = this.hexMapBase(path);
+        return base !== null && !!this.duplicateHexBases && this.duplicateHexBases.has(base);
+    }
+
+    // Timestamped name for the old variant, sortable (unlike a day-first format).
+    // Uses the file's own save date: the suffix should say when that version was
+    // written, not when it happened to be archived.
+    timestampedHexPath(file) {
+        const base = this.hexMapBase(file.path);
+        const ext = file.path.endsWith(HEX_EXT_FULL) ? HEX_EXT_FULL : HEX_EXT_FAST;
+        const d = new Date(file.stat && file.stat.mtime ? file.stat.mtime : Date.now());
+        const pad = (n) => String(n).padStart(2, '0');
+        const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+        return `${base}_${stamp}${ext}`;
+    }
+
+    // Renames a map to match the fast-load setting (.hexcartographer vs
+    // .hexcartographer.md). Lazy — called when a map opens or the setting changes, so
+    // no bulk migration is needed (the reader loads both). renameFile keeps [[links]].
+    // Hides a Markdown leaf's content the moment we detect a map file, so the raw
+    // JSON code is not shown during the brief swap to the map view (the "flash").
+    // Only relevant for `.hexcartographer.md`; `.hexcartographer` opens directly.
+    maskLeafDuringSwap(leaf) {
+        try {
+            const el = leaf && leaf.view && leaf.view.contentEl;
+            if (el) el.style.visibility = 'hidden';
+        } catch (e) { /* best effort */ }
+    }
+
+    async ensureHexExtension(file) {
+        if (!file || !this.isHexMapPath(file.path)) return;
+        const desired = this.desiredHexPath(file.path);
+        if (desired === file.path) return;
+        if (this.app.vault.getAbstractFileByPath(desired)) return; // target exists -> leave as is
+        try {
+            await this.app.fileManager.renameFile(file, desired);
+        } catch (e) {
+            console.error('Hex-Cartographer: could not switch extension to', desired, e);
+        }
+    }
+
     hideHexExtensionInExplorer() {
         const hideExtension = () => {
-            const fileElements = document.querySelectorAll('.nav-file-title[data-path$=".hexcartographer.md"]');
+            // `.hexcartographer.md` counts as a Markdown file for Obsidian: it shows
+            // the leftover `.hexcartographer` in the name and gets no extension tag, so
+            // strip the name and add the tag ourselves. We build the same element
+            // Obsidian uses (`.nav-file-tag`, a sibling of the file name) instead of
+            // drawing a pseudo-element, so both extensions look identical and the tag
+            // follows whatever theme the user has installed.
+            // A plain `.hexcartographer` file already carries Obsidian's own tag —
+            // ours is removed there (elements are reused across renames).
+            const fileElements = document.querySelectorAll('.nav-file-title[data-path$=".hexcartographer.md"], .nav-file-title[data-path$=".hexcartographer"]');
             fileElements.forEach(el => {
                 const titleEl = el.querySelector('.nav-file-title-content');
                 if (titleEl && titleEl.textContent.includes('.hexcartographer')) {
                     titleEl.textContent = titleEl.textContent.replace('.hexcartographer', '');
                 }
 
-                if (!el.classList.contains('hex-cartographer-file')) {
-                    el.classList.add('hex-cartographer-file');
+                const path = el.getAttribute('data-path') || '';
+                const needsOwnTag = path.endsWith(HEX_EXT_FULL);
+                el.classList.toggle('hex-cartographer-file', needsOwnTag);
+
+                const ownTag = el.querySelector('.hex-cartographer-tag');
+                if (needsOwnTag) {
+                    // Names the variant that is still a Markdown file, so the user can
+                    // see at a glance what is left to migrate. Only this tag is ours —
+                    // fast files carry Obsidian's own, which we must not rewrite.
+                    if (!ownTag) el.createDiv({ cls: 'nav-file-tag hex-cartographer-tag', text: 'hexcartographer.md' });
+                } else if (ownTag) {
+                    ownTag.remove();
+                }
+
+                // Both twins of a duplicated map show the same name and tag, so flag
+                // them right where the user sees the files — without opening anything.
+                const dup = this.isDuplicateHexPath(path);
+                if (dup !== el.classList.contains('hex-cartographer-duplicate')) {
+                    el.classList.toggle('hex-cartographer-duplicate', dup);
+                    if (dup) el.setAttribute('title', t('notice.duplicateMapTooltip'));
+                    else el.removeAttribute('title');
                 }
             });
         };
@@ -3566,6 +3885,27 @@ class HexCartographerPlugin extends Plugin {
             this.registerEvent(this.app.vault.on('delete', (f) => handle(f)));
             this.registerEvent(this.app.vault.on('modify', (f) => handle(f)));
             this.registerEvent(this.app.vault.on('rename', (f, oldPath) => handle(f, oldPath)));
+
+            // Duplicate maps: scan once, then follow the events that can create or
+            // resolve a pair. Registering here (not in onload) is essential — during
+            // vault startup 'create' fires for every file and would rescan constantly.
+            this.refreshDuplicateHexMaps();
+            this.reportDuplicateHexMaps();
+            const rescan = (f, oldPath) => {
+                if (!this.isHexMapPath(f?.path) && !this.isHexMapPath(oldPath)) return;
+                clearTimeout(this._dupScanTimer);
+                this._dupScanTimer = setTimeout(() => {
+                    this.refreshDuplicateHexMaps();
+                    this.hideHexExtensionInExplorer();
+                    this.app.workspace.getLeavesOfType('hex-cartographer').forEach(leaf => {
+                        if (leaf.view instanceof HexCartographerView) leaf.view.updateAssetWarningBar();
+                    });
+                }, ASSET_WATCH_DEBOUNCE);
+            };
+            this.register(() => clearTimeout(this._dupScanTimer));
+            this.registerEvent(this.app.vault.on('create', (f) => rescan(f)));
+            this.registerEvent(this.app.vault.on('delete', (f) => rescan(f)));
+            this.registerEvent(this.app.vault.on('rename', (f, oldPath) => rescan(f, oldPath)));
         });
     }
 
@@ -3618,6 +3958,9 @@ class HexCartographerView extends ItemView {
         this.plugin = plugin;
         this.file = null;
         this.data = { hexes: {}, rivers: [], roads: [], texts: [], borders: [], gridSize: DEFAULT_GRID_SIZE, zoom: 1, offX: DEFAULT_OFF_X, offY: DEFAULT_OFF_Y };
+        // Which file `this.data` belongs to. The view is reused when switching maps
+        // (see setState), so a save must never write one map into another file.
+        this._dataPath = null;
 
         this.history = [];
         this.redoStack = [];
@@ -4015,8 +4358,31 @@ class HexCartographerView extends ItemView {
         if (state && state.file) {
             const file = this.app.vault.getAbstractFileByPath(state.file);
             if (file instanceof TFile) {
+                // Switching maps reuses THIS view when both files resolve to the same
+                // view type (fast-load extension); only the `.md` path builds a fresh
+                // view. Per-file state must therefore be dropped explicitly, otherwise
+                // undo would restore the previous map into the new file and the
+                // own-save guard in reloadFile() would block reopening an earlier map.
+                if (!this.file || this.file.path !== file.path) {
+                    // Finish a pending save for the map we are leaving — while
+                    // this.file still points at it — so its edits are not lost.
+                    if (this.saveTimeout) {
+                        clearTimeout(this.saveTimeout);
+                        this.saveTimeout = null;
+                        await this.saveData();
+                    }
+                    this.history = [];
+                    this.redoStack = [];
+                    this._lastSavedContent = null;
+                    this._lastSavedPath = null;
+                    // Data still belongs to the old map until reloadFile() replaces it.
+                    this._dataPath = null;
+                }
                 this.file = file;
                 await this.reloadFile();
+                // Lazy migration: rename this map to match the fast-load setting once it
+                // is open. No bulk migration needed — the reader handles both extensions.
+                this.plugin.ensureHexExtension(this.file);
             }
         }
         await super.setState(state, result);
@@ -4035,8 +4401,12 @@ class HexCartographerView extends ItemView {
 
             // Own save: identical content -> nothing to reload.
             // Prevents a delayed modify event from overwriting the current state
-            // (e.g. the hex orientation) with a stale value.
-            if (content === this._lastSavedContent) return;
+            // (e.g. the hex orientation) with a stale value. Bound to the file it was
+            // saved for — otherwise reopening that map later would be skipped.
+            if (content === this._lastSavedContent && this.file.path === this._lastSavedPath) {
+                this._dataPath = this.file.path; // data is current for this file
+                return;
+            }
 
             let jsonContent = content;
 
@@ -4312,6 +4682,11 @@ class HexCartographerView extends ItemView {
                     }
                 }
             }
+
+            // From here on `this.data` represents this file — either it already matches
+            // (assignment below is skipped) or it is replaced. Bind it either way, so
+            // saving is unblocked again after a map switch.
+            this._dataPath = this.file.path;
 
             if (JSON.stringify(this.data) !== JSON.stringify(newData)) {
                 this.data = Object.assign({}, newData);
@@ -7908,12 +8283,16 @@ class HexCartographerView extends ItemView {
             }
         }
 
-        const sig = [...missing].sort().join(',');
+        // Duplicates are a vault-wide condition, so every open map reports them — the
+        // affected map itself may never be opened.
+        const dupCount = (this.plugin.duplicateHexMaps || []).length;
+
+        const sig = [...missing].sort().join(',') + '|dup:' + dupCount;
         if (sig === this._assetWarnSig) return;
         this._assetWarnSig = sig;
 
         this.assetWarningBar.empty();
-        if (missing.size === 0) {
+        if (missing.size === 0 && dupCount === 0) {
             this.assetWarningBar.style.display = 'none';
             return;
         }
@@ -7922,6 +8301,23 @@ class HexCartographerView extends ItemView {
         for (const cat of USER_ASSET_CATEGORIES) {
             if (!missing.has(cat.id)) continue;
             this.buildAssetWarningLine(this.assetWarningBar.createDiv(), t('assetName.' + cat.id));
+        }
+        if (dupCount > 0) this.buildDuplicateWarningLine(this.assetWarningBar.createDiv(), dupCount);
+    }
+
+    // Warning line for duplicated maps. {action} carries the link opening the dialog.
+    buildDuplicateWarningLine(lineEl, count) {
+        const text = t('duplicate.barText').replace('{count}', String(count));
+        const parts = text.split('{action}');
+        lineEl.appendText(parts[0]);
+        if (parts.length > 1) {
+            const link = lineEl.createEl('a', { text: t('duplicate.resolve') });
+            link.style.cssText = 'color: #fff; text-decoration: underline; cursor: pointer;';
+            link.onclick = (e) => {
+                e.preventDefault();
+                new DuplicateMapsModal(this.app, this.plugin).open();
+            };
+            lineEl.appendText(parts.slice(1).join('{action}'));
         }
     }
 
@@ -9226,6 +9622,11 @@ class HexCartographerView extends ItemView {
     }
 
     async saveData() {
+        // Refuse to write data that belongs to a different map. A debounced save can
+        // fire after the user switched files, and in fast-load mode the view (and its
+        // timer) survives that switch — without this guard the previous map would be
+        // written into the newly opened file under its name.
+        if (!this.file || this._dataPath !== this.file.path) return;
         if (this.file && await this.app.vault.adapter.exists(this.file.path)) {
             this.isSaving = true;
             try {
@@ -9282,8 +9683,10 @@ class HexCartographerView extends ItemView {
                 const content = `${frontmatter}# ${title}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
 
                 // Remember what we write — so a delayed modify event of the
-                // own save does not trigger a reload (see reloadFile).
+                // own save does not trigger a reload (see reloadFile). The path is
+                // kept too: the view survives map switches in fast-load mode.
                 this._lastSavedContent = content;
+                this._lastSavedPath = this.file.path;
                 await this.app.vault.modify(this.file, content);
             }
             catch (e) {
@@ -10113,6 +10516,99 @@ function getFolderSuggestModal() {
     return _FolderSuggestModal;
 }
 
+// Lists maps that exist under both extensions and offers the non-destructive fix:
+// rename the outdated variant so the names stop colliding and the remaining one can
+// migrate normally again. Deleting is deliberately NOT offered — the twin usually
+// comes from sync divergence and may hold real work; Obsidian's own file menu is the
+// right place for an irreversible action.
+class DuplicateMapsModal extends Modal {
+    constructor(app, plugin) {
+        super(app);
+        this.plugin = plugin;
+    }
+
+    onOpen() {
+        this.titleEl.setText(t('duplicate.title'));
+        this.render();
+    }
+
+    async render() {
+        const { contentEl } = this;
+        contentEl.empty();
+
+        const pairs = this.plugin.refreshDuplicateHexMaps();
+        if (pairs.length === 0) {
+            const msg = contentEl.createEl('p', { text: t('duplicate.none') });
+            msg.style.cssText = 'text-align: center;';
+            const row = contentEl.createDiv();
+            row.style.cssText = 'display: flex; justify-content: center; margin-top: 12px;';
+            const ok = row.createEl('button', { text: 'OK', cls: 'mod-cta' });
+            ok.onclick = () => this.close();
+            return;
+        }
+        contentEl.createEl('p', { text: t('duplicate.intro') });
+
+        for (const pair of pairs) {
+            const box = contentEl.createDiv();
+            box.style.cssText = 'border: 1px solid var(--background-modifier-border); border-radius: 6px; padding: 8px 10px; margin-bottom: 10px;';
+            const name = box.createDiv();
+            name.setText(pair.base.split('/').pop());
+            name.style.cssText = 'font-weight: 600; margin-bottom: 4px;';
+
+            const when = (f) => new Date(f.stat.mtime).toLocaleString();
+            for (const [label, f] of [[HEX_EXT_FAST, pair.fast], [HEX_EXT_FULL, pair.full]]) {
+                const row = box.createDiv();
+                row.setText(`${label} — ${t('duplicate.modified')}: ${when(f)}`);
+                row.style.cssText = 'font-size: 12px; color: var(--text-muted);';
+            }
+
+            const verdict = box.createDiv();
+            verdict.setText(t('duplicate.checking'));
+            verdict.style.cssText = 'margin: 6px 0; font-size: 13px;';
+            this.compare(pair).then(same => {
+                verdict.setText(same ? t('duplicate.identical') : t('duplicate.different'));
+                verdict.style.color = same ? 'var(--text-muted)' : 'var(--text-error)';
+                verdict.style.fontWeight = same ? '400' : '600';
+            });
+
+            // The outdated variant is the one that does not match the current setting.
+            const outdated = this.plugin.settings.fastLoad ? pair.full : pair.fast;
+            const btn = box.createEl('button', { text: t('duplicate.renameOld') });
+            btn.onclick = async () => {
+                btn.disabled = true;
+                try {
+                    await this.app.fileManager.renameFile(outdated, this.plugin.timestampedHexPath(outdated));
+                } catch (e) {
+                    console.error('Hex-Cartographer: could not rename duplicate', e);
+                }
+                this.plugin.hideHexExtensionInExplorer();
+                await this.render();
+            };
+        }
+    }
+
+    // Compares the map payload, not the raw file: frontmatter dates may differ
+    // without the maps differing.
+    async compare(pair) {
+        try {
+            const [a, b] = await Promise.all([this.payload(pair.fast), this.payload(pair.full)]);
+            return a === b;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async payload(file) {
+        const content = await this.app.vault.read(file);
+        const m = content.match(/```json\s*([\s\S]*?)\s*```/);
+        return (m ? m[1] : content).trim();
+    }
+
+    onClose() {
+        this.contentEl.empty();
+    }
+}
+
 class HexCartographerSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
         super(app, plugin);
@@ -10131,6 +10627,35 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     .setCta()
                     .onClick(() => {
                         window.open('https://ko-fi.com/christophwerner', '_blank');
+                    });
+            });
+
+        // Fast loading: save maps as `.hexcartographer` (no Markdown flash). A gear
+        // button opens the Obsidian Sync settings so the user can enable syncing of
+        // these files. Open maps are migrated immediately; the rest lazily on open.
+        new Setting(containerEl)
+            .setName(t('settings.fastLoad'))
+            .setDesc(t('settings.fastLoadDesc'))
+            .addExtraButton(btn => {
+                btn.setIcon('settings')
+                    .setTooltip(t('settings.openSyncSettings'))
+                    .onClick(() => {
+                        if (this.app.setting && this.app.setting.open) {
+                            this.app.setting.open();
+                            this.app.setting.openTabById('sync');
+                        }
+                    });
+            })
+            .addToggle(toggle => {
+                toggle.setValue(this.plugin.settings.fastLoad)
+                    .onChange(async (value) => {
+                        this.plugin.settings.fastLoad = value;
+                        await this.plugin.saveSettings();
+                        // Migrate currently open maps right away; others lazily on open.
+                        const leaves = this.app.workspace.getLeavesOfType('hex-cartographer');
+                        for (const leaf of leaves) {
+                            if (leaf.view && leaf.view.file) await this.plugin.ensureHexExtension(leaf.view.file);
+                        }
                     });
             });
 
