@@ -8,8 +8,11 @@
     flex-wrap: wrap;
 }
 
+/* Horizontal padding reduced by 2px per side (4px per button) to gain toolbar space.
+   box-sizing keeps any width set on a button an outer width, so buttons stay uniform. */
 .hex-tool-btn {
-    padding: 8px 12px;
+    box-sizing: border-box;
+    padding: 8px 10px;
     background-color: #f0f0f0;
     border: 1px solid #cccccc;
     border-radius: 4px;

@@ -54,8 +54,10 @@ const DEFAULT_SHADOW_OPACITY = 50;
 
 // === UI-Styling ===
 const ACTIVE_COLOR = '#4A9EFF';
-const ACTIVE_BOX_SHADOW = `0 0 8px ${ACTIVE_COLOR}66`;
-const ACTIVE_BORDER = `3px solid ${ACTIVE_COLOR}`;
+// The active marker is drawn INSIDE the button (inset ring) plus an outer glow.
+// A thicker border would enlarge the button by 4px and push the whole toolbar along,
+// so the geometry must stay identical in both states.
+const ACTIVE_BOX_SHADOW = `inset 0 0 0 3px ${ACTIVE_COLOR}, 0 0 8px ${ACTIVE_COLOR}66`;
 const PICKER_ACTIVE_BG = ACTIVE_COLOR;
 const BUTTON_BG_DEFAULT = '#ffffff';
 // Hold duration that opens a context menu on touch devices. Our own value, not an
@@ -249,7 +251,9 @@ const TRANSLATIONS = {
         'notice.nothingToRedo': 'Nichts zum Wiederholen',
         'notice.noHexesToShow': 'Keine Waben oder Texte zum Anzeigen',
         'notice.noPattern': 'Kein Muster ausgewählt. Nutze den Picker-Button, um ein Muster aufzunehmen.',
-        'notice.clickToPickPattern': 'Klicke auf eine Wabe, um das Muster aufzunehmen',
+        'notice.clickToPickPattern': 'Klicken Sie auf eine Wabe, um das Muster aufzunehmen',
+        'notice.clickToPickPath': 'Klicken Sie auf einen Fluss oder Weg, um ihn aufzunehmen',
+        'notice.clickToPickBorder': 'Klicken Sie auf eine Grenze, um ihre Farbe aufzunehmen',
         'notice.patternPicked': 'Muster aufgenommen!',
         'notice.noHexAtPosition': 'Keine Wabe an dieser Position',
         'notice.riverSelected': 'Fluss #{id} ausgewählt',
@@ -424,7 +428,7 @@ const TRANSLATIONS = {
         'modal.colorPickerTitle': 'Farbe wählen',
         'modal.colorPickerCancel': 'Abbrechen',
         'tooltip.colorEyedropper': 'Farbpipette\nTippe auf die Karte, um eine beliebige Farbe zu übernehmen',
-        'notice.tapToPickColor': 'Tippe auf eine Wabe, um die Farbe aufzunehmen',
+        'notice.tapToPickColor': 'Tippen Sie auf eine Wabe, um die Farbe aufzunehmen',
         'notice.colorPicked': 'Farbe aufgenommen',
         'notice.noColorAtPosition': 'Keine Farbe an dieser Position',
 
@@ -525,6 +529,8 @@ const TRANSLATIONS = {
         'notice.noHexesToShow': 'No hexes or texts to display',
         'notice.noPattern': 'No pattern selected. Use the picker button to pick a pattern.',
         'notice.clickToPickPattern': 'Click on a hex to pick the pattern',
+        'notice.clickToPickPath': 'Click on a river or road to pick it',
+        'notice.clickToPickBorder': 'Click on a border to pick its color',
         'notice.patternPicked': 'Pattern picked!',
         'notice.noHexAtPosition': 'No hex at this position',
         'notice.riverSelected': 'River #{id} selected',
@@ -784,6 +790,8 @@ const TRANSLATIONS = {
         'notice.noHexesToShow': '没有可显示的六角格或文本',
         'notice.noPattern': '未选择图案。使用采集按钮来采集图案。',
         'notice.clickToPickPattern': '点击一个六角格以采集图案',
+        'notice.clickToPickPath': '点击一条河流或道路以采集',
+        'notice.clickToPickBorder': '点击一条边界以采集其颜色',
         'notice.patternPicked': '图案已采集！',
         'notice.noHexAtPosition': '该位置没有六角格',
         'notice.riverSelected': '河流 #{id} 已选择',
@@ -1031,6 +1039,8 @@ const TRANSLATIONS = {
         'notice.noHexesToShow': 'Нет сот или текстов для отображения',
         'notice.noPattern': 'Шаблон не выбран. Используйте кнопку захвата, чтобы скопировать шаблон.',
         'notice.clickToPickPattern': 'Нажмите на соту, чтобы захватить шаблон',
+        'notice.clickToPickPath': 'Нажмите на реку или дорогу, чтобы захватить её',
+        'notice.clickToPickBorder': 'Нажмите на границу, чтобы захватить её цвет',
         'notice.patternPicked': 'Шаблон захвачен!',
         'notice.noHexAtPosition': 'На этой позиции нет соты',
         'notice.riverSelected': 'Река #{id} выбрана',
@@ -1278,6 +1288,8 @@ const TRANSLATIONS = {
         'notice.noHexesToShow': '表示するヘックスまたはテキストがありません',
         'notice.noPattern': 'パターンが選択されていません。ピッカーボタンでパターンを取得してください。',
         'notice.clickToPickPattern': 'ヘックスをクリックしてパターンを取得',
+        'notice.clickToPickPath': '川または道をクリックして取得',
+        'notice.clickToPickBorder': '境界線をクリックして色を取得',
         'notice.patternPicked': 'パターンを取得しました！',
         'notice.noHexAtPosition': 'この位置にヘックスがありません',
         'notice.riverSelected': '川 #{id} を選択しました',
@@ -1525,6 +1537,8 @@ const TRANSLATIONS = {
         'notice.noHexesToShow': 'Aucun hexagone ou texte à afficher',
         'notice.noPattern': 'Aucun motif sélectionné. Utilisez le bouton picker pour capturer un motif.',
         'notice.clickToPickPattern': 'Cliquez sur un hexagone pour capturer le motif',
+        'notice.clickToPickPath': 'Cliquez sur une rivière ou une route pour la capturer',
+        'notice.clickToPickBorder': 'Cliquez sur une frontière pour capturer sa couleur',
         'notice.patternPicked': 'Motif capturé !',
         'notice.noHexAtPosition': 'Aucun hexagone à cette position',
         'notice.riverSelected': 'Rivière #{id} sélectionnée',
@@ -1772,6 +1786,8 @@ const TRANSLATIONS = {
         'notice.noHexesToShow': 'Nenhum hexágono ou texto para exibir',
         'notice.noPattern': 'Nenhum padrão selecionado. Use o botão picker para capturar um padrão.',
         'notice.clickToPickPattern': 'Clique em um hexágono para capturar o padrão',
+        'notice.clickToPickPath': 'Clique em um rio ou estrada para capturá-lo',
+        'notice.clickToPickBorder': 'Clique em uma fronteira para capturar a sua cor',
         'notice.patternPicked': 'Padrão capturado!',
         'notice.noHexAtPosition': 'Nenhum hexágono nesta posição',
         'notice.riverSelected': 'Rio #{id} selecionado',
@@ -2019,6 +2035,8 @@ const TRANSLATIONS = {
         'notice.noHexesToShow': '표시할 헥스 셀이나 텍스트가 없습니다',
         'notice.noPattern': '패턴이 선택되지 않았습니다. 피커 버튼을 사용하여 패턴을 캡처하세요.',
         'notice.clickToPickPattern': '헥스 셀을 클릭하여 패턴을 캡처하세요',
+        'notice.clickToPickPath': '강이나 길을 클릭하여 선택하세요',
+        'notice.clickToPickBorder': '경계를 클릭하여 색상을 가져오세요',
         'notice.patternPicked': '패턴 캡처 완료!',
         'notice.noHexAtPosition': '이 위치에 헥스 셀이 없습니다',
         'notice.riverSelected': '강 #{id} 선택됨',
@@ -2266,6 +2284,8 @@ const TRANSLATIONS = {
         'notice.noHexesToShow': 'No hay celdas ni textos para mostrar',
         'notice.noPattern': 'Ningún patrón seleccionado. Usa el botón picker para capturar un patrón.',
         'notice.clickToPickPattern': 'Haz clic en una celda para capturar el patrón',
+        'notice.clickToPickPath': 'Haz clic en un río o camino para capturarlo',
+        'notice.clickToPickBorder': 'Haz clic en una frontera para capturar su color',
         'notice.patternPicked': '¡Patrón capturado!',
         'notice.noHexAtPosition': 'No hay celda en esta posición',
         'notice.riverSelected': 'Río #{id} seleccionado',
@@ -2513,6 +2533,8 @@ const TRANSLATIONS = {
         'notice.noHexesToShow': 'Brak komórek lub tekstów do wyświetlenia',
         'notice.noPattern': 'Nie wybrano wzoru. Użyj przycisku picker, aby pobrać wzór.',
         'notice.clickToPickPattern': 'Kliknij na komórkę, aby pobrać wzór',
+        'notice.clickToPickPath': 'Kliknij na rzekę lub drogę, aby ją pobrać',
+        'notice.clickToPickBorder': 'Kliknij na granicę, aby pobrać jej kolor',
         'notice.patternPicked': 'Wzór pobrany!',
         'notice.noHexAtPosition': 'Brak komórki w tej pozycji',
         'notice.riverSelected': 'Rzeka #{id} wybrana',
@@ -2760,6 +2782,8 @@ const TRANSLATIONS = {
         'notice.noHexesToShow': 'Nessuna cella o testo da visualizzare',
         'notice.noPattern': 'Nessun motivo selezionato. Usa il pulsante picker per acquisire un motivo.',
         'notice.clickToPickPattern': 'Clicca su una cella per acquisire il motivo',
+        'notice.clickToPickPath': 'Clicca su un fiume o una strada per acquisirlo',
+        'notice.clickToPickBorder': 'Clicca su un confine per acquisirne il colore',
         'notice.patternPicked': 'Motivo acquisito!',
         'notice.noHexAtPosition': 'Nessuna cella in questa posizione',
         'notice.riverSelected': 'Fiume #{id} selezionato',
@@ -5255,7 +5279,7 @@ class HexCartographerView extends ItemView {
             this.requestSave();
         };
 
-        const pickerBtn = this.createToolButton(wrapper, { icon: 'pipette', title: t('tooltip.patternPicker'), style: 'width: 24px; padding: 2px;' });
+        const pickerBtn = this.createToolButton(wrapper, { icon: 'pipette', title: t('tooltip.patternPicker') });
 
         pickerBtn.onclick = () => {
             const wasActive = this.patternPickMode;
@@ -5809,6 +5833,7 @@ class HexCartographerView extends ItemView {
                 if (this.patternPickerBtn) { this.patternPickerBtn.style.background = BUTTON_BG_DEFAULT; }
                 this.borderPickMode = false;
                 if (this.borderPickerBtn) { this.borderPickerBtn.style.background = BUTTON_BG_DEFAULT; this.borderPickerBtn.style.color = ''; }
+                new Notice(t('notice.clickToPickPath'));
             }
             this.drawMode = 'pen';
             pickerBtn.style.background = this.pathPickMode ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
@@ -6101,6 +6126,7 @@ class HexCartographerView extends ItemView {
             this.borderPickMode = !wasActive;
             this.currentToolGroup = this.borderPickMode ? null : 'border';
             this.drawMode = 'pen';
+            if (this.borderPickMode) new Notice(t('notice.clickToPickBorder'));
             pickerBtn.style.background = this.borderPickMode ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
             pickerBtn.style.color = this.borderPickMode ? 'var(--text-on-accent)' : '';
             this.updateToolbarState(toolbar);
@@ -6179,7 +6205,6 @@ class HexCartographerView extends ItemView {
         const pointyTop = !this.hexOrientation;
         btn.classList.toggle('active', pointyTop);
         btn.style.background = pointyTop ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
-        btn.style.border = pointyTop ? ACTIVE_BORDER : '';
         btn.style.boxShadow = pointyTop ? ACTIVE_BOX_SHADOW : '';
     }
 
@@ -6187,7 +6212,6 @@ class HexCartographerView extends ItemView {
         if (this.editModeBtn) {
             this.editModeBtn.classList.toggle('active', this.editMode);
             this.editModeBtn.style.background = this.editMode ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
-            this.editModeBtn.style.border = this.editMode ? ACTIVE_BORDER : '';
             this.editModeBtn.style.boxShadow = this.editMode ? ACTIVE_BOX_SHADOW : '';
         }
         this.syncHexOrientationButton();
@@ -6237,7 +6261,6 @@ class HexCartographerView extends ItemView {
             const isActive = btn.dataset.drawMode === this.drawMode;
             btn.classList.toggle('active', isActive);
             btn.style.background = isActive ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
-            btn.style.border = isActive ? ACTIVE_BORDER : '';
             btn.style.boxShadow = isActive ? ACTIVE_BOX_SHADOW : '';
         });
 
@@ -6259,7 +6282,6 @@ class HexCartographerView extends ItemView {
             btn.style.background = isActive ? PICKER_ACTIVE_BG : (config.backgroundEnabled ? config.backgroundColor : BUTTON_BG_DEFAULT);
             btn.style.color = config.symbolColor;
 
-            btn.style.border = isActive ? ACTIVE_BORDER : '';
             btn.style.boxShadow = isActive ? ACTIVE_BOX_SHADOW : '';
         });
 
@@ -6270,7 +6292,6 @@ class HexCartographerView extends ItemView {
                 const isActive = !isPending && btn.dataset.toolGroup === this.currentToolGroup;
                 btn.classList.toggle('active', isActive);
                 btn.style.background = isActive ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
-                btn.style.border = (isActive || isPending) ? ACTIVE_BORDER : '';
                 btn.style.boxShadow = (isActive || isPending) ? ACTIVE_BOX_SHADOW : '';
                 if (groupId === 'hexcolor') {
                     btn.style.color = this.hexColorColor;
