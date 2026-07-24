@@ -4403,7 +4403,8 @@ class HexCartographerView extends ItemView {
                 // view. Per-file state must therefore be dropped explicitly, otherwise
                 // undo would restore the previous map into the new file and the
                 // own-save guard in reloadFile() would block reopening an earlier map.
-                if (!this.file || this.file.path !== file.path) {
+                const fileChanged = !this.file || this.file.path !== file.path;
+                if (fileChanged) {
                     // Finish a pending save for the map we are leaving — while
                     // this.file still points at it — so its edits are not lost.
                     if (this.saveTimeout) {
@@ -4423,6 +4424,15 @@ class HexCartographerView extends ItemView {
                 // Lazy migration: rename this map to match the fast-load setting once it
                 // is open. No bulk migration needed — the reader handles both extensions.
                 this.plugin.ensureHexExtension(this.file);
+
+                // Persist the tab's new file. Replacing one hex map with another keeps the
+                // view type, so Obsidian reuses this view and does NOT flag the layout as
+                // changed (setViewState only does that when the view is recreated). Without
+                // this, the workspace keeps the tab's original map and a restart reopens
+                // that instead of the one last shown here. Debounced — safe to call often.
+                if (fileChanged) {
+                    this.app.workspace?.requestSaveLayout?.();
+                }
             }
         }
         await super.setState(state, result);
