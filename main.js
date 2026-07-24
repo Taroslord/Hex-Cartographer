@@ -5537,17 +5537,21 @@ class HexCartographerView extends ItemView {
     // Builds the asset tree into a menu. currentKey is checked. previewKind:
     // 'texture'/'symbol' shows thumbnails instead of names (see makeAssetPreviewLabel),
     // null/false zeigt Namen wie bisher.
-    buildAssetMenu(menu, node, currentKey, onSelect, previewKind = null, prefix = '') {
+    // `checked` collects every checkable item across the whole (possibly nested) menu,
+    // so a tap can move the checkmark to the chosen entry live. On mobile the menu stays
+    // open after a tap (native scrolling), so without this the checkmark would keep
+    // pointing at the previously selected asset — no feedback about what was picked.
+    buildAssetMenu(menu, node, currentKey, onSelect, previewKind = null, prefix = '', checked = []) {
         const flat = !this.supportsSubmenus();
 
         this.sortByLabel(node.folders, f => f.name).forEach(folder => {
             if (flat) {
-                this.buildAssetMenu(menu, folder, currentKey, onSelect, previewKind, `${prefix}${folder.name} / `);
+                this.buildAssetMenu(menu, folder, currentKey, onSelect, previewKind, `${prefix}${folder.name} / `, checked);
                 return;
             }
             menu.addItem(item => {
                 item.setTitle(folder.name);
-                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), folder, currentKey, onSelect, previewKind);
+                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), folder, currentKey, onSelect, previewKind, '', checked);
             });
         });
 
@@ -5559,8 +5563,12 @@ class HexCartographerView extends ItemView {
                 // setTitle accepts a string OR a DOM element (Obsidian API).
                 if (previewKind) item.setTitle(this.makeAssetPreviewLabel(asset, previewKind, prefix));
                 else item.setTitle(prefix + asset.label);
-                item.setChecked(asset.key === currentKey)
-                    .onClick(() => onSelect(asset.key));
+                item.setChecked(asset.key === currentKey);
+                checked.push({ item, key: asset.key });
+                item.onClick(() => {
+                    checked.forEach(c => c.item.setChecked(c.key === asset.key));
+                    onSelect(asset.key);
+                });
             });
         });
     }
@@ -5592,6 +5600,9 @@ class HexCartographerView extends ItemView {
             this.requestSave();
         };
 
+        // Shared across system variants and user assets, so a tap moves the checkmark
+        // even between the two groups (see buildAssetMenu for why this matters on mobile).
+        const checked = [];
         const addSystemVariants = (target) => {
             const preview = this.plugin.settings.userAssetPreview;
             this.sortByLabel(config.variants, v => v.label).forEach(variant => {
@@ -5599,8 +5610,12 @@ class HexCartographerView extends ItemView {
                     // setTitle accepts a string OR a DOM element (Obsidian API).
                     if (preview) item.setTitle(this.makeSystemSymbolPreviewLabel(variant, config.symbolColor));
                     else item.setTitle(variant.label);
-                    item.setChecked(variant.id === config.currentVariant)
-                        .onClick(() => selectVariant(variant.id));
+                    item.setChecked(variant.id === config.currentVariant);
+                    checked.push({ item, key: variant.id });
+                    item.onClick(() => {
+                        checked.forEach(c => c.item.setChecked(c.key === variant.id));
+                        selectVariant(variant.id);
+                    });
                 });
             });
         };
@@ -5614,7 +5629,7 @@ class HexCartographerView extends ItemView {
         } else if (!this.supportsSubmenus()) {
             addSystemVariants(menu);
             menu.addSeparator();
-            this.buildAssetMenu(menu, registry.tree, config.currentVariant, selectVariant, previewKind);
+            this.buildAssetMenu(menu, registry.tree, config.currentVariant, selectVariant, previewKind, '', checked);
         } else {
             menu.addItem(item => {
                 item.setTitle(t('menu.system'));
@@ -5622,7 +5637,7 @@ class HexCartographerView extends ItemView {
             });
             menu.addItem(item => {
                 item.setTitle(registry.rootName);
-                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, config.currentVariant, selectVariant, previewKind);
+                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, config.currentVariant, selectVariant, previewKind, '', checked);
             });
         }
 
@@ -5661,20 +5676,27 @@ class HexCartographerView extends ItemView {
         const menu = this.tagScrollableMenu(new Menu());
         const previewKind = this.plugin.settings.userAssetPreview ? 'texture' : null;
 
+        // Shared with the textures so a tap moves the checkmark between "Color" and any
+        // texture live (see buildAssetMenu). null is the key of the plain-color entry.
+        const checked = [];
         const addColorEntry = (target) => {
             target.addItem(item => {
                 // setTitle accepts a string OR a DOM element (Obsidian API).
                 if (previewKind) item.setTitle(this.makeColorPreviewLabel(this.hexColorColor, t('menu.color')));
                 else item.setTitle(t('menu.color'));
-                item.setChecked(!this.hexTexture)
-                    .onClick(() => selectTexture(null));
+                item.setChecked(!this.hexTexture);
+                checked.push({ item, key: null });
+                item.onClick(() => {
+                    checked.forEach(c => c.item.setChecked(c.key === null));
+                    selectTexture(null);
+                });
             });
         };
 
         if (!this.supportsSubmenus()) {
             addColorEntry(menu);
             menu.addSeparator();
-            this.buildAssetMenu(menu, registry.tree, this.hexTexture, selectTexture, previewKind);
+            this.buildAssetMenu(menu, registry.tree, this.hexTexture, selectTexture, previewKind, '', checked);
         } else {
             menu.addItem(item => {
                 item.setTitle(t('menu.system'));
@@ -5682,7 +5704,7 @@ class HexCartographerView extends ItemView {
             });
             menu.addItem(item => {
                 item.setTitle(registry.rootName);
-                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, this.hexTexture, selectTexture, previewKind);
+                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, this.hexTexture, selectTexture, previewKind, '', checked);
             });
         }
 
@@ -9975,30 +9997,47 @@ class TextInputModal extends Modal {
         handle.style.touchAction = 'none';   // stop the iPad from scrolling while dragging
         handle.style.userSelect = 'none';
 
-        let dragging = false, startX = 0, startY = 0, baseX = 0, baseY = 0;
+        // A tap on the header must stay a tap. The earlier version captured the pointer
+        // and called preventDefault already on pointerdown — on touch that could swallow
+        // the close button's click and, if the modal closed mid-gesture (no pointerup),
+        // leave a dangling pointer capture that misrouted the NEXT modal's taps (the
+        // "works once after a restart, then the X no longer applies" report on mobile).
+        // Fix: capture and preventDefault only once a real drag begins (past a threshold).
+        const THRESHOLD = 4;
+        let phase = 'idle'; // idle -> pending (down, not yet moved) -> dragging
+        let pointerId = null, startX = 0, startY = 0, baseX = 0, baseY = 0;
         let baseLeft = 0, baseTop = 0, width = 0;
 
         handle.addEventListener('pointerdown', (e) => {
-            dragging = true;
+            phase = 'pending';
+            pointerId = e.pointerId;
             startX = e.clientX; startY = e.clientY;
             baseX = this._modalDX || 0; baseY = this._modalDY || 0;
             const rect = modal.getBoundingClientRect();
             baseLeft = rect.left - baseX; baseTop = rect.top - baseY; width = rect.width;
-            try { handle.setPointerCapture(e.pointerId); } catch (err) { /* older webviews */ }
-            e.preventDefault();
+            // No capture, no preventDefault here — keep it a potential tap.
         });
         handle.addEventListener('pointermove', (e) => {
-            if (!dragging) return;
+            if (phase === 'idle') return;
+            const rawX = e.clientX - startX, rawY = e.clientY - startY;
+            if (phase === 'pending') {
+                if (Math.abs(rawX) + Math.abs(rawY) < THRESHOLD) return; // still a tap
+                phase = 'dragging';
+                try { handle.setPointerCapture(pointerId); } catch (err) { /* older webviews */ }
+            }
             const win = modal.ownerDocument.defaultView || window;
-            let dx = baseX + (e.clientX - startX);
-            let dy = baseY + (e.clientY - startY);
+            let dx = baseX + rawX, dy = baseY + rawY;
             // Keep ~120px of the dialog and its title bar on screen.
             dx = Math.min(win.innerWidth - 120 - baseLeft, Math.max(120 - width - baseLeft, dx));
             dy = Math.min(win.innerHeight - 40 - baseTop, Math.max(-baseTop, dy));
             this._modalDX = dx; this._modalDY = dy;
             modal.style.transform = `translate(${dx}px, ${dy}px)`;
+            e.preventDefault();
         });
-        const stop = (e) => { dragging = false; try { handle.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ } };
+        const stop = () => {
+            if (phase === 'dragging') { try { handle.releasePointerCapture(pointerId); } catch (err) { /* ignore */ } }
+            phase = 'idle'; pointerId = null;
+        };
         handle.addEventListener('pointerup', stop);
         handle.addEventListener('pointercancel', stop);
     }
@@ -10140,11 +10179,14 @@ class TextInputModal extends Modal {
         // === Link zu MD-Datei ===
         const linkSection = contentEl.createDiv({ attr: { style: sectionStyle } });
         linkSection.createEl('label', { text: t('modal.linkToFile'), attr: { style: headingStyle } });
-        const linkDisplayRow = linkSection.createDiv({ attr: { style: 'display: flex; gap: 8px; align-items: stretch;' } });
+        // Wrap on narrow screens (mobile): the two nowrap buttons would otherwise
+        // overflow the row and get clipped. The input keeps a min basis and grows, so
+        // the buttons sit beside it when there is room and drop below it when not.
+        const linkDisplayRow = linkSection.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch;' } });
         const linkDisplay = linkDisplayRow.createEl('input', {
             value: this.link,
             placeholder: t('modal.noLinkSelected'),
-            attr: { readonly: 'true', style: 'flex: 1; background: var(--background-secondary); cursor: default; padding: 8px;' }
+            attr: { readonly: 'true', style: 'flex: 1 1 160px; min-width: 0; background: var(--background-secondary); cursor: default; padding: 8px;' }
         });
         const selectLinkBtn = linkDisplayRow.createEl('button', { text: t('modal.selectFileBtn'), attr: { style: 'padding: 8px 16px; white-space: nowrap;' } });
         selectLinkBtn.onclick = () => {
@@ -10221,7 +10263,12 @@ class TextInputModal extends Modal {
     onClose() {
         // Closing via the X or a click outside applies the changes like OK. Cancel
         // and Escape set `handled` first (see onEscapeKey), so they discard instead.
-        if (!this.handled && this._apply) this._apply();
+        // Guarded: a failure here must never silently drop the edit or skip cleanup.
+        try {
+            if (!this.handled && this._apply) this._apply();
+        } catch (e) {
+            console.error('Hex-Cartographer: applying text changes on close failed', e);
+        }
         this.contentEl.empty();
     }
 }
