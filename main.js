@@ -106,7 +106,7 @@ const TEXTURE_EDGE_BLEED = 1;
 // just before the borders — see drawMapLayers().
 const SYMBOL_LAYER_VEGETATION = ['swamp', 'grass', 'bush', 'tree', 'pine', 'palm', 'cactus', 'forest-deciduous', 'forest-coniferous'];
 const SYMBOL_LAYER_TERRAIN = ['hill', 'mountain', 'volcano'];
-const SYMBOL_LAYER_EXTRAS = ['question', 'exclamation', 'cross', 'dot', 'shield', 'pirateskull'];
+const SYMBOL_LAYER_EXTRAS = ['question', 'exclamation', 'cross', 'dot', 'shield', 'pirateskull', 'crossed-swords'];
 const SYMBOL_LAYER_BUILDINGS = ['tent', 'house', 'village', 'town', 'castle', 'harbor', 'monastery', 'tower', 'ruins', 'cave', 'oasis'];
 
 function isUserAssetKey(key) {
@@ -138,6 +138,7 @@ const SVG_SYMBOL_CONFIG = {
     'question':    { size: 0.5,   align: 'center', marginX: 0, marginY: 0 },
     'exclamation': { size: 0.5,   align: 'center', marginX: 0, marginY: 0 },
     'cross':       { size: 0.5,   align: 'center', marginX: 0, marginY: 0 },
+    'crossed-swords': { size: 0.5,   align: 'center', marginX: 0, marginY: 0 },
     'dot':         { size: 0.45,   align: 'center', marginX: 0, marginY: 0 },
     'shield':      { size: 0.5,   align: 'center', marginX: 0, marginY: 0 },
     'pirateskull': { size: 0.5,   align: 'center', marginX: 0, marginY: 0 },
@@ -188,6 +189,7 @@ const TRANSLATIONS = {
         'variant.dot': 'Start/Ziel-Punkt',
         'variant.shield': 'Schild',
         'variant.pirateskull': 'Piratenschädel',
+        'variant.crossedSwords': 'Gekreuzte Schwerter',
         // Varianten — Vegetation
         'variant.grass': 'Gras',
         'variant.swamp': 'Sumpf',
@@ -330,11 +332,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Zeigt ein Fadenkreuz im Zentrum der Karte an.',
         'settings.hideHexBorders': 'Waben-Rahmen ausblenden',
         'settings.hideHexBordersDesc': 'Blendet die grauen Rahmenlinien zwischen den Waben aus.',
+        'settings.hexSection': 'Waben Optionen',
+        'settings.hexBorderVisibility': 'Waben-Rahmen anzeigen',
+        'settings.hexBorderVisibilityDesc': 'Rahmen um jede Wabe anzeigen.',
+        'settings.hexBorderStyle': 'Farbe & Transparenz',
+        'settings.hexBorderStyleDesc': 'Farbe und Sichtbarkeit der Rahmen. 100 % = voll sichtbar.',
+        'settings.hexBorderColorTooltip': 'Rahmenfarbe',
+        'settings.hexBorderOpacityTooltip': 'Transparenz (%), 100 = voll sichtbar',
+        'settings.hexBorderReset': 'Auf Standardwerte zurücksetzen',
 
         // Custom graphics (user assets)
-        'settings.userAssets': 'Eigene Grafiken',
+        'settings.userAssets': 'Benutzergrafiken',
         'settings.userAssetPreview': 'Thumbnails anzeigen',
-        'settings.userAssetPreviewDesc': 'Zeigt im Auswahlmenü Vorschaubilder der eigenen Grafiken statt nur der Namen.',
+        'settings.userAssetPreviewDesc': 'Zeigt im Auswahlmenü Vorschaubilder aller Grafiken, statt nur Namen.',
         'settings.userAssetsDesc': 'Jede Kategorie hat ihren eigenen Ordner im Vault. Bleibt ein Feld leer, verwendet die Kategorie weiterhin die mitgelieferten Grafiken. Unterstützt werden SVG, PNG, JPG, WEBP, GIF und AVIF; Unterordner werden zu Untermenüs. Grafiken mit transparentem Hintergrund eignen sich besonders für Symbole, weil dann die Farbe oder Textur der Wabe sichtbar bleibt. Eigene Grafiken lassen sich nicht einfärben (nur sehr einfache SVG-Grafiken sind eine Ausnahme).',
         'settings.userAssetsPlaceholderHint': 'Kann eine eigene Grafik nicht geladen werden (fehlender Ordnerpfad oder entfernte Datei), zeigt die Wabe ein kleines Ordner-Symbol und oben erscheint ein roter Hinweis, welche Kategorie fehlt. Sie können den Ordnerinhalt oder Pfad prüfen oder mit dem vorhandenen Material weiterarbeiten.',
         'settings.userAssetsPlaceholder': 'z. B. Assets/HexGrafiken',
@@ -357,7 +367,7 @@ const TRANSLATIONS = {
         'assetName.veg': 'Vegetations-Symbole',
         'assetName.mountain': 'Berg-Symbole',
         'assetName.building': 'Gebäude-Symbole',
-        'settings.hexNumbering': 'Waben nummerieren',
+        'settings.hexNumbering': 'Nummerieren',
         'settings.hexNumberingDesc': 'Versieht die Waben mit Nummern.',
         'settings.hexNumberingHorizontal': 'Horizontale Zählung',
         'settings.hexNumberingHorizontalDesc': 'Es wird oben links, bei der ersten Wabe begonnen und dann von links nach rechts gezählt. Am Ende jeder Wabenzeile wird in die nächste Zeile gewechselt und dort weiter gezählt.',
@@ -466,6 +476,7 @@ const TRANSLATIONS = {
         'variant.question': 'Question Mark',
         'variant.exclamation': 'Exclamation Mark',
         'variant.cross': 'Cross',
+        'variant.crossedSwords': 'Crossed Swords',
         'variant.dot': 'Start/End Point',
         'variant.shield': 'Shield',
         'variant.pirateskull': 'Pirate Skull',
@@ -611,11 +622,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Displays a crosshair at the center of the map.',
         'settings.hideHexBorders': 'Hide hex borders',
         'settings.hideHexBordersDesc': 'Hides the gray border lines between hexes.',
+        'settings.hexSection': 'Hex options',
+        'settings.hexBorderVisibility': 'Show hex border',
+        'settings.hexBorderVisibilityDesc': 'Show the border around each hex.',
+        'settings.hexBorderStyle': 'Color & transparency',
+        'settings.hexBorderStyleDesc': 'Border color and visibility. 100% = fully visible.',
+        'settings.hexBorderColorTooltip': 'Border color',
+        'settings.hexBorderOpacityTooltip': 'Transparency (%), 100 = fully visible',
+        'settings.hexBorderReset': 'Reset to defaults',
 
         // Custom graphics (user assets)
-        'settings.userAssets': 'Custom graphics',
+        'settings.userAssets': 'User graphics',
         'settings.userAssetPreview': 'Show thumbnails',
-        'settings.userAssetPreviewDesc': 'Shows thumbnail previews of your graphics in the selection menu instead of just the names.',
+        'settings.userAssetPreviewDesc': 'Shows thumbnail previews of all graphics in the selection menu, not just names.',
         'settings.userAssetsDesc': 'Each category has its own folder in your vault. Leave a field empty and that category keeps using the built-in graphics. SVG, PNG, JPG, WEBP, GIF and AVIF are supported; subfolders become submenus. Graphics with a transparent background work best for symbols, because the hex color or texture stays visible behind them. Custom graphics cannot be recolored (only very simple SVG graphics are an exception).',
         'settings.userAssetsPlaceholderHint': 'If a custom graphic cannot be loaded (missing folder path or a removed file), the hex shows a small folder icon and a red bar at the top names the affected category. Check the folder contents or path, or keep working with what you have.',
         'settings.userAssetsPlaceholder': 'e.g. Assets/HexGraphics',
@@ -638,7 +657,7 @@ const TRANSLATIONS = {
         'assetName.veg': 'Vegetation symbols',
         'assetName.mountain': 'Mountain symbols',
         'assetName.building': 'Building symbols',
-        'settings.hexNumbering': 'Number hexes',
+        'settings.hexNumbering': 'Numbering',
         'settings.hexNumberingDesc': 'Hexes are labeled with numbers.',
         'settings.hexNumberingHorizontal': 'Horizontal counting',
         'settings.hexNumberingHorizontalDesc': 'Counting starts at the top-left hex and proceeds left to right. At the end of each row, counting continues on the next row.',
@@ -744,6 +763,7 @@ const TRANSLATIONS = {
         'variant.question': '问号',
         'variant.exclamation': '感叹号',
         'variant.cross': '十字',
+        'variant.crossedSwords': '交叉剑',
         'variant.dot': '起点/终点',
         'variant.shield': '盾牌',
         'variant.pirateskull': '海盗骷髅',
@@ -870,11 +890,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': '在地图中心显示十字准线。',
         'settings.hideHexBorders': '隐藏六边形边框',
         'settings.hideHexBordersDesc': '隐藏六边形之间的灰色边框线。',
+        'settings.hexSection': '六边形选项',
+        'settings.hexBorderVisibility': '显示六边形边框',
+        'settings.hexBorderVisibilityDesc': '显示每个六边形的边框。',
+        'settings.hexBorderStyle': '颜色和透明度',
+        'settings.hexBorderStyleDesc': '边框颜色和可见度。100% = 完全可见。',
+        'settings.hexBorderColorTooltip': '边框颜色',
+        'settings.hexBorderOpacityTooltip': '透明度 (%)，100 = 完全可见',
+        'settings.hexBorderReset': '重置为默认值',
 
         // Custom graphics (user assets)
-        'settings.userAssets': '自定义图形',
+        'settings.userAssets': '用户图形',
         'settings.userAssetPreview': '显示缩略图',
-        'settings.userAssetPreviewDesc': '在选择菜单中显示自定义图形的缩略图预览，而不仅是名称。',
+        'settings.userAssetPreviewDesc': '在选择菜单中显示所有图形的缩略图预览，而不仅是名称。',
         'settings.userAssetsDesc': '每个类别在库中都有自己的文件夹。留空某个字段，该类别将继续使用内置图形。支持 SVG、PNG、JPG、WEBP、GIF 和 AVIF；子文件夹会变成子菜单。背景透明的图形最适合做符号，因为六边形的颜色或纹理仍可见。自定义图形无法重新着色（只有非常简单的 SVG 图形例外）。',
         'settings.userAssetsPlaceholderHint': '如果自定义图形无法加载（缺少文件夹路径或文件已删除），六边形会显示一个小文件夹图标，顶部的红色提示会指出缺少的类别。您可以检查文件夹内容或路径，或使用现有素材继续工作。',
         'settings.userAssetsPlaceholder': '例如 Assets/HexGraphics',
@@ -897,7 +925,7 @@ const TRANSLATIONS = {
         'assetName.veg': '植被符号',
         'assetName.mountain': '山脉符号',
         'assetName.building': '建筑符号',
-        'settings.hexNumbering': '六边形编号',
+        'settings.hexNumbering': '编号',
         'settings.hexNumberingDesc': '六边形将标注数字。',
         'settings.hexNumberingHorizontal': '水平计数',
         'settings.hexNumberingHorizontalDesc': '从左上角开始，从左到右计数。每行结束后进入下一行继续。',
@@ -997,6 +1025,7 @@ const TRANSLATIONS = {
         'variant.question': 'Вопросительный знак',
         'variant.exclamation': 'Восклицательный знак',
         'variant.cross': 'Крест',
+        'variant.crossedSwords': 'Перекрещенные мечи',
         'variant.dot': 'Старт/Финиш',
         'variant.shield': 'Щит',
         'variant.pirateskull': 'Пиратский череп',
@@ -1123,11 +1152,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Отображает перекрестие в центре карты.',
         'settings.hideHexBorders': 'Скрыть границы шестиугольников',
         'settings.hideHexBordersDesc': 'Скрывает серые линии границ между шестиугольниками.',
+        'settings.hexSection': 'Параметры шестиугольников',
+        'settings.hexBorderVisibility': 'Показывать рамку шестиугольников',
+        'settings.hexBorderVisibilityDesc': 'Показывать рамку вокруг каждого шестиугольника.',
+        'settings.hexBorderStyle': 'Цвет и прозрачность',
+        'settings.hexBorderStyleDesc': 'Цвет и видимость рамки. 100 % = полностью видно.',
+        'settings.hexBorderColorTooltip': 'Цвет рамки',
+        'settings.hexBorderOpacityTooltip': 'Прозрачность (%), 100 = полностью видно',
+        'settings.hexBorderReset': 'Сбросить по умолчанию',
 
         // Custom graphics (user assets)
-        'settings.userAssets': 'Собственная графика',
+        'settings.userAssets': 'Пользовательская графика',
         'settings.userAssetPreview': 'Показывать миниатюры',
-        'settings.userAssetPreviewDesc': 'Показывает миниатюры собственной графики в меню выбора вместо одних лишь имён.',
+        'settings.userAssetPreviewDesc': 'Показывает миниатюры всех график в меню выбора, а не только имена.',
         'settings.userAssetsDesc': 'У каждой категории есть своя папка в хранилище. Оставьте поле пустым — категория продолжит использовать встроенную графику. Поддерживаются SVG, PNG, JPG, WEBP, GIF и AVIF; вложенные папки становятся подменю. Для символов лучше всего подходит графика с прозрачным фоном, так как за ней остаётся виден цвет или текстура соты. Собственную графику нельзя перекрашивать (исключение — очень простые SVG-файлы).',
         'settings.userAssetsPlaceholderHint': 'Если пользовательская графика не загружается (нет пути к папке или файл удалён), сота показывает маленький значок папки, а красная полоса сверху называет затронутую категорию. Проверьте содержимое папки или путь либо продолжайте работать с тем, что есть.',
         'settings.userAssetsPlaceholder': 'напр. Assets/HexGraphics',
@@ -1150,7 +1187,7 @@ const TRANSLATIONS = {
         'assetName.veg': 'Символы растительности',
         'assetName.mountain': 'Символы гор',
         'assetName.building': 'Символы зданий',
-        'settings.hexNumbering': 'Нумерация шестиугольников',
+        'settings.hexNumbering': 'Нумерация',
         'settings.hexNumberingDesc': 'Шестиугольники помечаются цифрами.',
         'settings.hexNumberingHorizontal': 'Горизонтальный счёт',
         'settings.hexNumberingHorizontalDesc': 'Счёт начинается с левого верхнего шестиугольника и идёт слева направо. В конце строки переходит на следующую.',
@@ -1250,6 +1287,7 @@ const TRANSLATIONS = {
         'variant.question': '疑問符',
         'variant.exclamation': '感嘆符',
         'variant.cross': '十字',
+        'variant.crossedSwords': '交差した剣',
         'variant.dot': 'スタート/ゴール地点',
         'variant.shield': '盾',
         'variant.pirateskull': '海賊の髑髏',
@@ -1376,11 +1414,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'マップの中心に十字線を表示します。',
         'settings.hideHexBorders': '六角形の枠線を非表示',
         'settings.hideHexBordersDesc': '六角形間のグレーの枠線を非表示にします。',
+        'settings.hexSection': 'ヘクスのオプション',
+        'settings.hexBorderVisibility': 'ヘクスの枠線を表示',
+        'settings.hexBorderVisibilityDesc': '各ヘクスの枠線を表示します。',
+        'settings.hexBorderStyle': '色と透明度',
+        'settings.hexBorderStyleDesc': '枠線の色と表示度。100% = 完全に表示。',
+        'settings.hexBorderColorTooltip': '枠線の色',
+        'settings.hexBorderOpacityTooltip': '透明度 (%)、100 = 完全に表示',
+        'settings.hexBorderReset': '既定値に戻す',
 
         // Custom graphics (user assets)
-        'settings.userAssets': 'カスタム画像',
+        'settings.userAssets': 'ユーザーグラフィック',
         'settings.userAssetPreview': 'サムネイルを表示',
-        'settings.userAssetPreviewDesc': '選択メニューで、名前だけでなくカスタム画像のサムネイルを表示します。',
+        'settings.userAssetPreviewDesc': '選択メニューで、名前だけでなくすべての画像のサムネイルを表示します。',
         'settings.userAssetsDesc': '各カテゴリは保管庫内に独自のフォルダーを持ちます。フィールドを空にすると、そのカテゴリは内蔵グラフィックを使い続けます。SVG、PNG、JPG、WEBP、GIF、AVIF に対応し、サブフォルダーはサブメニューになります。背景が透明な画像はシンボルに最適です。ヘクスの色やテクスチャが背後に見えるためです。カスタム画像は色を変更できません（ごく単純な SVG 画像のみ例外）。',
         'settings.userAssetsPlaceholderHint': 'カスタム画像を読み込めない場合（フォルダーパスがない、またはファイルが削除された）、ヘクスに小さなフォルダーアイコンが表示され、上部の赤いバーに不足しているカテゴリが表示されます。フォルダーの内容やパスを確認するか、手持ちの素材で作業を続けられます。',
         'settings.userAssetsPlaceholder': '例: Assets/HexGraphics',
@@ -1403,7 +1449,7 @@ const TRANSLATIONS = {
         'assetName.veg': '植生シンボル',
         'assetName.mountain': '山のシンボル',
         'assetName.building': '建物のシンボル',
-        'settings.hexNumbering': 'ヘクスに番号を付ける',
+        'settings.hexNumbering': '番号付け',
         'settings.hexNumberingDesc': '各ヘクスに番号を表示します。',
         'settings.hexNumberingHorizontal': '水平カウント',
         'settings.hexNumberingHorizontalDesc': '左上から右へカウント。各行の末尾で次の行に続きます。',
@@ -1503,6 +1549,7 @@ const TRANSLATIONS = {
         'variant.question': 'Point d\'interrogation',
         'variant.exclamation': 'Point d\'exclamation',
         'variant.cross': 'Croix',
+        'variant.crossedSwords': 'Épées croisées',
         'variant.dot': 'Point de départ/arrivée',
         'variant.shield': 'Bouclier',
         'variant.pirateskull': 'Crâne de pirate',
@@ -1629,11 +1676,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Affiche un réticule au centre de la carte.',
         'settings.hideHexBorders': 'Masquer les bordures des hexagones',
         'settings.hideHexBordersDesc': 'Masque les lignes grises entre les hexagones.',
+        'settings.hexSection': 'Options des hexagones',
+        'settings.hexBorderVisibility': 'Afficher la bordure des hexagones',
+        'settings.hexBorderVisibilityDesc': 'Afficher la bordure autour de chaque hexagone.',
+        'settings.hexBorderStyle': 'Couleur et transparence',
+        'settings.hexBorderStyleDesc': 'Couleur et visibilité de la bordure. 100 % = entièrement visible.',
+        'settings.hexBorderColorTooltip': 'Couleur de la bordure',
+        'settings.hexBorderOpacityTooltip': 'Transparence (%), 100 = entièrement visible',
+        'settings.hexBorderReset': 'Réinitialiser',
 
         // Custom graphics (user assets)
-        'settings.userAssets': 'Graphiques personnalisés',
+        'settings.userAssets': 'Graphiques utilisateur',
         'settings.userAssetPreview': 'Afficher les miniatures',
-        'settings.userAssetPreviewDesc': 'Affiche des miniatures de vos graphiques dans le menu de sélection au lieu des seuls noms.',
+        'settings.userAssetPreviewDesc': 'Affiche des miniatures de tous les graphiques dans le menu de sélection, pas seulement les noms.',
         'settings.userAssetsDesc': 'Chaque catégorie a son propre dossier dans le coffre. Laissez un champ vide et la catégorie continue d\'utiliser les graphiques fournis. SVG, PNG, JPG, WEBP, GIF et AVIF sont pris en charge ; les sous-dossiers deviennent des sous-menus. Les images à fond transparent conviennent particulièrement aux symboles, car la couleur ou la texture de l\'hexagone reste visible. Les graphiques personnalisés ne peuvent pas être recolorés (seules les images SVG très simples font exception).',
         'settings.userAssetsPlaceholderHint': 'Si un graphique personnalisé ne peut pas être chargé (chemin de dossier manquant ou fichier supprimé), l\'hexagone affiche une petite icône de dossier et une barre rouge en haut indique la catégorie concernée. Vérifiez le contenu du dossier ou le chemin, ou continuez avec ce que vous avez.',
         'settings.userAssetsPlaceholder': 'p. ex. Assets/HexGraphics',
@@ -1656,7 +1711,7 @@ const TRANSLATIONS = {
         'assetName.veg': 'Symboles de végétation',
         'assetName.mountain': 'Symboles de montagne',
         'assetName.building': 'Symboles de bâtiment',
-        'settings.hexNumbering': 'Numéroter les hexagones',
+        'settings.hexNumbering': 'Numérotation',
         'settings.hexNumberingDesc': 'Les hexagones sont numérotés.',
         'settings.hexNumberingHorizontal': 'Comptage horizontal',
         'settings.hexNumberingHorizontalDesc': 'Commence en haut à gauche et compte de gauche à droite. À la fin de chaque rangée, continue sur la suivante.',
@@ -1756,6 +1811,7 @@ const TRANSLATIONS = {
         'variant.question': 'Ponto de interrogação',
         'variant.exclamation': 'Ponto de exclamação',
         'variant.cross': 'Cruz',
+        'variant.crossedSwords': 'Espadas cruzadas',
         'variant.dot': 'Ponto de partida/chegada',
         'variant.shield': 'Escudo',
         'variant.pirateskull': 'Caveira pirata',
@@ -1882,11 +1938,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Exibe um retículo no centro do mapa.',
         'settings.hideHexBorders': 'Ocultar bordas dos hexágonos',
         'settings.hideHexBordersDesc': 'Oculta as linhas de borda cinzas entre os hexágonos.',
+        'settings.hexSection': 'Opções de hexágonos',
+        'settings.hexBorderVisibility': 'Mostrar borda dos hexágonos',
+        'settings.hexBorderVisibilityDesc': 'Mostra a borda à volta de cada hexágono.',
+        'settings.hexBorderStyle': 'Cor e transparência',
+        'settings.hexBorderStyleDesc': 'Cor e visibilidade da borda. 100% = totalmente visível.',
+        'settings.hexBorderColorTooltip': 'Cor da borda',
+        'settings.hexBorderOpacityTooltip': 'Transparência (%), 100 = totalmente visível',
+        'settings.hexBorderReset': 'Repor predefinições',
 
         // Custom graphics (user assets)
-        'settings.userAssets': 'Gráficos personalizados',
+        'settings.userAssets': 'Gráficos do utilizador',
         'settings.userAssetPreview': 'Mostrar miniaturas',
-        'settings.userAssetPreviewDesc': 'Mostra miniaturas dos seus gráficos no menu de seleção em vez de apenas os nomes.',
+        'settings.userAssetPreviewDesc': 'Mostra miniaturas de todos os gráficos no menu de seleção, não apenas os nomes.',
         'settings.userAssetsDesc': 'Cada categoria tem a sua própria pasta no cofre. Se deixar um campo vazio, essa categoria continua a usar os gráficos incluídos. São suportados SVG, PNG, JPG, WEBP, GIF e AVIF; as subpastas tornam-se submenus. As imagens com fundo transparente são ideais para símbolos, porque a cor ou textura do hexágono continua visível. Os gráficos personalizados não podem ser recoloridos (só as imagens SVG muito simples são exceção).',
         'settings.userAssetsPlaceholderHint': 'Se um gráfico personalizado não puder ser carregado (caminho da pasta ausente ou ficheiro removido), o hexágono mostra um pequeno ícone de pasta e uma barra vermelha no topo indica a categoria afetada. Verifique o conteúdo da pasta ou o caminho, ou continue a trabalhar com o que tem.',
         'settings.userAssetsPlaceholder': 'ex.: Assets/HexGraphics',
@@ -1909,7 +1973,7 @@ const TRANSLATIONS = {
         'assetName.veg': 'Símbolos de vegetação',
         'assetName.mountain': 'Símbolos de montanha',
         'assetName.building': 'Símbolos de edifício',
-        'settings.hexNumbering': 'Numerar hexágonos',
+        'settings.hexNumbering': 'Numeração',
         'settings.hexNumberingDesc': 'Os hexágonos são numerados.',
         'settings.hexNumberingHorizontal': 'Contagem horizontal',
         'settings.hexNumberingHorizontalDesc': 'Começa no canto superior esquerdo e conta da esquerda para a direita. Ao final de cada linha, continua na próxima.',
@@ -2009,6 +2073,7 @@ const TRANSLATIONS = {
         'variant.question': '물음표',
         'variant.exclamation': '느낌표',
         'variant.cross': '십자',
+        'variant.crossedSwords': '십자형 검',
         'variant.dot': '출발/도착 지점',
         'variant.shield': '방패',
         'variant.pirateskull': '해적 해골',
@@ -2135,11 +2200,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': '지도 중심에 십자선을 표시합니다.',
         'settings.hideHexBorders': '육각형 테두리 숨기기',
         'settings.hideHexBordersDesc': '육각형 사이의 회색 테두리 선을 숨깁니다.',
+        'settings.hexSection': '헥스 옵션',
+        'settings.hexBorderVisibility': '헥스 테두리 표시',
+        'settings.hexBorderVisibilityDesc': '각 헥스의 테두리를 표시합니다.',
+        'settings.hexBorderStyle': '색상 및 투명도',
+        'settings.hexBorderStyleDesc': '테두리 색상과 표시 정도. 100% = 완전히 보임.',
+        'settings.hexBorderColorTooltip': '테두리 색상',
+        'settings.hexBorderOpacityTooltip': '투명도 (%), 100 = 완전히 보임',
+        'settings.hexBorderReset': '기본값으로 재설정',
 
         // Custom graphics (user assets)
         'settings.userAssets': '사용자 그래픽',
         'settings.userAssetPreview': '썸네일 표시',
-        'settings.userAssetPreviewDesc': '선택 메뉴에서 이름 대신 사용자 그래픽의 미리보기 썸네일을 표시합니다.',
+        'settings.userAssetPreviewDesc': '선택 메뉴에서 이름만이 아니라 모든 그래픽의 미리보기 썸네일을 표시합니다.',
         'settings.userAssetsDesc': '각 카테고리는 보관함 안에 고유한 폴더를 가집니다. 항목을 비워 두면 해당 카테고리는 계속 기본 제공 그래픽을 사용합니다. SVG, PNG, JPG, WEBP, GIF, AVIF를 지원하며 하위 폴더는 하위 메뉴가 됩니다. 배경이 투명한 이미지는 헥스의 색상이나 텍스처가 뒤로 비치므로 기호에 특히 적합합니다. 사용자 그래픽은 색을 바꿀 수 없습니다(아주 단순한 SVG 이미지만 예외).',
         'settings.userAssetsPlaceholderHint': '사용자 그래픽을 불러올 수 없으면(폴더 경로 없음 또는 파일 삭제) 헥스에 작은 폴더 아이콘이 표시되고 상단의 빨간 막대가 해당 카테고리를 알려줍니다. 폴더 내용이나 경로를 확인하거나 있는 자료로 계속 작업할 수 있습니다.',
         'settings.userAssetsPlaceholder': '예: Assets/HexGraphics',
@@ -2162,7 +2235,7 @@ const TRANSLATIONS = {
         'assetName.veg': '식생 기호',
         'assetName.mountain': '산 기호',
         'assetName.building': '건물 기호',
-        'settings.hexNumbering': '헥스 번호 매기기',
+        'settings.hexNumbering': '번호 매기기',
         'settings.hexNumberingDesc': '헥스에 번호를 표시합니다.',
         'settings.hexNumberingHorizontal': '가로 카운트',
         'settings.hexNumberingHorizontalDesc': '왼쪽 위에서 시작하여 왼쪽에서 오른쪽으로 카운트합니다.',
@@ -2262,6 +2335,7 @@ const TRANSLATIONS = {
         'variant.question': 'Signo de interrogación',
         'variant.exclamation': 'Signo de exclamación',
         'variant.cross': 'Cruz',
+        'variant.crossedSwords': 'Espadas cruzadas',
         'variant.dot': 'Punto de inicio/meta',
         'variant.shield': 'Escudo',
         'variant.pirateskull': 'Calavera pirata',
@@ -2388,11 +2462,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Muestra una retícula en el centro del mapa.',
         'settings.hideHexBorders': 'Ocultar bordes de hexágonos',
         'settings.hideHexBordersDesc': 'Oculta las líneas grises entre los hexágonos.',
+        'settings.hexSection': 'Opciones de hexágonos',
+        'settings.hexBorderVisibility': 'Mostrar borde de hexágonos',
+        'settings.hexBorderVisibilityDesc': 'Muestra el borde alrededor de cada hexágono.',
+        'settings.hexBorderStyle': 'Color y transparencia',
+        'settings.hexBorderStyleDesc': 'Color y visibilidad del borde. 100 % = totalmente visible.',
+        'settings.hexBorderColorTooltip': 'Color del borde',
+        'settings.hexBorderOpacityTooltip': 'Transparencia (%), 100 = totalmente visible',
+        'settings.hexBorderReset': 'Restablecer valores',
 
         // Custom graphics (user assets)
-        'settings.userAssets': 'Gráficos propios',
+        'settings.userAssets': 'Gráficos del usuario',
         'settings.userAssetPreview': 'Mostrar miniaturas',
-        'settings.userAssetPreviewDesc': 'Muestra miniaturas de sus gráficos en el menú de selección en lugar de solo los nombres.',
+        'settings.userAssetPreviewDesc': 'Muestra miniaturas de todos los gráficos en el menú de selección, no solo los nombres.',
         'settings.userAssetsDesc': 'Cada categoría tiene su propia carpeta en el almacén. Si deja un campo vacío, esa categoría seguirá usando los gráficos incluidos. Se admiten SVG, PNG, JPG, WEBP, GIF y AVIF; las subcarpetas se convierten en submenús. Las imágenes con fondo transparente son ideales para símbolos, porque el color o la textura del hexágono sigue siendo visible. Los gráficos propios no se pueden recolorear (solo las imágenes SVG muy simples son una excepción).',
         'settings.userAssetsPlaceholderHint': 'Si un gráfico personalizado no se puede cargar (falta la ruta de la carpeta o se eliminó un archivo), el hexágono muestra un pequeño icono de carpeta y una barra roja en la parte superior indica la categoría afectada. Puede comprobar el contenido de la carpeta o la ruta, o seguir trabajando con lo que tiene.',
         'settings.userAssetsPlaceholder': 'p. ej. Assets/HexGraphics',
@@ -2415,7 +2497,7 @@ const TRANSLATIONS = {
         'assetName.veg': 'Símbolos de vegetación',
         'assetName.mountain': 'Símbolos de montaña',
         'assetName.building': 'Símbolos de edificio',
-        'settings.hexNumbering': 'Numerar hexágonos',
+        'settings.hexNumbering': 'Numeración',
         'settings.hexNumberingDesc': 'Los hexágonos se numeran.',
         'settings.hexNumberingHorizontal': 'Conteo horizontal',
         'settings.hexNumberingHorizontalDesc': 'Comienza en la esquina superior izquierda y cuenta de izquierda a derecha. Al final de cada fila, continúa en la siguiente.',
@@ -2515,6 +2597,7 @@ const TRANSLATIONS = {
         'variant.question': 'Znak zapytania',
         'variant.exclamation': 'Wykrzyknik',
         'variant.cross': 'Krzyż',
+        'variant.crossedSwords': 'Skrzyżowane miecze',
         'variant.dot': 'Punkt startowy/docelowy',
         'variant.shield': 'Tarcza',
         'variant.pirateskull': 'Piracka czaszka',
@@ -2641,11 +2724,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Wyświetla celownik w centrum mapy.',
         'settings.hideHexBorders': 'Ukryj obramowania sześciokątów',
         'settings.hideHexBordersDesc': 'Ukrywa szare linie obramowań między sześciokątami.',
+        'settings.hexSection': 'Opcje sześciokątów',
+        'settings.hexBorderVisibility': 'Pokaż obramowanie sześciokątów',
+        'settings.hexBorderVisibilityDesc': 'Pokazuje obramowanie wokół każdego sześciokąta.',
+        'settings.hexBorderStyle': 'Kolor i przezroczystość',
+        'settings.hexBorderStyleDesc': 'Kolor i widoczność obramowania. 100% = w pełni widoczne.',
+        'settings.hexBorderColorTooltip': 'Kolor obramowania',
+        'settings.hexBorderOpacityTooltip': 'Przezroczystość (%), 100 = w pełni widoczne',
+        'settings.hexBorderReset': 'Przywróć domyślne',
 
         // Custom graphics (user assets)
-        'settings.userAssets': 'Własna grafika',
+        'settings.userAssets': 'Grafiki użytkownika',
         'settings.userAssetPreview': 'Pokaż miniatury',
-        'settings.userAssetPreviewDesc': 'Pokazuje w menu wyboru miniatury własnej grafiki zamiast samych nazw.',
+        'settings.userAssetPreviewDesc': 'Pokazuje w menu wyboru miniatury wszystkich grafik, a nie tylko nazwy.',
         'settings.userAssetsDesc': 'Każda kategoria ma własny folder w sejfie. Puste pole oznacza, że kategoria nadal używa wbudowanej grafiki. Obsługiwane są SVG, PNG, JPG, WEBP, GIF i AVIF; podfoldery stają się podmenu. Grafiki z przezroczystym tłem najlepiej nadają się na symbole, ponieważ kolor lub tekstura sześciokąta pozostaje widoczna. Własnej grafiki nie można przebarwiać (wyjątkiem są tylko bardzo proste pliki SVG).',
         'settings.userAssetsPlaceholderHint': 'Jeśli własnej grafiki nie można wczytać (brak ścieżki folderu lub usunięty plik), sześciokąt pokazuje małą ikonę folderu, a czerwony pasek u góry wskazuje, której kategorii brakuje. Można sprawdzić zawartość folderu lub ścieżkę albo pracować dalej z tym, co jest.',
         'settings.userAssetsPlaceholder': 'np. Assets/HexGraphics',
@@ -2668,7 +2759,7 @@ const TRANSLATIONS = {
         'assetName.veg': 'Symbole roślinności',
         'assetName.mountain': 'Symbole gór',
         'assetName.building': 'Symbole budynków',
-        'settings.hexNumbering': 'Numeruj sześciokąty',
+        'settings.hexNumbering': 'Numerowanie',
         'settings.hexNumberingDesc': 'Sześciokąty są oznaczane numerami.',
         'settings.hexNumberingHorizontal': 'Liczenie poziome',
         'settings.hexNumberingHorizontalDesc': 'Zaczyna od lewego górnego rogu i liczy od lewej do prawej. Na końcu każdego rzędu przechodzi do następnego.',
@@ -2768,6 +2859,7 @@ const TRANSLATIONS = {
         'variant.question': 'Punto interrogativo',
         'variant.exclamation': 'Punto esclamativo',
         'variant.cross': 'Croce',
+        'variant.crossedSwords': 'Spade incrociate',
         'variant.dot': 'Punto di partenza/arrivo',
         'variant.shield': 'Scudo',
         'variant.pirateskull': 'Teschio pirata',
@@ -2894,11 +2986,19 @@ const TRANSLATIONS = {
         'settings.showCrosshairDesc': 'Mostra un mirino al centro della mappa.',
         'settings.hideHexBorders': 'Nascondi bordi esagoni',
         'settings.hideHexBordersDesc': 'Nasconde le linee grigie tra gli esagoni.',
+        'settings.hexSection': 'Opzioni esagoni',
+        'settings.hexBorderVisibility': 'Mostra bordo esagoni',
+        'settings.hexBorderVisibilityDesc': 'Mostra il bordo attorno a ogni esagono.',
+        'settings.hexBorderStyle': 'Colore e trasparenza',
+        'settings.hexBorderStyleDesc': 'Colore e visibilità del bordo. 100% = completamente visibile.',
+        'settings.hexBorderColorTooltip': 'Colore del bordo',
+        'settings.hexBorderOpacityTooltip': 'Trasparenza (%), 100 = completamente visibile',
+        'settings.hexBorderReset': 'Ripristina predefiniti',
 
         // Custom graphics (user assets)
-        'settings.userAssets': 'Grafica personalizzata',
+        'settings.userAssets': 'Grafiche utente',
         'settings.userAssetPreview': 'Mostra miniature',
-        'settings.userAssetPreviewDesc': 'Mostra le anteprime delle sue grafiche nel menu di selezione invece dei soli nomi.',
+        'settings.userAssetPreviewDesc': 'Mostra le anteprime di tutte le grafiche nel menu di selezione, non solo i nomi.',
         'settings.userAssetsDesc': 'Ogni categoria ha la propria cartella nel vault. Lasciando un campo vuoto, la categoria continua a usare le grafiche incluse. Sono supportati SVG, PNG, JPG, WEBP, GIF e AVIF; le sottocartelle diventano sottomenu. Le immagini con sfondo trasparente sono ideali per i simboli, perché il colore o la texture dell\'esagono resta visibile. Le grafiche personalizzate non possono essere ricolorate (fanno eccezione solo le immagini SVG molto semplici).',
         'settings.userAssetsPlaceholderHint': 'Se una grafica personalizzata non può essere caricata (percorso della cartella mancante o file rimosso), l\'esagono mostra una piccola icona di cartella e una barra rossa in alto indica la categoria interessata. È possibile controllare il contenuto della cartella o il percorso, oppure continuare con ciò che si ha.',
         'settings.userAssetsPlaceholder': 'es. Assets/HexGraphics',
@@ -2921,7 +3021,7 @@ const TRANSLATIONS = {
         'assetName.veg': 'Simboli di vegetazione',
         'assetName.mountain': 'Simboli di montagna',
         'assetName.building': 'Simboli di edificio',
-        'settings.hexNumbering': 'Numera esagoni',
+        'settings.hexNumbering': 'Numerazione',
         'settings.hexNumberingDesc': 'Gli esagoni vengono numerati.',
         'settings.hexNumberingHorizontal': 'Conteggio orizzontale',
         'settings.hexNumberingHorizontalDesc': 'Inizia dall’angolo in alto a sinistra e conta da sinistra a destra. Alla fine di ogni riga continua sulla successiva.',
@@ -3358,7 +3458,9 @@ const DEFAULT_SETTINGS = {
     userBuildingPath: '',
     exportWidth: 1024,
     showCrosshair: true,
-    hideHexBorders: false,
+    hideHexBorders: false,        // border toggle stored inverted: false = visible
+    hexBorderColor: '#808080',    // hex border line colour (shipped: gray)
+    hexBorderOpacity: 30,         // border visibility in %, 100 = fully visible
     hexNumberingEnabled: false,
     hexNumberingDirection: 'horizontal',  // 'horizontal' | 'vertical'
     hexNumberingAlpha: false,
@@ -4132,6 +4234,7 @@ class HexCartographerView extends ItemView {
                     { id: 'question', label: t('variant.question'), icon: 'help-circle' },
                     { id: 'exclamation', label: t('variant.exclamation'), icon: 'alert-circle' },
                     { id: 'cross', label: t('variant.cross'), icon: 'x' },
+                    { id: 'crossed-swords', label: t('variant.crossedSwords'), icon: 'swords' },
                     { id: 'dot', label: t('variant.dot'), icon: 'circle' },
                     { id: 'shield', label: t('variant.shield'), icon: 'shield' },
                     { id: 'pirateskull', label: t('variant.pirateskull'), icon: 'skull' }
@@ -4300,43 +4403,14 @@ class HexCartographerView extends ItemView {
         return this.plugin.withExportResolution(keys, needed, () => this.renderFullMap(opts));
     }
 
+    // System symbols come solely from the embedded SVG_SYMBOL_DATA — no file lookup.
+    // Obsidian cannot ship graphics or proprietary folders, so the shipped symbols
+    // live in code; user-provided graphics use the separate "user graphics" feature.
+    // Kept async so svgLoadPromise stays a promise for the existing await sites.
     async loadSVGSymbols() {
         for (const [key, data] of Object.entries(SVG_SYMBOL_DATA)) {
             this.svgSymbols[key] = { pathData: data.pathData, viewBoxWidth: data.viewBoxWidth };
         }
-
-        const symbolsDir = '.obsidian/plugins/hex-cartographer/symbols';
-        try {
-            const listing = await this.app.vault.adapter.list(symbolsDir);
-            if (listing && listing.files && listing.files.length > 0) {
-                for (const filePath of listing.files) {
-                    if (!filePath.endsWith('.svg')) continue;
-                    const filename = filePath.split('/').pop();
-                    const key = filename.replace(/-\d+\.svg$/, '');
-                    try {
-                        const svgContent = await this.app.vault.adapter.read(filePath);
-                        const parser = new DOMParser();
-                        const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
-                        const svgElement = svgDoc.querySelector('svg');
-                        const pathElement = svgDoc.querySelector('path');
-                        if (pathElement && svgElement) {
-                            const pathData = pathElement.getAttribute('d');
-                            const viewBox = svgElement.getAttribute('viewBox');
-                            let viewBoxWidth = 100;
-                            if (viewBox) {
-                                viewBoxWidth = parseFloat(viewBox.split(' ')[2]);
-                            }
-                            this.svgSymbols[key] = { pathData, viewBoxWidth };
-                            console.log(`SVG from file: ${key}`);
-                        }
-                    } catch (e) {
-                        console.log(`Could not read SVG file: ${filename}`);
-                    }
-                }
-            }
-        } catch (e) {
-        }
-
         this.svgSymbolsLoaded = true;
     }
 
@@ -6112,8 +6186,16 @@ class HexCartographerView extends ItemView {
         }
         if (this.currentToolGroup === 'hexcolor') {
             this.hexColorColor = this.masterColor;
+            // Choosing a plain colour leaves texture mode. Without this, hexTexture stays
+            // set and hexToolColor() keeps returning the texture's colour after a reload
+            // instead of the colour just picked. Persist the switch so it survives a save.
+            if (this.hexTexture) {
+                this.hexTexture = null;
+                this.updateHexColorButtonIcon(this.hexColorBtn);
+            }
             const toolbar = this.containerEl.querySelector('.hex-toolbar');
             if (toolbar) this.updateToolbarState(toolbar);
+            this.requestSave();
         } else if (this.currentToolGroup && this.toolConfigs[this.currentToolGroup]) {
             this.toolConfigs[this.currentToolGroup].symbolColor = this.masterColor;
             const toolbar = this.containerEl.querySelector('.hex-toolbar');
@@ -9023,7 +9105,10 @@ class HexCartographerView extends ItemView {
                 this.ctx.lineTo(pos.x + s*Math.cos(a), pos.y + s*Math.sin(a));
             }
             this.ctx.closePath();
-            this.ctx.strokeStyle = 'rgba(128,128,128,0.3)';
+            // Border colour + visibility from settings (shipped: gray at 30%).
+            const bc = hexToRgb(this.plugin.settings.hexBorderColor || '#808080');
+            const bo = (Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : 30) / 100;
+            this.ctx.strokeStyle = `rgba(${bc.r},${bc.g},${bc.b},${bo})`;
             this.ctx.lineWidth = 1;
             this.ctx.stroke();
         }
@@ -10919,24 +11004,24 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     });
             });
 
+        const renderOpenMaps = () => this.app.workspace.iterateAllLeaves(leaf => {
+            if (leaf.view instanceof HexCartographerView) leaf.view.render();
+        });
+
+        // Show hexes: the grid border toggle, stored inverted (hideHexBorders).
         new Setting(containerEl)
-            .setName(t('settings.hideHexBorders'))
-            .setDesc(t('settings.hideHexBordersDesc'))
+            .setName(t('settings.hexBorderVisibility'))
+            .setDesc(t('settings.hexBorderVisibilityDesc'))
             .addToggle(toggle => {
-                toggle.setValue(this.plugin.settings.hideHexBorders)
+                toggle.setValue(!this.plugin.settings.hideHexBorders)
                     .onChange(async (value) => {
-                        this.plugin.settings.hideHexBorders = value;
+                        this.plugin.settings.hideHexBorders = !value;
                         await this.plugin.saveSettings();
-                        this.app.workspace.iterateAllLeaves(leaf => {
-                            if (leaf.view instanceof HexCartographerView) leaf.view.render();
-                        });
+                        renderOpenMaps();
                     });
             });
 
-        this.buildHexNumberingSettings(containerEl);
-
-        // Thumbnails toggle: shows graphic thumbnails in the right-click menu
-        // instead of plain names. Applies to all user-graphics categories.
+        // Thumbnails: preview images instead of names in the selection menu.
         new Setting(containerEl)
             .setName(t('settings.userAssetPreview'))
             .setDesc(t('settings.userAssetPreviewDesc'))
@@ -10947,6 +11032,60 @@ class HexCartographerSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     });
             });
+
+        // ── Hex options ───────────────────────────────────────────
+        // Collapsible group: frame colour/transparency and numbering.
+        const hexSection = containerEl.createEl('details', { cls: 'hex-settings-section' });
+        // Stay open only when the user adjusted an actual option here: border colour,
+        // transparency, or the "Numbering" checkbox. Numbering sub-options don't count
+        // (they hang off the checkbox), so a Reset really collapses the section again.
+        const HEX_OPTION_KEYS = ['hexBorderColor', 'hexBorderOpacity', 'hexNumberingEnabled'];
+        hexSection.open = HEX_OPTION_KEYS.some(k => this.plugin.settings[k] !== DEFAULT_SETTINGS[k]);
+        hexSection.createEl('summary', { cls: 'hex-settings-summary', text: t('settings.hexSection') });
+        const hexBody = hexSection.createDiv({ cls: 'hex-settings-body' });
+
+        // Frame colour + transparency: a colour swatch (opens the palette) plus a
+        // percent input (100 = fully visible). Shipped defaults are the code's values.
+        const borderStyle = new Setting(hexBody)
+            .setName(t('settings.hexBorderStyle'))
+            .setDesc(t('settings.hexBorderStyleDesc'));
+        const styleRow = borderStyle.controlEl.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 8px;' } });
+        const borderPicker = createColorPickerElement(styleRow, this.app, this.plugin.settings.hexBorderColor || '#808080', async (color) => {
+            this.plugin.settings.hexBorderColor = color;
+            await this.plugin.saveSettings();
+            renderOpenMaps();
+        });
+        borderPicker.btn.style.width = '28px';
+        borderPicker.btn.style.height = '28px';
+        borderPicker.btn.setAttribute('title', t('settings.hexBorderColorTooltip'));
+        const opacityInput = styleRow.createEl('input', {
+            type: 'number',
+            attr: { min: '0', max: '100', step: '1', style: 'width: 64px;', title: t('settings.hexBorderOpacityTooltip') }
+        });
+        opacityInput.value = String(Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : 30);
+        opacityInput.addEventListener('change', async () => {
+            let v = parseInt(opacityInput.value);
+            if (!Number.isFinite(v)) v = 30;
+            v = Math.max(0, Math.min(100, v));
+            opacityInput.value = String(v);
+            this.plugin.settings.hexBorderOpacity = v;
+            await this.plugin.saveSettings();
+            renderOpenMaps();
+        });
+
+        // Reset colour + transparency back to the shipped defaults.
+        const resetBtn = styleRow.createEl('button', { cls: 'clickable-icon', attr: { title: t('settings.hexBorderReset') } });
+        setIcon(resetBtn, 'rotate-ccw');
+        resetBtn.addEventListener('click', async () => {
+            this.plugin.settings.hexBorderColor = DEFAULT_SETTINGS.hexBorderColor;
+            this.plugin.settings.hexBorderOpacity = DEFAULT_SETTINGS.hexBorderOpacity;
+            borderPicker.setColor(DEFAULT_SETTINGS.hexBorderColor);
+            opacityInput.value = String(DEFAULT_SETTINGS.hexBorderOpacity);
+            await this.plugin.saveSettings();
+            renderOpenMaps();
+        });
+
+        this.buildHexNumberingSettings(hexBody);
 
         // ── Custom graphics ───────────────────────────────────────
         // Collapsible via native <details> — Obsidian has no official
@@ -11070,6 +11209,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
                         this.plugin.settings.hexNumberingEnabled = value;
                         // Unteroptionen ein-/ausblenden
                         subOptions.forEach(el => el.settingEl.style.display = value ? '' : 'none');
+                        syncChessVisibility();
                         await refreshAll();
                     });
             });
@@ -11103,23 +11243,24 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     .onChange(async (value) => {
                         this.plugin.settings.hexNumberingAlpha = value;
                         if (!value) {
-                            // Remember state, disable and lock chess mode
+                            // Coordinate mode off: hide the chess sub-option; remember
+                            // its state and clear it so rendering ignores chess mode.
                             rememberedChessState = this.plugin.settings.hexNumberingAlphaChess;
                             this.plugin.settings.hexNumberingAlphaChess = false;
                             chessToggle.setValue(false);
-                            chessToggle.setDisabled(true);
                         } else {
-                            // Gespeicherten Zustand wiederherstellen
-                            chessToggle.setDisabled(false);
+                            // Back on: restore the remembered chess state.
                             this.plugin.settings.hexNumberingAlphaChess = rememberedChessState;
                             chessToggle.setValue(rememberedChessState);
                         }
+                        syncChessVisibility();
                         await refreshAll();
                     });
             });
         subOptions.push(alphaSetting);
 
-        // Buchstabenkoordinaten
+        // Buchstabenkoordinaten — a sub-option of "coordinate mode": shown only while
+        // that mode is on (mirrors how the numbering options depend on the master switch).
         let chessToggle;
         const chessModeSetting = new Setting(containerEl)
             .setName(t('settings.hexNumberingAlphaChess'))
@@ -11127,8 +11268,6 @@ class HexCartographerSettingTab extends PluginSettingTab {
             .addToggle(toggle => {
                 chessToggle = toggle;
                 toggle.setValue(this.plugin.settings.hexNumberingAlphaChess);
-                // Lock initially if coordinate mode is off
-                if (!this.plugin.settings.hexNumberingAlpha) toggle.setDisabled(true);
                 toggle.onChange(async (value) => {
                     this.plugin.settings.hexNumberingAlphaChess = value;
                     rememberedChessState = value;
@@ -11136,6 +11275,11 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 });
             });
         subOptions.push(chessModeSetting);
+        // Visible only when numbering AND coordinate mode are both on.
+        const syncChessVisibility = () => {
+            chessModeSetting.settingEl.style.display =
+                (this.plugin.settings.hexNumberingEnabled && this.plugin.settings.hexNumberingAlpha) ? '' : 'none';
+        };
 
         // Textausrichtung (Pulldown)
         const posSetting = new Setting(containerEl)
@@ -11200,6 +11344,8 @@ class HexCartographerSettingTab extends PluginSettingTab {
             el.settingEl.addClass('hex-sub-setting');
             el.settingEl.style.display = hide ? 'none' : '';
         });
+        // The chess sub-option additionally depends on coordinate mode.
+        syncChessVisibility();
     }
 
     buildGuide(containerEl) {
@@ -11309,6 +11455,7 @@ const SVG_SYMBOL_DATA = {
     'question': { pathData: 'M284.61,594.99c154.07,6.75,288.53-106.54,308.17-259.13C618.48,136.05,442.5-30.93,244.2,4.87,88.94,32.89-17.75,178.81,2.46,335.87c18.38,142.85,138.08,252.81,282.15,259.13ZM282.26,549.3c-125.38-5.68-231.54-112.52-236.57-237.93-2.82-70.28,19.56-134.87,67.68-186.02,79.68-84.72,203.29-104.53,305.89-48.71,110.31,60.01,161.29,198.01,112.35,315.24-30.33,72.67-87.63,124.6-162.82,148.24-26.96,8.48-58.32,10.47-86.54,9.19ZM270.47,145.37c40.74-6.14,98.92-7.44,133.69,17.83,27.45,19.96,28.05,50.6,13,78.96l17.28,9.72.18.77c-31.76,64.12-104.43,94.76-170.02,112.33l-33.77-56.86c20.08-4.97,40.15-10.85,59.15-19.06,21.57-9.33,59.12-29.76,56.09-57.81-2.85-26.41-43.85-22.03-62.04-19.02-23.63,3.92-47.11,12.11-69.33,20.77l-27.2-66.03c27.02-9.32,54.6-17.33,82.97-21.6ZM288.26,457.23l-85.55,4.36c5.43-24.24,11.73-48.32,19.89-71.78l87.89-4.37-22.23,71.78Z', viewBoxWidth: 595.28 },
     'exclamation': { pathData: 'M284.43.3c240.79-10.45,394.24,256.82,262.3,460.1-113.56,174.96-369.25,180.79-490.72,11.14C-81.64,279.3,49.63,10.49,284.43.3ZM285.64,45.73c-129.65,5.45-235.28,111.92-240.05,241.77-1.58,42.97,5.95,80.12,24.31,118.66,59.74,125.39,209.35,180.06,335.86,119.62,125.23-59.82,179.82-209.62,119.47-336.29-44.01-92.38-137.03-148.07-239.59-143.76ZM357.53,134.07c-17.56,2.25-35.02,5.43-52.3,9.11-22.44,68.16-42.58,137.1-61.2,206.43l81.37-9.07c22.72-71.14,49.17-141,77.11-210.18-15,.21-30.09,1.81-44.98,3.72ZM233.22,383c-7.95,23.39-14.9,47.18-20.04,71.38l84.69-4.53,22.37-71.17-87.02,4.32Z', viewBoxWidth: 595.28 },
     'cross': { pathData: 'M583.95,199.28c-33.93,11.58-65.03,29.89-97.48,44.83-5.83,2.68-12.01,4.77-17.85,7.45-39.85,18.33-79.63,36.78-117.45,59.1,22.53,39.92,46.88,78.78,71.95,117.14,12.69,19.42,26.18,38.38,38.66,57.95,16.15,25.34,38.5,58.8,40.04,89.34.16,3.18.47,10.43-.02,13.25-.11.64-.24,1.13-.91,1.38-7.53-1.77-14.96-4.06-22.56-5.51-29.69-5.68-59.96-3.3-89.75-.24-11.58-33.93-29.89-65.03-44.83-97.48-8.56-18.59-16.05-37.69-24.89-56.18-12.36-25.85-26.19-50.97-39.62-76.25-.62-.18-1.12.05-1.68.28-3.32,1.38-10.79,6.93-14.35,9.23-62.89,40.75-125.42,89.7-172.54,148.32-5.26,6.55-12,17.98-17.53,23.3-1.25,1.2-6.13,4.1-7.75,4.35-1.21.19-3.75-6.25-4.53-7.64-4.64-8.15-9.92-16.1-15.38-23.72-1.98-2.76-5.25-5.62-7.05-8.48-3.25-5.17-5.43-13.49-8.23-19.37-6.09-12.82-14.49-24.68-24.63-34.58,26.29-20.95,51.33-43.41,77.34-64.67,20.59-16.83,40.56-32.46,63-46.83,29.1-18.63,59.06-36.11,89.05-53.26.19-.62-.05-1.12-.28-1.68-1.5-3.61-7.85-12.17-10.38-16.07-40.97-62.97-89.52-125.29-148.32-172.54-6.62-5.32-17.43-11.66-22.98-17.27-1.97-1.99-3.48-5.39-4.82-7.86-.13-1.35,6.33-3.85,7.79-4.68,8.16-4.65,16.11-9.88,23.72-15.38,2.77-2.01,5.6-5.2,8.49-7.04,5.16-3.28,13.45-5.42,19.37-8.23,12.82-6.09,24.68-14.49,34.58-24.63,20.94,26.29,43.41,51.33,64.67,77.34,32.59,39.87,56.89,78.55,83.28,122.58,5.62,9.39,11.33,21.65,17.45,30.27.41.58.72,1.22,1.46,1.46.95.24,1.72-.41,2.5-.77,6.9-3.23,15.42-8.87,22.21-12.86,52.32-30.73,101.08-65.02,152.04-97.51,28.47-18.15,66.85-43.92,102.04-40.04.8.09,1.55.02,1.93.94-1.77,7.53-4.06,14.96-5.51,22.56-5.68,29.68-3.29,59.97-.24,89.75ZM421.01,144.12c-47.28-42.44-114.08-59.68-176.25-44.83,11.17,13.97,20.55,29.16,30.48,44.02,37.28-3.38,74.28,6.91,104.03,29.33l41.92-26.86-.19-1.66ZM144.42,312.04c.93-1.9-.78-8.59-.89-11.19-1.31-31.62,3.93-54.67,18.12-82.55.67-1.31,3.1-4.45,3.19-5.49.23-2.51-27.55-35.07-31.4-39.33-.82-.21-.93.51-1.31.93-2.21,2.37-5.36,7.67-7.22,10.6-24.66,38.77-34.73,86.17-28.43,131.83,1.14,8.26,3.08,16.45,5.1,24.52,13.55-10.81,28.33-19.85,42.83-29.32ZM436.79,287.7c1.02,25.67-6.14,51.21-18.28,73.6-1.15,2.12-7.08,10.64-7.01,11.93l27.05,42.88c.88.22.92-.14,1.39-.61,3.5-3.51,8.21-10.48,11.14-14.73,26.91-39,38.76-86.87,33.45-134.16l-47.75,21.09ZM299.58,436.33c-21.21.89-41.61-1.84-61.44-9.28-6.7-2.51-12.87-6.04-19.52-8.65l-39.97,31.36c40.2,29.31,92.78,40.71,142.02,33.06l-21.08-46.48Z', viewBoxWidth: 595.28 },
+    'crossed-swords': { pathData: 'M62.14,238.18c4.61-5,9.16-10.13,13.85-15.05l19.72,19.58c1.58,2.79,1.41,8.7,1.02,11.89-.18,1.44-1.61,6.49-1.42,7.24.21.87,2.69,1.93,3.56,1.98,3,.19,5.38-2.03,7.48-3.8,7.98-9.32,19.19-17.69,26.96-26.95,2.63-3.13,3.99-6.27,1.25-9.89-5.73.46-12.64,2.77-18.27.87-3.31-1.12-6.78-6.02-9.37-8.6-1.33-1.33-3.74-2.82-4.81-4.38-.23-.34-.55-.52-.19-.96L236.75,75.32c13.58-14.69,24.1-38.65,30.77-57.57.26-.75.78-1.86.88-2.58.52-3.71-3.21-7.65-6.98-7.37-2.88.22-15.92,6.12-19.52,7.65-13.93,5.92-28.23,12.12-39.39,22.56L66.18,174.37c-.45.36-.63.04-.96-.19-1.63-1.12-2.99-3.44-4.38-4.81-2.24-2.23-7.16-5.9-8.32-8.5s-1.08-7.45-.88-10.24c.16-2.12,1.71-6.98,1.55-8.4-.11-1.02-2.71-2.03-3.64-2.12-2.17-.2-4.29,1.18-5.93,2.5-9.95,7.98-18.97,20.47-28.87,28.87-2.47,3.06-3.51,6.19-.57,9.39,6.27-1.01,13-3.04,19.14-.42l19.86,19.52-25.82,23.5-17.11,24c-3.53,1.53-9.23-.84-9.84,4.51-.22,2-.45,7.16-.36,9.12.18,4.07,9.24,13.49,12.96,14.6,1.54.46,8.64.36,10.55.19,6.38-.56,3.36-5.75,5.36-9.94l22.53-16.09c3.78-3.69,7.11-7.81,10.69-11.68ZM85.54,190.45c-.74.49-1.34,1.36-2.3,1.32-2.55-.12-9.65-9.12-12.1-10.89l-.37-.78L207.29,43.18c12.64-11.32,28.86-17.03,44.38-23.31,2.24-.91,4.51-1.95,6.87-2.49L85.54,190.45ZM283.03,251.2c.28,2.32.67,8.57.34,10.7-.57,3.67-9.51,12.7-13.04,13.72-1.66.48-10.58.46-12.26-.19-3.44-1.33-2.24-6.4-3.05-9.41l-24.02-17.08c-3.36-4.48-7.49-8.31-11.27-12.44-1.65-1.8-11.35-13.57-12.56-13.36-6.54,6.71-13.7,12.94-19.65,20.15-2.21,6.16-.03,12.68.49,18.83-3.39,2.93-6.61,1.35-9.59-1.13-9.93-8.3-18.8-20.07-28.67-28.69-2.39-2.98-3.43-6.47-.4-9.44,6.25,1.4,13.21,3.04,19.36.47l12.62-12.24.32-1.09-35.5-35.97,16.97-17.09,1.09-.32,35.27,34.75c1.75.41,2.97-.85,4.2-1.9,1.16-.99,9.45-9.04,9.33-9.71l-35.93-36.38c0-.41,3.71-4.35,4.22-4.61.29-.15.47-.26.76,0l35.76,35.77c2.56-2.42,4.79-5.13,7.26-7.65,1.36-1.39,3.3-2.55,4.6-4.19,4.32-5.44,1.99-13.94.69-20.15-.22-1.21,2.12-2.31,3.12-2.43,2.8-.35,5.06,1.23,7.11,2.88,8.38,9.33,18.6,17.7,26.95,26.96,1.84,2.04,3.93,4.45,3.59,7.42-.11.97-1.05,3.16-2.09,3.31-1.69.24-6.84-1.4-9.15-1.57-2.79-.2-7.08-.11-9.59,1.14l-20.05,19.71,26.57,24.28,16.42,22.97c2.23,1.31,7.03.33,8.88,2.02.47.43.82,1.32.9,1.97ZM101.55,129.83c-20.37-20.92-41.83-40.84-61.53-62.39-7.16-10.15-12.26-21.58-17.11-32.98-2.24-5.26-5.89-13-7.37-18.25-.94-3.32.29-5.95,3.24-7.81,1.72-1.08,3.05-.78,4.88-.31,5.07,1.3,12.84,5.14,17.93,7.3,12.72,5.41,25.69,10.95,36.46,19.76l59.09,58.72.13.85c-.69.93-3.69,4.92-4.91,4.31l-54.11-54.14c-8.53-7.77-16.57-12.61-27.09-17.26-8.46-3.74-17.24-6.94-25.88-10.26l94.28,94.46c.34.68-.34,1.44-.77,1.93-4.36,4.89-10.22,9.96-14.95,14.66-.64.63-1.23,2.37-2.28,1.4Z', viewBoxWidth: 283.46 },
     'grass': { pathData: 'M350.74,431.77c-6.31,13.79-10.96,28.11-16.26,42.27-1.1,2.95-2.26,5.69-3.02,8.78-1.24,5.06-1.7,8.12-3.7,12.96-1.2,2.91-.98,4.23-3.13,7.05-4.33,5.66-10.79,10.07-17.74,5.72-7.72-4.84-3.75-14.76-1.23-21.45,3.66-9.71,9.32-20.37,14.71-29.24,8.07-13.29,15.99-25.24,27.5-35.88,1.66-1.54,3.94-3.96,6.28-4.08,1.19-.06,2.14.12,2.19,1.42.09,2.18-4.46,9.92-5.62,12.46h0ZM286.41,444c-2.48.32-6,3.36-7.92,5.04-11.41,9.95-20.19,23.81-25.34,38.05-.82,2.26-2.59,9.33-1.58,11.31.23.46,3.7,2.96,4.36,3.28,2.39,1.18,7.62,1.02,10.23.5,2.33-.47,7.4-2.49,8.56-4.63.36-.66,1.86-5.33,1.98-6.12.16-1.05-.05-2.14.06-3.18.25-2.43,1.37-4.37,1.97-6.59.71-2.64.99-5.62,1.61-8.34,1.51-6.55,3.5-13.01,5.96-19.26.79-2.02,3.78-7.2,3.37-9.03-.26-1.17-2.24-1.17-3.24-1.04ZM390.58,459.57c-.1-.83-2.13-.83-2.84-.76-3.05.32-12.26,6.7-14.96,8.87-1.52,1.23-2.82,2.52-4.2,3.9-7.14,7.19-13.51,15.24-17.93,24.41-.7,2.52,1.08,4.9,3.41,5.63,2.02.63,11.4.69,13.7.37,1.74-.24,6.6-3.6,7.2-5.29.83-2.36.77-4.73,1.49-7.07.54-1.77,1.67-3.23,2.33-4.84,2.81-6.83,4.5-12.42,8.28-19.02.75-1.3,3.67-4.98,3.52-6.2h0ZM314.28,98.86c-6.31,13.79-10.96,28.11-16.26,42.27-1.1,2.95-2.26,5.69-3.02,8.78-1.24,5.06-1.7,8.12-3.7,12.96-1.2,2.91-.98,4.23-3.13,7.05-4.33,5.66-10.79,10.07-17.74,5.72-7.72-4.84-3.75-14.76-1.23-21.45,3.66-9.71,9.32-20.37,14.71-29.24,8.07-13.29,15.99-25.24,27.5-35.88,1.66-1.54,3.94-3.96,6.28-4.08,1.19-.06,2.14.12,2.19,1.42.09,2.18-4.46,9.92-5.62,12.46h0ZM249.96,111.1c-2.48.32-6,3.36-7.92,5.04-11.41,9.95-20.19,23.81-25.34,38.05-.82,2.26-2.59,9.33-1.58,11.31.23.46,3.7,2.96,4.36,3.28,2.39,1.18,7.62,1.02,10.23.5,2.33-.47,7.4-2.49,8.56-4.63.36-.66,1.86-5.33,1.98-6.12.16-1.05-.05-2.14.06-3.18.25-2.43,1.37-4.37,1.97-6.59.71-2.64.99-5.62,1.61-8.34,1.51-6.55,3.5-13.01,5.96-19.26.79-2.02,3.78-7.2,3.37-9.03-.26-1.17-2.24-1.17-3.24-1.04ZM354.13,126.67c-.1-.83-2.13-.83-2.84-.76-3.05.32-12.26,6.7-14.96,8.87-1.52,1.23-2.82,2.52-4.2,3.9-7.14,7.19-13.51,15.24-17.93,24.41-.7,2.52,1.08,4.9,3.41,5.63,2.02.63,11.4.69,13.7.37,1.74-.24,6.6-3.6,7.2-5.29.83-2.36.77-4.73,1.49-7.07.54-1.77,1.67-3.23,2.33-4.84,2.81-6.83,4.5-12.42,8.28-19.02.75-1.3,3.67-4.98,3.52-6.2h0ZM173.4,283.1c-6.31,13.79-10.96,28.11-16.26,42.27-1.1,2.95-2.26,5.69-3.02,8.78-1.24,5.06-1.7,8.12-3.7,12.96-1.2,2.91-.98,4.23-3.13,7.05-4.33,5.66-10.79,10.07-17.74,5.72-7.72-4.84-3.75-14.76-1.23-21.45,3.66-9.71,9.32-20.37,14.71-29.24,8.07-13.29,15.99-25.24,27.5-35.88,1.66-1.54,3.94-3.96,6.28-4.08,1.19-.06,2.14.12,2.19,1.42.09,2.18-4.46,9.92-5.62,12.46h0ZM109.08,295.34c-2.48.32-6,3.36-7.92,5.04-11.41,9.95-20.19,23.81-25.34,38.05-.82,2.26-2.59,9.33-1.58,11.31.23.46,3.7,2.96,4.36,3.28,2.39,1.18,7.62,1.02,10.23.5,2.33-.47,7.4-2.49,8.56-4.63.36-.66,1.86-5.33,1.98-6.12.16-1.05-.05-2.14.06-3.18.25-2.43,1.37-4.37,1.97-6.59.71-2.64.99-5.62,1.61-8.34,1.51-6.55,3.5-13.01,5.96-19.26.79-2.02,3.78-7.2,3.37-9.03-.26-1.17-2.24-1.17-3.24-1.04ZM213.25,310.91c-.1-.83-2.13-.83-2.84-.76-3.05.32-12.26,6.7-14.96,8.87-1.52,1.23-2.82,2.52-4.2,3.9-7.14,7.19-13.51,15.24-17.93,24.41-.7,2.52,1.08,4.9,3.41,5.63,2.02.63,11.4.69,13.7.37,1.74-.24,6.6-3.6,7.2-5.29.83-2.36.77-4.73,1.49-7.07.54-1.77,1.67-3.23,2.33-4.84,2.81-6.83,4.5-12.42,8.28-19.02.75-1.3,3.67-4.98,3.52-6.2h0ZM481.51,254.87c-6.31,13.79-10.96,28.11-16.26,42.27-1.1,2.95-2.26,5.69-3.02,8.78-1.24,5.06-1.7,8.12-3.7,12.96-1.2,2.91-.98,4.23-3.13,7.05-4.33,5.66-10.79,10.07-17.74,5.72-7.72-4.84-3.75-14.76-1.23-21.45,3.66-9.71,9.32-20.37,14.71-29.24,8.07-13.29,15.99-25.24,27.5-35.88,1.66-1.54,3.94-3.96,6.28-4.08,1.19-.06,2.14.12,2.19,1.42.09,2.18-4.46,9.92-5.62,12.46h0ZM417.18,267.11c-2.48.32-6,3.36-7.92,5.04-11.41,9.95-20.19,23.81-25.34,38.05-.82,2.26-2.59,9.33-1.58,11.31.23.46,3.7,2.96,4.36,3.28,2.39,1.18,7.62,1.02,10.23.5,2.33-.47,7.4-2.49,8.56-4.63.36-.66,1.86-5.33,1.98-6.12.16-1.05-.05-2.14.06-3.18.25-2.43,1.37-4.37,1.97-6.59.71-2.64.99-5.62,1.61-8.34,1.51-6.55,3.5-13.01,5.96-19.26.79-2.02,3.78-7.2,3.37-9.03-.26-1.17-2.24-1.17-3.24-1.04ZM521.35,282.68c-.1-.83-2.13-.83-2.84-.76-3.05.32-12.26,6.7-14.96,8.87-1.52,1.23-2.82,2.52-4.2,3.9-7.14,7.19-13.51,15.24-17.93,24.41-.7,2.52,1.08,4.9,3.41,5.63,2.02.63,11.4.69,13.7.37,1.74-.24,6.6-3.6,7.2-5.29.83-2.36.77-4.73,1.49-7.07.54-1.77,1.67-3.23,2.33-4.84,2.81-6.83,4.5-12.42,8.28-19.02.75-1.3,3.67-4.98,3.52-6.2h0Z', viewBoxWidth: 595.28 },
     'swamp': { pathData: 'M341.25,134.6c-1.28-.65-6.08-.38-7.77-.35-17.76.29-35.63.6-53.38.27-3.28-.06-6.57-.22-9.84-.18-6.5.09-20.02,1.72-24.92,6.87-4.75,4.99-2.47,10.98,3.47,12.24,5.75,1.21,10.58.85,16.3.82,15.9-.07,31.81-.04,47.67,0,5.23.01,12.18,1.03,17.23.26,3.93-.6,9-7.04,10.84-10.91,1.02-2.14,3.11-7.61.39-9.01h0ZM269.51,117.7c1.03.01,1.81.39,2.96.25,3.56-.45,8.61-7.16,10-10.82.64-1.67,1.55-4.59.27-6.11-.94-1.13-2.1-.39-3.11-.38-3.14.05-6.25-.21-9.38-.2-12.75.02-25.5.49-38.28.45-1.68,0-3.14-.27-4.59-.28-.88,0-2.07.47-3,.55-4.66.43-14.95,1.4-18.42,4.8-2.86,2.81-5.24,7.71.06,9.02,3.29.81,7.93.95,11.42,1.43,2.84.39,4.87.85,7.85,1.03,14.66.93,29.55.05,44.21.25h0ZM370.3,100.39c-1.63-2.04-9.4-1.27-11.97-1.34-3.57-.09-7.13-.21-10.74-.2-6.73.02-13.59.26-20.31.47-6.53.2-14.13-.04-20.23,3.23-6.07,3.25-5.13,13.65,1.37,14.89,5.97,1.14,11.69.69,17.71.81,8.76.17,17.67.59,26.47.29,6.41-.21,9.89-.75,14.26-6.68,1.58-2.14,5.48-8.9,3.44-11.46h0ZM268.11,82.5c14.83-.77,30.13,1.13,44.9.27,3.82-.22,9.56-.94,11.95-4.83,2.36-3.84,2.27-8.95-2.01-10.71-3-1.23-12.79-.44-16.55-.4-9.45.08-20.53-.61-29.77.18-5.29.45-10.08,3.51-12.27,9.25-1.76,4.62.13,5.35,3.76,6.24h0ZM186.96,341.56c-1.28-.65-6.08-.38-7.77-.35-17.76.29-35.63.6-53.38.27-3.28-.06-6.57-.22-9.84-.18-6.5.09-20.02,1.72-24.92,6.87-4.75,4.99-2.47,10.98,3.47,12.24,5.75,1.21,10.58.85,16.3.82,15.9-.07,31.81-.04,47.67,0,5.23.01,12.18,1.03,17.23.26,3.93-.6,9-7.04,10.84-10.91,1.02-2.14,3.11-7.61.39-9.01h0ZM115.22,324.67c1.03.01,1.81.39,2.96.25,3.56-.45,8.61-7.16,10-10.82.64-1.67,1.55-4.59.27-6.11-.94-1.13-2.1-.39-3.11-.38-3.14.05-6.25-.21-9.38-.2-12.75.02-25.5.49-38.28.45-1.68,0-3.14-.27-4.59-.28-.88,0-2.07.47-3,.55-4.66.43-14.95,1.4-18.42,4.8-2.86,2.81-5.24,7.71.06,9.02,3.29.81,7.93.95,11.42,1.43,2.84.39,4.87.85,7.85,1.03,14.66.93,29.55.05,44.21.25h0ZM216.01,307.35c-1.63-2.04-9.4-1.27-11.97-1.34-3.57-.09-7.13-.21-10.74-.2-6.73.02-13.59.26-20.31.47-6.53.2-14.13-.04-20.23,3.23-6.07,3.25-5.13,13.65,1.37,14.89,5.97,1.14,11.69.69,17.71.81,8.76.17,17.67.59,26.47.29,6.41-.21,9.89-.75,14.26-6.68,1.58-2.14,5.48-8.9,3.44-11.46h0ZM113.82,289.47c14.83-.77,30.13,1.13,44.9.27,3.82-.22,9.56-.94,11.95-4.83,2.36-3.84,2.27-8.95-2.01-10.71-3-1.23-12.79-.44-16.55-.4-9.45.08-20.53-.61-29.77.18-5.29.45-10.08,3.51-12.27,9.25-1.76,4.62.13,5.35,3.76,6.24h0ZM517.06,299.63c-1.28-.65-6.08-.38-7.77-.35-17.76.29-35.63.6-53.38.27-3.28-.06-6.57-.22-9.84-.18-6.5.09-20.02,1.72-24.92,6.87-4.75,4.99-2.47,10.98,3.47,12.24,5.75,1.21,10.58.85,16.3.82,15.9-.07,31.81-.04,47.67,0,5.23.01,12.18,1.03,17.23.26,3.93-.6,9-7.04,10.84-10.91,1.02-2.14,3.11-7.61.39-9.01h0ZM445.32,282.74c1.03.01,1.81.39,2.96.25,3.56-.45,8.61-7.16,10-10.82.64-1.67,1.55-4.59.27-6.11-.94-1.13-2.1-.39-3.11-.38-3.14.05-6.25-.21-9.38-.2-12.75.02-25.5.49-38.28.45-1.68,0-3.14-.27-4.59-.28-.88,0-2.07.47-3,.55-4.66.43-14.95,1.4-18.42,4.8-2.86,2.81-5.24,7.71.06,9.02,3.29.81,7.93.95,11.42,1.43,2.84.39,4.87.85,7.85,1.03,14.66.93,29.55.05,44.21.25h0ZM546.11,265.42c-1.63-2.04-9.4-1.27-11.97-1.34-3.57-.09-7.13-.21-10.74-.2-6.73.02-13.59.26-20.31.47-6.53.2-14.13-.04-20.23,3.23-6.07,3.25-5.13,13.65,1.37,14.89,5.97,1.14,11.69.69,17.71.81,8.76.17,17.67.59,26.47.29,6.41-.21,9.89-.75,14.26-6.68,1.58-2.14,5.48-8.9,3.44-11.46h0ZM443.92,247.54c14.83-.77,30.13,1.13,44.9.27,3.82-.22,9.56-.94,11.95-4.83,2.36-3.84,2.27-8.95-2.01-10.71-3-1.23-12.79-.44-16.55-.4-9.45.08-20.53-.61-29.77.18-5.29.45-10.08,3.51-12.27,9.25-1.76,4.62.13,5.35,3.76,6.24h0ZM381.25,508.53c-1.28-.65-6.08-.38-7.77-.35-17.76.29-35.63.6-53.38.27-3.28-.06-6.57-.22-9.84-.18-6.5.09-20.02,1.72-24.92,6.87-4.75,4.99-2.47,10.98,3.47,12.24,5.75,1.21,10.58.85,16.3.82,15.9-.07,31.81-.04,47.67,0,5.23.01,12.18,1.03,17.23.26,3.93-.6,9-7.04,10.84-10.91,1.02-2.14,3.11-7.61.39-9.01h0ZM309.51,491.64c1.03.01,1.81.39,2.96.25,3.56-.45,8.61-7.16,10-10.82.64-1.67,1.55-4.59.27-6.11-.94-1.13-2.1-.39-3.11-.38-3.14.05-6.25-.21-9.38-.2-12.75.02-25.5.49-38.28.45-1.68,0-3.14-.27-4.59-.28-.88,0-2.07.47-3,.55-4.66.43-14.95,1.4-18.42,4.8-2.86,2.81-5.24,7.71.06,9.02,3.29.81,7.93.95,11.42,1.43,2.84.39,4.87.85,7.85,1.03,14.66.93,29.55.05,44.21.25h0ZM410.3,474.32c-1.63-2.04-9.4-1.27-11.97-1.34-3.57-.09-7.13-.21-10.74-.2-6.73.02-13.59.26-20.31.47-6.53.2-14.13-.04-20.23,3.23-6.07,3.25-5.13,13.65,1.37,14.89,5.97,1.14,11.69.69,17.71.81,8.76.17,17.67.59,26.47.29,6.41-.21,9.89-.75,14.26-6.68,1.58-2.14,5.48-8.9,3.44-11.46h0ZM308.11,456.43c14.83-.77,30.13,1.13,44.9.27,3.82-.22,9.56-.94,11.95-4.83,2.36-3.84,2.27-8.95-2.01-10.71-3-1.23-12.79-.44-16.55-.4-9.45.08-20.53-.61-29.77.18-5.29.45-10.08,3.51-12.27,9.25-1.76,4.62.13,5.35,3.76,6.24h0Z', viewBoxWidth: 595.28 },
     'bush': { pathData: 'M459.07,261.03c32.2.65,66.06,29.65,69.2,61.42.35,3.57-.76,17.06.21,18.69.22.37,1.89.83,2.61,1.53,10.82,10.36,14.38,17.31,23.02,28.09,5.78,7.21,22.37,13.5,24.53,18.27,4.55,10.05-.6,19.29-11.17,21.7-6.11,1.39-44.49,1.67-50.7.42-7.12-1.43-12.14-7.59-15.21-13.6-11.99,11.43-24.29,21.76-42.23,15.69-16.39-5.54-20.73-28.38-10.71-41.02,7.76-9.8,17.03-11.23,23.28-25.03,3.87-8.55,5.1-13.71.29-22.13-10.35-18.1-30.71-6.63-46.74-15.79-18.18-10.39-15.08-30.24-22.9-46.6-13.81-28.91-51.55-40.53-78.56-21.24-11.37,8.11-9.99,25.85-26.62,34.64-29.19,15.43-46.35-18.25-71.86-24.57-21.55-5.35-51.88,10.59-52.14,34.25-.2,18.84,19.5,39.43,9.53,57.48-4.91,8.89-18,15.69-28.17,15.7-4.98,0-9.65-2.24-14.73-1.71-11.44,1.17-29.11,11.47-23.69,24.66,3.09,7.51,6.38,10.06,5.17,19.83-.78,6.3-10.23,12.68-16.42,13.34-25.47,2.71-55.63-2.06-81.6.05-10.59-2.25-10.38-20.07-4.2-26.34,10.66-10.83,27.42-15.91,42.02-19.04,3.53-31.8,28.73-54.79,59.22-62.52-2.76-22.62-1.3-43.85,10.52-63.81,28.33-47.83,97.36-59.23,142.8-28.24,1.04,0,12.1-12.39,14.49-14.33,28.57-23.27,73.95-27.18,107.79-13.79,31.14,12.32,55.87,41.83,62.98,74.01Z', viewBoxWidth: 595.28 },
