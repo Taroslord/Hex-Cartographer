@@ -312,7 +312,7 @@ const TRANSLATIONS = {
         // Einstellungen
         'settings.exportWidth': 'Standard-Breite für Bildexport in Pixeln.',
         'settings.fastLoad': 'Schnelles Laden',
-        'settings.fastLoadDesc': 'Lädt Karten schneller. Wichtig: Karten werden dann vom Sync-Dienst von Obsidian nicht automatisch synchronisiert. Damit Hex-Cartographer-Karten synchronisiert werden, aktivieren Sie in den Sync-Einstellungen von Obsidian „Alle anderen Dateien synchronisieren". Das Zahnrad-Symbol öffnet die Sync-Einstellungen. Wenn Sie nur lokal arbeiten, müssen Sie nichts ändern.',
+        'settings.fastLoadDesc': 'Lädt Karten schneller. Achtung: In Hex Cartographer 1.2 und älter öffnen diese Karten nicht. Obsidian Sync überträgt sie nur mit „Alle anderen Dateien synchronisieren" (Zahnrad öffnet die Sync-Einstellungen).',
         'notice.duplicateMaps': 'Achtung: {count} Karte(n) sind doppelt vorhanden.',
         'notice.duplicateMapTooltip': 'Diese Karte existiert zweimal — einmal als .hexcartographer, einmal als .hexcartographer.md.',
         'duplicate.barText': '{count} Karte(n) doppelt vorhanden. {action}',
@@ -333,6 +333,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Waben-Rahmen ausblenden',
         'settings.hideHexBordersDesc': 'Blendet die grauen Rahmenlinien zwischen den Waben aus.',
         'settings.hexSection': 'Waben Optionen',
+        'settings.showMore': 'mehr',
+        'settings.showLess': 'weniger',
         'settings.hexBorderVisibility': 'Waben-Rahmen anzeigen',
         'settings.hexBorderVisibilityDesc': 'Rahmen um jede Wabe anzeigen.',
         'settings.hexBorderStyle': 'Farbe & Transparenz',
@@ -345,7 +347,7 @@ const TRANSLATIONS = {
         'settings.userAssets': 'Benutzergrafiken',
         'settings.userAssetPreview': 'Thumbnails anzeigen',
         'settings.userAssetPreviewDesc': 'Zeigt im Auswahlmenü Vorschaubilder aller Grafiken, statt nur Namen.',
-        'settings.userAssetsDesc': 'Jede Kategorie hat ihren eigenen Ordner im Vault. Bleibt ein Feld leer, verwendet die Kategorie weiterhin die mitgelieferten Grafiken. Unterstützt werden SVG, PNG, JPG, WEBP, GIF und AVIF; Unterordner werden zu Untermenüs. Grafiken mit transparentem Hintergrund eignen sich besonders für Symbole, weil dann die Farbe oder Textur der Wabe sichtbar bleibt. Eigene Grafiken lassen sich nicht einfärben (nur sehr einfache SVG-Grafiken sind eine Ausnahme).',
+        'settings.userAssetsDesc': 'Jede Symbol-Kategorie nutzt einen eigenen Ordnerpfad in Ihrem Vault. Die Inhalte werden gemeinsam mit den Standard-Grafiken angezeigt. Unterordner werden zu Untermenüs.\nEigene Symbole möglichst auf transparenten Hintergrund setzen, damit Farbe oder Textur der Wabe darunter durchscheint.\nEinfärben geht nur bei SVG-Grafiken, die als „Zusammengesetzter Pfad" abgespeichert wurden.\nUnterstützte Formate: PNG, JPG, WEBP, GIF, AVIF & SVG.',
         'settings.userAssetsPlaceholderHint': 'Kann eine eigene Grafik nicht geladen werden (fehlender Ordnerpfad oder entfernte Datei), zeigt die Wabe ein kleines Ordner-Symbol und oben erscheint ein roter Hinweis, welche Kategorie fehlt. Sie können den Ordnerinhalt oder Pfad prüfen oder mit dem vorhandenen Material weiterarbeiten.',
         'settings.userAssetsPlaceholder': 'z. B. Assets/HexGrafiken',
         'settings.userAssetsBrowse': 'Ordner auswählen',
@@ -602,7 +604,7 @@ const TRANSLATIONS = {
         // Settings
         'settings.exportWidth': 'Default width for image export in pixels.',
         'settings.fastLoad': 'Fast loading',
-        'settings.fastLoadDesc': 'Loads maps faster. Important: maps are then not synced automatically by Obsidian\'s Sync service. To sync Hex Cartographer maps, turn on "Sync all other file types" in Obsidian\'s Sync settings. The gear icon opens the Sync settings. If you only work locally, you don\'t need to change anything.',
+        'settings.fastLoadDesc': 'Loads maps faster. Warning: these maps won\'t open in Hex Cartographer 1.2 and earlier. Obsidian Sync transfers them only with ‘Sync all other files’ on (gear opens Sync settings).',
         'notice.duplicateMaps': 'Warning: {count} map(s) exist twice.',
         'notice.duplicateMapTooltip': 'This map exists twice — once as .hexcartographer and once as .hexcartographer.md.',
         'duplicate.barText': '{count} map(s) exist twice. {action}',
@@ -623,6 +625,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Hide hex borders',
         'settings.hideHexBordersDesc': 'Hides the gray border lines between hexes.',
         'settings.hexSection': 'Hex options',
+        'settings.showMore': 'more',
+        'settings.showLess': 'less',
         'settings.hexBorderVisibility': 'Show hex border',
         'settings.hexBorderVisibilityDesc': 'Show the border around each hex.',
         'settings.hexBorderStyle': 'Color & transparency',
@@ -635,7 +639,7 @@ const TRANSLATIONS = {
         'settings.userAssets': 'User graphics',
         'settings.userAssetPreview': 'Show thumbnails',
         'settings.userAssetPreviewDesc': 'Shows thumbnail previews of all graphics in the selection menu, not just names.',
-        'settings.userAssetsDesc': 'Each category has its own folder in your vault. Leave a field empty and that category keeps using the built-in graphics. SVG, PNG, JPG, WEBP, GIF and AVIF are supported; subfolders become submenus. Graphics with a transparent background work best for symbols, because the hex color or texture stays visible behind them. Custom graphics cannot be recolored (only very simple SVG graphics are an exception).',
+        'settings.userAssetsDesc': 'Each symbol category uses its own folder path in your vault. Its contents appear alongside the built-in graphics. Subfolders become submenus.\nFor your own symbols, use a transparent background where possible, so the hex\'s color or texture shows through.\nRecoloring only works for SVG graphics saved as a "compound path".\nSupported formats: PNG, JPG, WEBP, GIF, AVIF & SVG.',
         'settings.userAssetsPlaceholderHint': 'If a custom graphic cannot be loaded (missing folder path or a removed file), the hex shows a small folder icon and a red bar at the top names the affected category. Check the folder contents or path, or keep working with what you have.',
         'settings.userAssetsPlaceholder': 'e.g. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Choose folder',
@@ -870,7 +874,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': '确定要删除文本吗？',
         'settings.exportWidth': '图片导出的默认宽度（像素）。',
         'settings.fastLoad': '快速加载',
-        'settings.fastLoadDesc': '更快地加载地图。重要提示：这样地图不会由 Obsidian 的同步服务自动同步。若要同步 Hex Cartographer 地图，请在 Obsidian 的同步设置中打开“同步所有其他文件类型”。齿轮图标可打开同步设置。如果您只在本地使用，则无需更改任何设置。',
+        'settings.fastLoadDesc': '更快地加载地图。注意：这些地图在 Hex Cartographer 1.2 及更早版本中无法打开。仅当启用“同步所有其他文件”时，Obsidian Sync 才会同步（齿轮打开同步设置）。',
         'notice.duplicateMaps': '注意：有 {count} 张地图重复存在。',
         'notice.duplicateMapTooltip': '此地图存在两份——一份为 .hexcartographer，一份为 .hexcartographer.md。',
         'duplicate.barText': '有 {count} 张地图重复。{action}',
@@ -891,6 +895,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': '隐藏六边形边框',
         'settings.hideHexBordersDesc': '隐藏六边形之间的灰色边框线。',
         'settings.hexSection': '六边形选项',
+        'settings.showMore': '更多',
+        'settings.showLess': '收起',
         'settings.hexBorderVisibility': '显示六边形边框',
         'settings.hexBorderVisibilityDesc': '显示每个六边形的边框。',
         'settings.hexBorderStyle': '颜色和透明度',
@@ -903,7 +909,7 @@ const TRANSLATIONS = {
         'settings.userAssets': '用户图形',
         'settings.userAssetPreview': '显示缩略图',
         'settings.userAssetPreviewDesc': '在选择菜单中显示所有图形的缩略图预览，而不仅是名称。',
-        'settings.userAssetsDesc': '每个类别在库中都有自己的文件夹。留空某个字段，该类别将继续使用内置图形。支持 SVG、PNG、JPG、WEBP、GIF 和 AVIF；子文件夹会变成子菜单。背景透明的图形最适合做符号，因为六边形的颜色或纹理仍可见。自定义图形无法重新着色（只有非常简单的 SVG 图形例外）。',
+        'settings.userAssetsDesc': '每个符号类别使用您库中的一个专属文件夹路径。其内容与内置图形一同显示。子文件夹会变成子菜单。\n自定义符号尽量使用透明背景，以便六边形的颜色或纹理透出来。\n只有保存为“复合路径”的 SVG 图形才能重新着色。\n支持的格式：PNG、JPG、WEBP、GIF、AVIF 和 SVG。',
         'settings.userAssetsPlaceholderHint': '如果自定义图形无法加载（缺少文件夹路径或文件已删除），六边形会显示一个小文件夹图标，顶部的红色提示会指出缺少的类别。您可以检查文件夹内容或路径，或使用现有素材继续工作。',
         'settings.userAssetsPlaceholder': '例如 Assets/HexGraphics',
         'settings.userAssetsBrowse': '选择文件夹',
@@ -1132,7 +1138,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': 'Действительно удалить текст?',
         'settings.exportWidth': 'Стандартная ширина для экспорта изображений в пикселях.',
         'settings.fastLoad': 'Быстрая загрузка',
-        'settings.fastLoadDesc': 'Загружает карты быстрее. Важно: тогда карты не синхронизируются автоматически службой синхронизации Obsidian. Чтобы карты Hex Cartographer синхронизировались, включите в настройках синхронизации Obsidian «Синхронизировать все прочие файлы». Значок шестерёнки открывает настройки синхронизации. Если вы работаете только локально, ничего менять не нужно.',
+        'settings.fastLoadDesc': 'Загружает карты быстрее. Внимание: эти карты не откроются в Hex Cartographer 1.2 и старше. Obsidian Sync синхронизирует их только при включённой «Синхронизировать все прочие файлы» (шестерёнка открывает настройки Sync).',
         'notice.duplicateMaps': 'Внимание: {count} карт(ы) существуют дважды.',
         'notice.duplicateMapTooltip': 'Эта карта существует дважды — как .hexcartographer и как .hexcartographer.md.',
         'duplicate.barText': '{count} карт(ы) существуют дважды. {action}',
@@ -1153,6 +1159,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Скрыть границы шестиугольников',
         'settings.hideHexBordersDesc': 'Скрывает серые линии границ между шестиугольниками.',
         'settings.hexSection': 'Параметры шестиугольников',
+        'settings.showMore': 'подробнее',
+        'settings.showLess': 'свернуть',
         'settings.hexBorderVisibility': 'Показывать рамку шестиугольников',
         'settings.hexBorderVisibilityDesc': 'Показывать рамку вокруг каждого шестиугольника.',
         'settings.hexBorderStyle': 'Цвет и прозрачность',
@@ -1165,7 +1173,7 @@ const TRANSLATIONS = {
         'settings.userAssets': 'Пользовательская графика',
         'settings.userAssetPreview': 'Показывать миниатюры',
         'settings.userAssetPreviewDesc': 'Показывает миниатюры всех график в меню выбора, а не только имена.',
-        'settings.userAssetsDesc': 'У каждой категории есть своя папка в хранилище. Оставьте поле пустым — категория продолжит использовать встроенную графику. Поддерживаются SVG, PNG, JPG, WEBP, GIF и AVIF; вложенные папки становятся подменю. Для символов лучше всего подходит графика с прозрачным фоном, так как за ней остаётся виден цвет или текстура соты. Собственную графику нельзя перекрашивать (исключение — очень простые SVG-файлы).',
+        'settings.userAssetsDesc': 'Каждая категория символов использует свою папку в вашем хранилище. Её содержимое отображается вместе со встроенной графикой. Вложенные папки становятся подменю.\nДля собственных символов по возможности используйте прозрачный фон, чтобы сквозь них был виден цвет или текстура соты.\nПерекрашивание работает только для SVG, сохранённых как «составной контур».\nПоддерживаемые форматы: PNG, JPG, WEBP, GIF, AVIF и SVG.',
         'settings.userAssetsPlaceholderHint': 'Если пользовательская графика не загружается (нет пути к папке или файл удалён), сота показывает маленький значок папки, а красная полоса сверху называет затронутую категорию. Проверьте содержимое папки или путь либо продолжайте работать с тем, что есть.',
         'settings.userAssetsPlaceholder': 'напр. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Выбрать папку',
@@ -1394,7 +1402,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': '本当にテキストを削除しますか？',
         'settings.exportWidth': '画像エクスポートのデフォルト幅（ピクセル）。',
         'settings.fastLoad': '高速読み込み',
-        'settings.fastLoadDesc': 'マップをより速く読み込みます。重要：この場合、マップは Obsidian の同期サービスで自動的に同期されません。Hex Cartographer のマップを同期するには、Obsidian の同期設定で「その他のすべてのファイルを同期」をオンにしてください。歯車アイコンで同期設定を開けます。ローカルのみで使う場合は、何も変更する必要はありません。',
+        'settings.fastLoadDesc': 'マップをより速く読み込みます。注意：これらのマップは Hex Cartographer 1.2 以前では開けません。Obsidian Sync は「その他のすべてのファイルを同期」が有効な場合のみ同期します（歯車で同期設定を開く）。',
         'notice.duplicateMaps': '注意：{count} 件のマップが二重に存在します。',
         'notice.duplicateMapTooltip': 'このマップは二重に存在します（.hexcartographer と .hexcartographer.md）。',
         'duplicate.barText': '{count} 件のマップが二重に存在します。{action}',
@@ -1415,6 +1423,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': '六角形の枠線を非表示',
         'settings.hideHexBordersDesc': '六角形間のグレーの枠線を非表示にします。',
         'settings.hexSection': 'ヘクスのオプション',
+        'settings.showMore': 'もっと見る',
+        'settings.showLess': '折りたたむ',
         'settings.hexBorderVisibility': 'ヘクスの枠線を表示',
         'settings.hexBorderVisibilityDesc': '各ヘクスの枠線を表示します。',
         'settings.hexBorderStyle': '色と透明度',
@@ -1427,7 +1437,7 @@ const TRANSLATIONS = {
         'settings.userAssets': 'ユーザーグラフィック',
         'settings.userAssetPreview': 'サムネイルを表示',
         'settings.userAssetPreviewDesc': '選択メニューで、名前だけでなくすべての画像のサムネイルを表示します。',
-        'settings.userAssetsDesc': '各カテゴリは保管庫内に独自のフォルダーを持ちます。フィールドを空にすると、そのカテゴリは内蔵グラフィックを使い続けます。SVG、PNG、JPG、WEBP、GIF、AVIF に対応し、サブフォルダーはサブメニューになります。背景が透明な画像はシンボルに最適です。ヘクスの色やテクスチャが背後に見えるためです。カスタム画像は色を変更できません（ごく単純な SVG 画像のみ例外）。',
+        'settings.userAssetsDesc': '各シンボルのカテゴリは、保管庫内の専用フォルダーを使います。その内容は内蔵グラフィックと一緒に表示されます。サブフォルダーはサブメニューになります。\n自作シンボルはできるだけ透明な背景にして、ヘクスの色やテクスチャが透けて見えるようにします。\n色の変更は「複合パス」として保存された SVG グラフィックでのみ可能です。\n対応形式：PNG、JPG、WEBP、GIF、AVIF、SVG。',
         'settings.userAssetsPlaceholderHint': 'カスタム画像を読み込めない場合（フォルダーパスがない、またはファイルが削除された）、ヘクスに小さなフォルダーアイコンが表示され、上部の赤いバーに不足しているカテゴリが表示されます。フォルダーの内容やパスを確認するか、手持ちの素材で作業を続けられます。',
         'settings.userAssetsPlaceholder': '例: Assets/HexGraphics',
         'settings.userAssetsBrowse': 'フォルダを選択',
@@ -1656,7 +1666,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': 'Vraiment supprimer le texte ?',
         'settings.exportWidth': 'Largeur par défaut pour l\'export d\'image en pixels.',
         'settings.fastLoad': 'Chargement rapide',
-        'settings.fastLoadDesc': 'Charge les cartes plus vite. Important : les cartes ne sont alors pas synchronisées automatiquement par le service de synchronisation d\'Obsidian. Pour synchroniser les cartes Hex Cartographer, activez « Synchroniser tous les autres fichiers » dans les paramètres de synchronisation d\'Obsidian. L\'icône d\'engrenage ouvre ces paramètres. Si vous travaillez uniquement en local, vous n\'avez rien à changer.',
+        'settings.fastLoadDesc': 'Charge les cartes plus vite. Attention : ces cartes ne s’ouvrent pas dans Hex Cartographer 1.2 et antérieur. Obsidian Sync ne les synchronise qu’avec « Synchroniser tous les autres fichiers » (l’engrenage ouvre les paramètres de synchro).',
         'notice.duplicateMaps': 'Attention : {count} carte(s) existent en double.',
         'notice.duplicateMapTooltip': 'Cette carte existe en double — une fois en .hexcartographer et une fois en .hexcartographer.md.',
         'duplicate.barText': '{count} carte(s) en double. {action}',
@@ -1677,6 +1687,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Masquer les bordures des hexagones',
         'settings.hideHexBordersDesc': 'Masque les lignes grises entre les hexagones.',
         'settings.hexSection': 'Options des hexagones',
+        'settings.showMore': 'plus',
+        'settings.showLess': 'moins',
         'settings.hexBorderVisibility': 'Afficher la bordure des hexagones',
         'settings.hexBorderVisibilityDesc': 'Afficher la bordure autour de chaque hexagone.',
         'settings.hexBorderStyle': 'Couleur et transparence',
@@ -1689,7 +1701,7 @@ const TRANSLATIONS = {
         'settings.userAssets': 'Graphiques utilisateur',
         'settings.userAssetPreview': 'Afficher les miniatures',
         'settings.userAssetPreviewDesc': 'Affiche des miniatures de tous les graphiques dans le menu de sélection, pas seulement les noms.',
-        'settings.userAssetsDesc': 'Chaque catégorie a son propre dossier dans le coffre. Laissez un champ vide et la catégorie continue d\'utiliser les graphiques fournis. SVG, PNG, JPG, WEBP, GIF et AVIF sont pris en charge ; les sous-dossiers deviennent des sous-menus. Les images à fond transparent conviennent particulièrement aux symboles, car la couleur ou la texture de l\'hexagone reste visible. Les graphiques personnalisés ne peuvent pas être recolorés (seules les images SVG très simples font exception).',
+        'settings.userAssetsDesc': 'Chaque catégorie de symboles utilise son propre dossier dans votre coffre. Son contenu s\'affiche avec les graphiques fournis. Les sous-dossiers deviennent des sous-menus.\nPour vos propres symboles, utilisez si possible un fond transparent, afin que la couleur ou la texture de l\'hexagone transparaisse.\nLa recoloration ne fonctionne que pour les SVG enregistrés en « tracé composé ».\nFormats pris en charge : PNG, JPG, WEBP, GIF, AVIF et SVG.',
         'settings.userAssetsPlaceholderHint': 'Si un graphique personnalisé ne peut pas être chargé (chemin de dossier manquant ou fichier supprimé), l\'hexagone affiche une petite icône de dossier et une barre rouge en haut indique la catégorie concernée. Vérifiez le contenu du dossier ou le chemin, ou continuez avec ce que vous avez.',
         'settings.userAssetsPlaceholder': 'p. ex. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Choisir un dossier',
@@ -1918,7 +1930,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': 'Realmente excluir o texto?',
         'settings.exportWidth': 'Largura padrão para exportação de imagem em pixels.',
         'settings.fastLoad': 'Carregamento rápido',
-        'settings.fastLoadDesc': 'Carrega os mapas mais depressa. Importante: os mapas deixam de ser sincronizados automaticamente pelo serviço de sincronização do Obsidian. Para sincronizar os mapas do Hex Cartographer, ative "Sincronizar todos os outros ficheiros" nas definições de sincronização do Obsidian. O ícone de engrenagem abre essas definições. Se trabalha apenas localmente, não precisa de alterar nada.',
+        'settings.fastLoadDesc': 'Carrega os mapas mais depressa. Atenção: estes mapas não abrem no Hex Cartographer 1.2 e anteriores. O Obsidian Sync só os sincroniza com «Sincronizar todos os outros ficheiros» ativo (a engrenagem abre as definições de sincronização).',
         'notice.duplicateMaps': 'Atenção: {count} mapa(s) existem em duplicado.',
         'notice.duplicateMapTooltip': 'Este mapa existe duas vezes — como .hexcartographer e como .hexcartographer.md.',
         'duplicate.barText': '{count} mapa(s) em duplicado. {action}',
@@ -1939,6 +1951,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Ocultar bordas dos hexágonos',
         'settings.hideHexBordersDesc': 'Oculta as linhas de borda cinzas entre os hexágonos.',
         'settings.hexSection': 'Opções de hexágonos',
+        'settings.showMore': 'mais',
+        'settings.showLess': 'menos',
         'settings.hexBorderVisibility': 'Mostrar borda dos hexágonos',
         'settings.hexBorderVisibilityDesc': 'Mostra a borda à volta de cada hexágono.',
         'settings.hexBorderStyle': 'Cor e transparência',
@@ -1951,7 +1965,7 @@ const TRANSLATIONS = {
         'settings.userAssets': 'Gráficos do utilizador',
         'settings.userAssetPreview': 'Mostrar miniaturas',
         'settings.userAssetPreviewDesc': 'Mostra miniaturas de todos os gráficos no menu de seleção, não apenas os nomes.',
-        'settings.userAssetsDesc': 'Cada categoria tem a sua própria pasta no cofre. Se deixar um campo vazio, essa categoria continua a usar os gráficos incluídos. São suportados SVG, PNG, JPG, WEBP, GIF e AVIF; as subpastas tornam-se submenus. As imagens com fundo transparente são ideais para símbolos, porque a cor ou textura do hexágono continua visível. Os gráficos personalizados não podem ser recoloridos (só as imagens SVG muito simples são exceção).',
+        'settings.userAssetsDesc': 'Cada categoria de símbolos usa a sua própria pasta no seu cofre. O conteúdo é apresentado junto com os gráficos incluídos. As subpastas tornam-se submenus.\nNos seus próprios símbolos, use de preferência um fundo transparente, para que a cor ou textura do hexágono transpareça.\nA recoloração só funciona em SVG guardados como «caminho composto».\nFormatos suportados: PNG, JPG, WEBP, GIF, AVIF e SVG.',
         'settings.userAssetsPlaceholderHint': 'Se um gráfico personalizado não puder ser carregado (caminho da pasta ausente ou ficheiro removido), o hexágono mostra um pequeno ícone de pasta e uma barra vermelha no topo indica a categoria afetada. Verifique o conteúdo da pasta ou o caminho, ou continue a trabalhar com o que tem.',
         'settings.userAssetsPlaceholder': 'ex.: Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Escolher pasta',
@@ -2180,7 +2194,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': '텍스트를 정말 삭제하시겠습니까?',
         'settings.exportWidth': '이미지 내보내기의 기본 너비(픽셀).',
         'settings.fastLoad': '빠른 로딩',
-        'settings.fastLoadDesc': '지도를 더 빠르게 불러옵니다. 중요: 이 경우 지도는 Obsidian 동기화 서비스로 자동 동기화되지 않습니다. Hex Cartographer 지도를 동기화하려면 Obsidian 동기화 설정에서 "기타 모든 파일 동기화"를 켜세요. 톱니바퀴 아이콘으로 동기화 설정을 열 수 있습니다. 로컬에서만 사용한다면 아무것도 바꿀 필요가 없습니다.',
+        'settings.fastLoadDesc': '지도를 더 빠르게 불러옵니다. 주의: 이 지도는 Hex Cartographer 1.2 이하에서는 열리지 않습니다. Obsidian Sync는 ‘기타 모든 파일 동기화’가 켜져 있을 때만 동기화합니다(톱니바퀴로 동기화 설정 열기).',
         'notice.duplicateMaps': '주의: {count}개의 지도가 중복되어 있습니다.',
         'notice.duplicateMapTooltip': '이 지도는 .hexcartographer와 .hexcartographer.md로 두 번 존재합니다.',
         'duplicate.barText': '{count}개의 지도가 중복되어 있습니다. {action}',
@@ -2201,6 +2215,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': '육각형 테두리 숨기기',
         'settings.hideHexBordersDesc': '육각형 사이의 회색 테두리 선을 숨깁니다.',
         'settings.hexSection': '헥스 옵션',
+        'settings.showMore': '더 보기',
+        'settings.showLess': '접기',
         'settings.hexBorderVisibility': '헥스 테두리 표시',
         'settings.hexBorderVisibilityDesc': '각 헥스의 테두리를 표시합니다.',
         'settings.hexBorderStyle': '색상 및 투명도',
@@ -2213,7 +2229,7 @@ const TRANSLATIONS = {
         'settings.userAssets': '사용자 그래픽',
         'settings.userAssetPreview': '썸네일 표시',
         'settings.userAssetPreviewDesc': '선택 메뉴에서 이름만이 아니라 모든 그래픽의 미리보기 썸네일을 표시합니다.',
-        'settings.userAssetsDesc': '각 카테고리는 보관함 안에 고유한 폴더를 가집니다. 항목을 비워 두면 해당 카테고리는 계속 기본 제공 그래픽을 사용합니다. SVG, PNG, JPG, WEBP, GIF, AVIF를 지원하며 하위 폴더는 하위 메뉴가 됩니다. 배경이 투명한 이미지는 헥스의 색상이나 텍스처가 뒤로 비치므로 기호에 특히 적합합니다. 사용자 그래픽은 색을 바꿀 수 없습니다(아주 단순한 SVG 이미지만 예외).',
+        'settings.userAssetsDesc': '각 기호 카테고리는 보관함 안의 전용 폴더 경로를 사용합니다. 그 내용은 기본 제공 그래픽과 함께 표시됩니다. 하위 폴더는 하위 메뉴가 됩니다.\n사용자 기호는 가능하면 투명 배경으로 설정해 헥스의 색상이나 텍스처가 비쳐 보이게 하세요.\n색상 변경은 "컴파운드 패스"로 저장된 SVG 그래픽에서만 가능합니다.\n지원 형식: PNG, JPG, WEBP, GIF, AVIF & SVG.',
         'settings.userAssetsPlaceholderHint': '사용자 그래픽을 불러올 수 없으면(폴더 경로 없음 또는 파일 삭제) 헥스에 작은 폴더 아이콘이 표시되고 상단의 빨간 막대가 해당 카테고리를 알려줍니다. 폴더 내용이나 경로를 확인하거나 있는 자료로 계속 작업할 수 있습니다.',
         'settings.userAssetsPlaceholder': '예: Assets/HexGraphics',
         'settings.userAssetsBrowse': '폴더 선택',
@@ -2442,7 +2458,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': '¿Eliminar texto realmente?',
         'settings.exportWidth': 'Ancho predeterminado para exportación de imagen en píxeles.',
         'settings.fastLoad': 'Carga rápida',
-        'settings.fastLoadDesc': 'Carga los mapas más rápido. Importante: los mapas ya no se sincronizan automáticamente con el servicio de sincronización de Obsidian. Para sincronizar los mapas de Hex Cartographer, active "Sincronizar todos los demás archivos" en los ajustes de sincronización de Obsidian. El icono de engranaje abre esos ajustes. Si solo trabaja en local, no necesita cambiar nada.',
+        'settings.fastLoadDesc': 'Carga los mapas más rápido. Atención: estos mapas no se abren en Hex Cartographer 1.2 y anteriores. Obsidian Sync solo los sincroniza con «Sincronizar todos los demás archivos» activado (el engranaje abre los ajustes de sincronización).',
         'notice.duplicateMaps': 'Atención: {count} mapa(s) existen por duplicado.',
         'notice.duplicateMapTooltip': 'Este mapa existe dos veces: como .hexcartographer y como .hexcartographer.md.',
         'duplicate.barText': '{count} mapa(s) duplicados. {action}',
@@ -2463,6 +2479,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Ocultar bordes de hexágonos',
         'settings.hideHexBordersDesc': 'Oculta las líneas grises entre los hexágonos.',
         'settings.hexSection': 'Opciones de hexágonos',
+        'settings.showMore': 'más',
+        'settings.showLess': 'menos',
         'settings.hexBorderVisibility': 'Mostrar borde de hexágonos',
         'settings.hexBorderVisibilityDesc': 'Muestra el borde alrededor de cada hexágono.',
         'settings.hexBorderStyle': 'Color y transparencia',
@@ -2475,7 +2493,7 @@ const TRANSLATIONS = {
         'settings.userAssets': 'Gráficos del usuario',
         'settings.userAssetPreview': 'Mostrar miniaturas',
         'settings.userAssetPreviewDesc': 'Muestra miniaturas de todos los gráficos en el menú de selección, no solo los nombres.',
-        'settings.userAssetsDesc': 'Cada categoría tiene su propia carpeta en el almacén. Si deja un campo vacío, esa categoría seguirá usando los gráficos incluidos. Se admiten SVG, PNG, JPG, WEBP, GIF y AVIF; las subcarpetas se convierten en submenús. Las imágenes con fondo transparente son ideales para símbolos, porque el color o la textura del hexágono sigue siendo visible. Los gráficos propios no se pueden recolorear (solo las imágenes SVG muy simples son una excepción).',
+        'settings.userAssetsDesc': 'Cada categoría de símbolos usa su propia carpeta en su almacén. Su contenido se muestra junto con los gráficos incluidos. Las subcarpetas se convierten en submenús.\nEn sus propios símbolos, use a ser posible un fondo transparente para que el color o la textura del hexágono se vea a través.\nEl recoloreado solo funciona con SVG guardados como «trazado compuesto».\nFormatos admitidos: PNG, JPG, WEBP, GIF, AVIF y SVG.',
         'settings.userAssetsPlaceholderHint': 'Si un gráfico personalizado no se puede cargar (falta la ruta de la carpeta o se eliminó un archivo), el hexágono muestra un pequeño icono de carpeta y una barra roja en la parte superior indica la categoría afectada. Puede comprobar el contenido de la carpeta o la ruta, o seguir trabajando con lo que tiene.',
         'settings.userAssetsPlaceholder': 'p. ej. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Elegir carpeta',
@@ -2704,7 +2722,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': 'Czy na pewno usunąć tekst?',
         'settings.exportWidth': 'Domyślna szerokość eksportu obrazu w pikselach.',
         'settings.fastLoad': 'Szybkie ładowanie',
-        'settings.fastLoadDesc': 'Wczytuje mapy szybciej. Ważne: mapy nie będą wtedy automatycznie synchronizowane przez usługę synchronizacji Obsidiana. Aby mapy Hex Cartographer były synchronizowane, należy włączyć „Synchronizuj wszystkie inne pliki" w ustawieniach synchronizacji Obsidiana. Ikona koła zębatego otwiera te ustawienia. Przy pracy wyłącznie lokalnie nie trzeba nic zmieniać.',
+        'settings.fastLoadDesc': 'Wczytuje mapy szybciej. Uwaga: tych map nie otworzysz w Hex Cartographer 1.2 i starszych. Obsidian Sync synchronizuje je tylko przy włączonym „Synchronizuj wszystkie inne pliki" (koło zębate otwiera ustawienia synchronizacji).',
         'notice.duplicateMaps': 'Uwaga: {count} mapa(y) występują podwójnie.',
         'notice.duplicateMapTooltip': 'Ta mapa istnieje dwukrotnie — jako .hexcartographer i jako .hexcartographer.md.',
         'duplicate.barText': '{count} mapa(y) podwójnie. {action}',
@@ -2725,6 +2743,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Ukryj obramowania sześciokątów',
         'settings.hideHexBordersDesc': 'Ukrywa szare linie obramowań między sześciokątami.',
         'settings.hexSection': 'Opcje sześciokątów',
+        'settings.showMore': 'więcej',
+        'settings.showLess': 'mniej',
         'settings.hexBorderVisibility': 'Pokaż obramowanie sześciokątów',
         'settings.hexBorderVisibilityDesc': 'Pokazuje obramowanie wokół każdego sześciokąta.',
         'settings.hexBorderStyle': 'Kolor i przezroczystość',
@@ -2737,7 +2757,7 @@ const TRANSLATIONS = {
         'settings.userAssets': 'Grafiki użytkownika',
         'settings.userAssetPreview': 'Pokaż miniatury',
         'settings.userAssetPreviewDesc': 'Pokazuje w menu wyboru miniatury wszystkich grafik, a nie tylko nazwy.',
-        'settings.userAssetsDesc': 'Każda kategoria ma własny folder w sejfie. Puste pole oznacza, że kategoria nadal używa wbudowanej grafiki. Obsługiwane są SVG, PNG, JPG, WEBP, GIF i AVIF; podfoldery stają się podmenu. Grafiki z przezroczystym tłem najlepiej nadają się na symbole, ponieważ kolor lub tekstura sześciokąta pozostaje widoczna. Własnej grafiki nie można przebarwiać (wyjątkiem są tylko bardzo proste pliki SVG).',
+        'settings.userAssetsDesc': 'Każda kategoria symboli używa własnego folderu w Twoim sejfie. Jego zawartość jest wyświetlana razem z wbudowanymi grafikami. Podfoldery stają się podmenu.\nWłasne symbole najlepiej ustawić na przezroczystym tle, aby prześwitywał kolor lub tekstura sześciokąta.\nZmiana koloru działa tylko dla grafik SVG zapisanych jako „ścieżka złożona".\nObsługiwane formaty: PNG, JPG, WEBP, GIF, AVIF i SVG.',
         'settings.userAssetsPlaceholderHint': 'Jeśli własnej grafiki nie można wczytać (brak ścieżki folderu lub usunięty plik), sześciokąt pokazuje małą ikonę folderu, a czerwony pasek u góry wskazuje, której kategorii brakuje. Można sprawdzić zawartość folderu lub ścieżkę albo pracować dalej z tym, co jest.',
         'settings.userAssetsPlaceholder': 'np. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Wybierz folder',
@@ -2966,7 +2986,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': 'Eliminare davvero il testo?',
         'settings.exportWidth': 'Larghezza predefinita per l\'esportazione di immagini in pixel.',
         'settings.fastLoad': 'Caricamento rapido',
-        'settings.fastLoadDesc': 'Carica le mappe più velocemente. Importante: le mappe non vengono più sincronizzate automaticamente dal servizio di sincronizzazione di Obsidian. Per sincronizzare le mappe di Hex Cartographer, attivare "Sincronizza tutti gli altri file" nelle impostazioni di sincronizzazione di Obsidian. L\'icona a forma di ingranaggio apre quelle impostazioni. Lavorando solo in locale, non occorre cambiare nulla.',
+        'settings.fastLoadDesc': 'Carica le mappe più velocemente. Attenzione: queste mappe non si aprono in Hex Cartographer 1.2 e precedenti. Obsidian Sync le sincronizza solo con «Sincronizza tutti gli altri file» attivo (l’ingranaggio apre le impostazioni di sincronizzazione).',
         'notice.duplicateMaps': 'Attenzione: {count} mappa/e esistono in doppio.',
         'notice.duplicateMapTooltip': 'Questa mappa esiste due volte — come .hexcartographer e come .hexcartographer.md.',
         'duplicate.barText': '{count} mappa/e in doppio. {action}',
@@ -2987,6 +3007,8 @@ const TRANSLATIONS = {
         'settings.hideHexBorders': 'Nascondi bordi esagoni',
         'settings.hideHexBordersDesc': 'Nasconde le linee grigie tra gli esagoni.',
         'settings.hexSection': 'Opzioni esagoni',
+        'settings.showMore': 'altro',
+        'settings.showLess': 'meno',
         'settings.hexBorderVisibility': 'Mostra bordo esagoni',
         'settings.hexBorderVisibilityDesc': 'Mostra il bordo attorno a ogni esagono.',
         'settings.hexBorderStyle': 'Colore e trasparenza',
@@ -2999,7 +3021,7 @@ const TRANSLATIONS = {
         'settings.userAssets': 'Grafiche utente',
         'settings.userAssetPreview': 'Mostra miniature',
         'settings.userAssetPreviewDesc': 'Mostra le anteprime di tutte le grafiche nel menu di selezione, non solo i nomi.',
-        'settings.userAssetsDesc': 'Ogni categoria ha la propria cartella nel vault. Lasciando un campo vuoto, la categoria continua a usare le grafiche incluse. Sono supportati SVG, PNG, JPG, WEBP, GIF e AVIF; le sottocartelle diventano sottomenu. Le immagini con sfondo trasparente sono ideali per i simboli, perché il colore o la texture dell\'esagono resta visibile. Le grafiche personalizzate non possono essere ricolorate (fanno eccezione solo le immagini SVG molto semplici).',
+        'settings.userAssetsDesc': 'Ogni categoria di simboli usa una propria cartella nel vault. Il suo contenuto viene mostrato insieme alle grafiche incluse. Le sottocartelle diventano sottomenu.\nPer i simboli personali usa se possibile uno sfondo trasparente, così il colore o la texture dell\'esagono traspare.\nLa ricolorazione funziona solo con SVG salvati come «tracciato composto».\nFormati supportati: PNG, JPG, WEBP, GIF, AVIF & SVG.',
         'settings.userAssetsPlaceholderHint': 'Se una grafica personalizzata non può essere caricata (percorso della cartella mancante o file rimosso), l\'esagono mostra una piccola icona di cartella e una barra rossa in alto indica la categoria interessata. È possibile controllare il contenuto della cartella o il percorso, oppure continuare con ciò che si ha.',
         'settings.userAssetsPlaceholder': 'es. Assets/HexGraphics',
         'settings.userAssetsBrowse': 'Scegli cartella',
@@ -5401,6 +5423,32 @@ class HexCartographerView extends ItemView {
         this.addLongPress(btn, () => this.showVariantMenu(groupId, wrapper));
     }
 
+    // Snapshot of the active tool + the settings a picker might disturb. A picker uses
+    // it to restore the exact prior tool (incl. pattern and colour) when switched off.
+    captureToolState() {
+        return {
+            group: this.currentToolGroup, drawMode: this.drawMode,
+            patternData: this.patternData, patternSourceHex: this.patternSourceHex,
+            hexColorColor: this.hexColorColor, hexTexture: this.hexTexture,
+            masterColor: this.masterColor,
+        };
+    }
+
+    restoreToolState(s) {
+        if (!s) return;
+        this.currentToolGroup = s.group;
+        this.drawMode = s.drawMode;
+        this.patternData = s.patternData;
+        this.patternSourceHex = s.patternSourceHex;
+        this.hexColorColor = s.hexColorColor;
+        this.hexTexture = s.hexTexture;
+        this.masterColor = s.masterColor;
+        if (this.masterColorInput) {
+            this.masterColorInput.value = this.masterColor;
+            if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
+        }
+    }
+
     createPatternTool(toolbar) {
         const wrapper = toolbar.createDiv({ style: 'display: flex; align-items: center; gap: 4px;' });
 
@@ -5427,8 +5475,12 @@ class HexCartographerView extends ItemView {
             this.patternPickMode = !wasActive;
             pickerBtn.style.background = this.patternPickMode ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
             if (this.patternPickMode) {
+                this._toolStateBeforePick = this.captureToolState();
                 this.currentToolGroup = null;
                 new Notice(t('notice.clickToPickPattern'));
+            } else {
+                // Switched off without picking: restore the prior tool and its settings.
+                this.restoreToolState(this._toolStateBeforePick);
             }
             this.updateToolbarState(toolbar);
         };
@@ -5989,13 +6041,17 @@ class HexCartographerView extends ItemView {
             }
             this.pathPickMode = !this.pathPickMode;
             if (this.pathPickMode) {
-                this.lastToolGroup = this.currentToolGroup;
+                this._toolStateBeforePick = this.captureToolState();
+                this.lastToolGroup = this.currentToolGroup; // read by the path-pick completion
                 this.currentToolGroup = null;
                 this.patternPickMode = false;
                 if (this.patternPickerBtn) { this.patternPickerBtn.style.background = BUTTON_BG_DEFAULT; }
                 this.borderPickMode = false;
                 if (this.borderPickerBtn) { this.borderPickerBtn.style.background = BUTTON_BG_DEFAULT; this.borderPickerBtn.style.color = ''; }
                 new Notice(t('notice.clickToPickPath'));
+            } else {
+                // Switched off without picking: restore the prior tool and its settings.
+                this.restoreToolState(this._toolStateBeforePick);
             }
             this.drawMode = 'pen';
             pickerBtn.style.background = this.pathPickMode ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
@@ -6294,9 +6350,15 @@ class HexCartographerView extends ItemView {
             const wasActive = this.borderPickMode;
             this.exitPathEditMode();
             this.borderPickMode = !wasActive;
-            this.currentToolGroup = this.borderPickMode ? null : 'border';
+            if (this.borderPickMode) {
+                this._toolStateBeforePick = this.captureToolState();
+                this.currentToolGroup = null;
+                new Notice(t('notice.clickToPickBorder'));
+            } else {
+                // Switched off without picking: restore the prior tool and its settings.
+                this.restoreToolState(this._toolStateBeforePick);
+            }
             this.drawMode = 'pen';
-            if (this.borderPickMode) new Notice(t('notice.clickToPickBorder'));
             pickerBtn.style.background = this.borderPickMode ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
             pickerBtn.style.color = this.borderPickMode ? 'var(--text-on-accent)' : '';
             this.updateToolbarState(toolbar);
@@ -11097,7 +11159,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
         const assetsBody = assetsSection.createDiv({ cls: 'hex-settings-body' });
         assetsBody.createEl('p', {
             text: t('settings.userAssetsDesc'),
-            attr: { style: 'color: var(--text-muted); font-size: 13px; margin-top: 0;' }
+            attr: { style: 'color: var(--text-muted); font-size: 13px; margin-top: 0; white-space: pre-line;' }
         });
         assetsBody.createEl('p', {
             text: t('settings.userAssetsPlaceholderHint'),
@@ -11187,6 +11249,51 @@ class HexCartographerSettingTab extends PluginSettingTab {
         }
 
         this.buildGuide(containerEl);
+
+        // Clamp long descriptions to 3 lines with a "more" toggle. Re-measured on resize
+        // (correct width, not the narrow open-animation frame) and when a section opens.
+        const reevalDescs = () => this.containerEl
+            .querySelectorAll('.setting-item-description')
+            .forEach(el => this.evaluateDescClamp(el));
+        if (this._descResizeObserver) this._descResizeObserver.disconnect();
+        this._descResizeObserver = new ResizeObserver(() => reevalDescs());
+        this._descResizeObserver.observe(containerEl);
+        containerEl.querySelectorAll('details.hex-settings-section').forEach(section => {
+            section.addEventListener('toggle', reevalDescs);
+        });
+    }
+
+    // Clamp + "more" toggle for one description if its text exceeds 3 lines. Reversible
+    // (safe to re-run on resize); keeps the user's expanded choice via a data flag.
+    evaluateDescClamp(el) {
+        if (!el) return;
+        // Measure the true (unclamped) height.
+        el.classList.remove('hex-clamp', 'hex-clamp-expanded');
+        if (el.clientHeight === 0) return; // hidden (collapsed section) -> handled on open
+        const cs = getComputedStyle(el);
+        let lineHeight = parseFloat(cs.lineHeight);
+        if (!Number.isFinite(lineHeight)) lineHeight = (parseFloat(cs.fontSize) || 13) * 1.4;
+        const overflows = el.scrollHeight > lineHeight * 3 + 2; // tolerance for rounding
+
+        let btn = el.parentElement.querySelector(':scope > .hex-desc-more');
+        if (!overflows) {                       // fits in 3 lines -> no clamp, no toggle
+            if (btn) btn.remove();
+            delete el.dataset.hexExpanded;
+            return;
+        }
+        const expanded = el.dataset.hexExpanded === '1';
+        el.classList.add('hex-clamp');
+        if (expanded) el.classList.add('hex-clamp-expanded');
+        if (!btn) {
+            btn = el.parentElement.createEl('a', { cls: 'hex-desc-more' });
+            btn.onclick = (e) => {
+                e.preventDefault();
+                const nowExpanded = el.classList.toggle('hex-clamp-expanded');
+                el.dataset.hexExpanded = nowExpanded ? '1' : '';
+                btn.setText(nowExpanded ? t('settings.showLess') : t('settings.showMore'));
+            };
+        }
+        btn.setText(expanded ? t('settings.showLess') : t('settings.showMore'));
     }
 
     // Hex numbering. No own heading — the master switch carries

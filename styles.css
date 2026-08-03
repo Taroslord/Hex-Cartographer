@@ -88,6 +88,28 @@
 .hex-settings-summary:hover { color: var(--text-accent); }
 .hex-settings-body { padding-bottom: 0.5em; }
 
+/* Long setting descriptions are clamped to 3 lines; the .hex-desc-more link (added by
+   makeDescExpandable only when the text overflows) toggles the expanded state. */
+.setting-item-description.hex-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.setting-item-description.hex-clamp.hex-clamp-expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+}
+.hex-desc-more {
+    display: inline-block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--text-accent);
+    cursor: pointer;
+}
+.hex-desc-more:hover { text-decoration: underline; }
+
 /* Sub-options of a switch (e.g. "Number hexes"): indented with a subtle line
    on the left so the grouping is visible. */
 .hex-sub-setting {
