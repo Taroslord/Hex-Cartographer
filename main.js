@@ -3217,6 +3217,34 @@ function hsbToRgb(h, s, b) {
 function hsbToHex(h, s, b) { const rgb = hsbToRgb(h, s, b); return rgbToHex(rgb.r, rgb.g, rgb.b); }
 function hexToHsb(hex) { const rgb = hexToRgb(hex); return rgbToHsb(rgb.r, rgb.g, rgb.b); }
 
+// Brightness = perceived luminance as a share of pure white (1.0 = #ffffff), for
+// ANY hue. A symbol at/above SYMBOL_AID_MIN_BRIGHTNESS is hard to tell apart from a
+// white backdrop, so the preview backdrop becomes a grey 10 percentage points darker
+// than the symbol (e.g. 100% -> 90%, 93% -> 83%). Darker symbols keep the plain backdrop.
+const SYMBOL_AID_MIN_BRIGHTNESS = 0.94;
+const SYMBOL_BG_DARKEN = 0.08; // percentage points off the symbol's brightness
+function colorLuminance(color) {
+    if (typeof color !== 'string' || !/^#?[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(color.trim())) return null;
+    const rgb = hexToRgb(color.trim());
+    return 0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b;
+}
+function colorBrightness(color) {
+    const lum = colorLuminance(color);
+    return lum === null ? null : lum / 255;
+}
+function isNearWhite(color) {
+    const b = colorBrightness(color);
+    return b !== null && b >= SYMBOL_AID_MIN_BRIGHTNESS;
+}
+// Backdrop for a symbol preview: a grey 10 pts darker than a near-white symbol,
+// otherwise the given base (default white).
+function symbolPreviewBg(symbolColor, base = '#ffffff') {
+    const b = colorBrightness(symbolColor);
+    if (b === null || b < SYMBOL_AID_MIN_BRIGHTNESS) return base;
+    const g = (b - SYMBOL_BG_DARKEN) * 255;
+    return rgbToHex(g, g, g);
+}
+
 // === Registry for user graphics ===
 // Scans a category's folder recursively and keeps the found graphics
 // ready. Keys are relative to the root folder (`user:veg:Wald/eiche`), so
@@ -5488,7 +5516,7 @@ class HexCartographerView extends ItemView {
         const btn = this.createToolButton(btnWrapper, {
             title: t('tooltip.toolGroup', { name: config.name }),
             dataset: { toolGroup: groupId },
-            style: `position: relative; background: ${config.backgroundEnabled ? config.backgroundColor : BUTTON_BG_DEFAULT};`
+            style: `position: relative; background: ${symbolPreviewBg(config.symbolColor, config.backgroundEnabled ? config.backgroundColor : BUTTON_BG_DEFAULT)};`
         });
 
         this.renderSymbolButtonIcon(btn, config.currentVariant, this.variantIconFor(config, config.currentVariant));
@@ -5630,7 +5658,7 @@ class HexCartographerView extends ItemView {
             const src = this.app.vault.adapter.getResourcePath(asset.filePath);
             btn.appendChild(this.makeHexImageSvg(src, 16));
         } else {
-            btn.appendChild(this.makeHexPreviewSvg(16, this.hexColorColor || DEFAULT_MASTER_COLOR));
+            btn.appendChild(this.makeHexPreviewSvg(16, this.hexColorColor || DEFAULT_MASTER_COLOR, false));
         }
     }
 
@@ -5721,7 +5749,7 @@ class HexCartographerView extends ItemView {
     // Empty hex (background + border) as the basis of a preview. Shared base for
     // system symbols, user symbols and the plain color entry, so the hex size is
     // identical everywhere. `fill` allows showing an actual hex color.
-    makeHexPreviewSvg(size, fill = 'var(--background-primary)') {
+    makeHexPreviewSvg(size, fill = 'var(--background-primary)', border = true) {
         const NS = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(NS, 'svg');
         svg.setAttribute('viewBox', '0 0 100 100');
@@ -5733,8 +5761,10 @@ class HexCartographerView extends ItemView {
         const hex = document.createElementNS(NS, 'polygon');
         hex.setAttribute('points', this.hexPreviewPoints());
         hex.setAttribute('fill', fill);
-        hex.setAttribute('stroke', 'var(--background-modifier-border)');
-        hex.setAttribute('stroke-width', '4');
+        if (border) {
+            hex.setAttribute('stroke', 'var(--background-modifier-border)');
+            hex.setAttribute('stroke-width', '4');
+        }
         svg.appendChild(hex);
         return svg;
     }
@@ -5757,7 +5787,10 @@ class HexCartographerView extends ItemView {
     // (not the per-symbol map size), so the list stays evenly readable.
     makeSystemSymbolHex(info, symbolColor, size) {
         const NS = 'http://www.w3.org/2000/svg';
-        const svg = this.makeHexPreviewSvg(size);
+        // Darken the hex backdrop when the tint is near-white, else keep the theme default.
+        const svg = isNearWhite(symbolColor)
+            ? this.makeHexPreviewSvg(size, symbolPreviewBg(symbolColor))
+            : this.makeHexPreviewSvg(size);
 
         const target = 60; // Symbol width within the 100-unit hex
         const scale = target / info.viewBoxWidth;
@@ -6658,7 +6691,8 @@ class HexCartographerView extends ItemView {
                 btn.setAttribute('title', t('tooltip.toolGroupVariant', { label }));
             }
 
-            btn.style.background = isActive ? PICKER_ACTIVE_BG : (config.backgroundEnabled ? config.backgroundColor : BUTTON_BG_DEFAULT);
+            const baseBg = config.backgroundEnabled ? config.backgroundColor : BUTTON_BG_DEFAULT;
+            btn.style.background = isActive ? PICKER_ACTIVE_BG : symbolPreviewBg(config.symbolColor, baseBg);
             btn.style.color = config.symbolColor;
 
             btn.style.boxShadow = isActive ? ACTIVE_BOX_SHADOW : '';
@@ -6674,6 +6708,10 @@ class HexCartographerView extends ItemView {
                 btn.style.boxShadow = (isActive || isPending) ? ACTIVE_BOX_SHADOW : '';
                 if (groupId === 'hexcolor') {
                     btn.style.color = this.hexColorColor;
+                    // Near-white hex fill vanishes on the white button — darken the backdrop.
+                    if (!isActive && !this.hexTexture) {
+                        btn.style.background = symbolPreviewBg(this.hexColorColor, BUTTON_BG_DEFAULT);
+                    }
                 }
             }
         });
