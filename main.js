@@ -32,6 +32,7 @@ const DEFAULT_ROAD_WIDTH = 3;
 const PATH_OVERLAP_SPACING = 1.5; // Edge-to-edge spacing factor: 1.0 = touching, 1.5 = small gap, 2.0 = clear gap
 const DEFAULT_BORDER_HIGHLIGHT_WIDTH = 3;
 const DEFAULT_BORDER_DASHES = 1;
+const DEFAULT_BORDER_WIDTH = 3;
 const DEFAULT_PATH_DASHES = 1;
 const PATH_END_INSET = 0.15;
 const MAX_HISTORY = 50;
@@ -254,6 +255,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': 'Abschließen\nKlick: Aktuelle Grenze fertigstellen',
         'tooltip.borderVisibility': 'Grenzen-Sichtbarkeit\nKlick: Grenzen ein-/ausblenden',
         'input.borderDashes': 'Striche',
+        'input.borderWidth': 'Grenzbreite',
+        'option.width': 'Breite',
+        'option.dashes': 'Striche',
 
         // Notices
         'notice.fileCreateError': 'Fehler beim Erstellen der Datei: {error}',
@@ -546,6 +550,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': 'Finish\nClick: Complete current border',
         'tooltip.borderVisibility': 'Border Visibility\nClick: Show/hide borders',
         'input.borderDashes': 'Dashes',
+        'input.borderWidth': 'Border width',
+        'option.width': 'Width',
+        'option.dashes': 'Dashes',
 
         // Notices
         'notice.fileCreateError': 'Error creating file: {error}',
@@ -824,6 +831,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': '完成\n点击：完成当前边界',
         'tooltip.borderVisibility': '边界可见性\n点击：显示/隐藏边界',
         'input.borderDashes': '虚线',
+        'input.borderWidth': '边界宽度',
+        'option.width': '宽度',
+        'option.dashes': '虚线',
         'notice.fileCreateError': '创建文件时出错：{error}',
         'notice.nothingToUndo': '没有可撤销的操作',
         'notice.nothingToRedo': '没有可重做的操作',
@@ -1088,6 +1098,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': 'Завершить\nКлик: Завершить текущую границу',
         'tooltip.borderVisibility': 'Видимость границ\nКлик: Показать/скрыть границы',
         'input.borderDashes': 'Штрихи',
+        'input.borderWidth': 'Ширина границы',
+        'option.width': 'Ширина',
+        'option.dashes': 'Штрихи',
         'notice.fileCreateError': 'Ошибка при создании файла: {error}',
         'notice.nothingToUndo': 'Нечего отменять',
         'notice.nothingToRedo': 'Нечего повторять',
@@ -1352,6 +1365,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': '完了\nクリック：現在の境界を確定',
         'tooltip.borderVisibility': '境界の表示\nクリック：境界の表示/非表示',
         'input.borderDashes': '破線',
+        'input.borderWidth': '境界の幅',
+        'option.width': '幅',
+        'option.dashes': '破線',
         'notice.fileCreateError': 'ファイル作成エラー：{error}',
         'notice.nothingToUndo': '元に戻す操作がありません',
         'notice.nothingToRedo': 'やり直す操作がありません',
@@ -1616,6 +1632,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': 'Terminer\nClic : Finaliser la frontière en cours',
         'tooltip.borderVisibility': 'Visibilité des frontières\nClic : Afficher/masquer les frontières',
         'input.borderDashes': 'Tirets',
+        'input.borderWidth': 'Largeur de frontière',
+        'option.width': 'Largeur',
+        'option.dashes': 'Tirets',
         'notice.fileCreateError': 'Erreur lors de la création du fichier : {error}',
         'notice.nothingToUndo': 'Rien à annuler',
         'notice.nothingToRedo': 'Rien à rétablir',
@@ -1880,6 +1899,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': 'Finalizar\nClique: Concluir a fronteira atual',
         'tooltip.borderVisibility': 'Visibilidade das fronteiras\nClique: Mostrar/ocultar fronteiras',
         'input.borderDashes': 'Traços',
+        'input.borderWidth': 'Largura da fronteira',
+        'option.width': 'Largura',
+        'option.dashes': 'Traços',
         'notice.fileCreateError': 'Erro ao criar o arquivo: {error}',
         'notice.nothingToUndo': 'Nada para desfazer',
         'notice.nothingToRedo': 'Nada para refazer',
@@ -2144,6 +2166,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': '완료\n클릭: 현재 경계 완성',
         'tooltip.borderVisibility': '경계 표시\n클릭: 경계 표시/숨기기',
         'input.borderDashes': '대시',
+        'input.borderWidth': '경계 너비',
+        'option.width': '너비',
+        'option.dashes': '대시',
         'notice.fileCreateError': '파일 생성 오류: {error}',
         'notice.nothingToUndo': '실행 취소할 항목이 없습니다',
         'notice.nothingToRedo': '다시 실행할 항목이 없습니다',
@@ -2408,6 +2433,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': 'Finalizar\nClic: Completar frontera actual',
         'tooltip.borderVisibility': 'Visibilidad de fronteras\nClic: Mostrar/ocultar fronteras',
         'input.borderDashes': 'Trazos',
+        'input.borderWidth': 'Ancho de borde',
+        'option.width': 'Ancho',
+        'option.dashes': 'Trazos',
         'notice.fileCreateError': 'Error al crear el archivo: {error}',
         'notice.nothingToUndo': 'Nada que deshacer',
         'notice.nothingToRedo': 'Nada que rehacer',
@@ -2672,6 +2700,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': 'Zakończ\nKliknij: Zakończ bieżącą granicę',
         'tooltip.borderVisibility': 'Widoczność granic\nKliknij: Pokaż/ukryj granice',
         'input.borderDashes': 'Kreski',
+        'input.borderWidth': 'Szerokość granicy',
+        'option.width': 'Szerokość',
+        'option.dashes': 'Kreski',
         'notice.fileCreateError': 'Błąd podczas tworzenia pliku: {error}',
         'notice.nothingToUndo': 'Nie ma czego cofnąć',
         'notice.nothingToRedo': 'Nie ma czego ponowić',
@@ -2936,6 +2967,9 @@ const TRANSLATIONS = {
         'tooltip.borderFinish': 'Completa\nClic: Completa confine corrente',
         'tooltip.borderVisibility': 'Visibilità confini\nClic: Mostra/nascondi confini',
         'input.borderDashes': 'Tratti',
+        'input.borderWidth': 'Larghezza confine',
+        'option.width': 'Larghezza',
+        'option.dashes': 'Tratti',
         'notice.fileCreateError': 'Errore nella creazione del file: {error}',
         'notice.nothingToUndo': 'Niente da annullare',
         'notice.nothingToRedo': 'Niente da ripetere',
@@ -4189,7 +4223,7 @@ class HexCartographerView extends ItemView {
         this.draggedTextMoved = false;
 
         this.startHex = null;
-        this.borderSettings = { dashes: DEFAULT_BORDER_DASHES, activeRegionId: null, pickedHex: null, visible: true };
+        this.borderSettings = { width: DEFAULT_BORDER_WIDTH, dashes: DEFAULT_BORDER_DASHES, activeRegionId: null, pickedHex: null, visible: true };
         this.borderHighlightWidth = DEFAULT_BORDER_HIGHLIGHT_WIDTH;
         this.borderPickMode = false;
         this.riverSettings = { width: DEFAULT_RIVER_WIDTH, activeRiverId: null, editMode: false, insertAfter: null };
@@ -5104,6 +5138,66 @@ class HexCartographerView extends ItemView {
                 border: none !important;
                 display: block !important;
             }
+            .hex-toolbar-options {
+                display: none;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 5;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 6px 14px;
+                padding: 6px 10px;
+                background: var(--background-secondary);
+                border-bottom: 1px solid var(--divider-color);
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            }
+            .hex-option-unit {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .hex-option-label {
+                font-size: 13px;
+                color: var(--text-muted);
+                white-space: nowrap;
+            }
+            .hex-option-controls {
+                display: inline-flex;
+                align-items: center;
+            }
+            .hex-option-input {
+                width: 44px;
+                text-align: center;
+            }
+            .hex-option-step {
+                width: 22px;
+                min-width: 22px;
+                height: 24px;
+                padding: 0;
+                font-size: 14px;
+                line-height: 1;
+                cursor: pointer;
+            }
+            /* Desktop/tablet: compact steppers attached to the field (collapsed borders). */
+            .hex-option-controls > * + * { margin-left: -1px; }
+            .hex-option-controls .hex-option-input { border-radius: 0; }
+            .hex-option-controls .hex-option-step:first-child {
+                border-top-right-radius: 0; border-bottom-right-radius: 0;
+            }
+            .hex-option-controls .hex-option-step:last-child {
+                border-top-left-radius: 0; border-bottom-left-radius: 0;
+            }
+            /* Phones keep large touch targets with spacing. */
+            .hex-toolbar-options.hex-options-phone .hex-option-controls { gap: 4px; }
+            .hex-toolbar-options.hex-options-phone .hex-option-controls > * + * { margin-left: 0; }
+            .hex-toolbar-options.hex-options-phone .hex-option-input {
+                width: 56px; border-radius: 4px;
+            }
+            .hex-toolbar-options.hex-options-phone .hex-option-step {
+                width: 34px; min-width: 34px; height: 34px; font-size: 18px; border-radius: 4px;
+            }
         `;
         container.appendChild(style);
 
@@ -5122,6 +5216,13 @@ class HexCartographerView extends ItemView {
         toolbar.addEventListener('wheel', (e) => {
             e.stopPropagation();
         }, { passive: true });
+
+        // Shared options row for tools with inputs (river/road/border). Created
+        // detached here so tool builders can fill it; later placed as an overlay
+        // above the canvas so showing it does not move the map.
+        this.toolbarOptionsEl = createDiv({ cls: 'hex-toolbar-options' });
+        // Phones keep large touch steppers; desktop/tablet get compact attached ones.
+        if (this.deviceViewportClass() === 'phone') this.toolbarOptionsEl.classList.add('hex-options-phone');
 
         this.createToolbar(toolbar);
 
@@ -5151,6 +5252,9 @@ class HexCartographerView extends ItemView {
 
         this.textCanvas = canvasContainer.createEl('canvas', { cls: 'hex-text-canvas' });
         this.textCtx = this.textCanvas.getContext('2d');
+
+        // Overlay the options row over the top of the map (last child = on top).
+        canvasContainer.appendChild(this.toolbarOptionsEl);
 
         this.resizeObserver = new ResizeObserver(() => this.resizeCanvas());
         this.resizeObserver.observe(canvasContainer);
@@ -6059,14 +6163,12 @@ class HexCartographerView extends ItemView {
             this.updateToolbarState(toolbar);
         };
 
-        const bottomRow = wrapper.createDiv({ style: 'display: flex; gap: 2px;' });
-
-        const riverWidthInput = bottomRow.createEl('input', {
-            type: 'number',
+        // River/road inputs live in the shared options row below the toolbar.
+        this.riverWidthUnit = this.createOptionUnit('option.width');
+        const riverWidthInput = this.createOptionInput(this.riverWidthUnit, {
             value: this.riverSettings.width.toString(),
-            attr: { title: t('input.riverWidth'), min: '1', max: '999', style: `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px; box-sizing: border-box;` }
+            title: t('input.riverWidth'), max: '999'
         });
-        this.makeInputInteractive(riverWidthInput);
         this.riverWidthInput = riverWidthInput;
         riverWidthInput.oninput = (e) => {
             if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
@@ -6077,12 +6179,11 @@ class HexCartographerView extends ItemView {
             this.render();
         };
 
-        const roadWidthInput = bottomRow.createEl('input', {
-            type: 'number',
+        this.roadWidthUnit = this.createOptionUnit('option.width');
+        const roadWidthInput = this.createOptionInput(this.roadWidthUnit, {
             value: this.roadSettings.width.toString(),
-            attr: { title: t('input.roadWidth'), min: '1', max: '999', style: `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px; box-sizing: border-box;` }
+            title: t('input.roadWidth'), max: '999'
         });
-        this.makeInputInteractive(roadWidthInput);
         this.roadWidthInput = roadWidthInput;
         roadWidthInput.oninput = (e) => {
             if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
@@ -6093,12 +6194,11 @@ class HexCartographerView extends ItemView {
             this.render();
         };
 
-        const dashesInput = bottomRow.createEl('input', {
-            type: 'number',
+        this.pathDashesUnit = this.createOptionUnit('option.dashes');
+        const dashesInput = this.createOptionInput(this.pathDashesUnit, {
             value: (this.pathDashes || DEFAULT_PATH_DASHES).toString(),
-            attr: { title: t('input.pathDashes'), min: '1', max: '99', style: `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px; box-sizing: border-box;` }
+            title: t('input.pathDashes'), max: '99'
         });
-        this.makeInputInteractive(dashesInput);
         this.pathDashesInput = dashesInput;
         dashesInput.oninput = (e) => {
             if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
@@ -6110,12 +6210,6 @@ class HexCartographerView extends ItemView {
             if (road) road.dashes = this.pathDashes;
             this.render();
         };
-
-        setTimeout(() => {
-            riverWidthInput.style.width = `${riverBtn.offsetWidth}px`;
-            roadWidthInput.style.width = `${roadBtn.offsetWidth}px`;
-            dashesInput.style.width = `${pickerBtn.offsetWidth}px`;
-        }, 0);
     }
 
     handleWaypointClick(path, settings, clickedIdx) {
@@ -6375,14 +6469,27 @@ class HexCartographerView extends ItemView {
         };
         this.borderVisBtn = visBtn;
 
-        const inputRow = wrapper.createDiv({ style: 'display: flex; gap: 2px;' });
-
-        const dashesInput = inputRow.createEl('input', {
-            type: 'number',
-            value: (this.borderSettings.dashes || DEFAULT_BORDER_DASHES).toString(),
-            attr: { title: t('input.borderDashes'), min: '1', max: '99', style: `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px; box-sizing: border-box;` }
+        // Border width/dashes inputs live in the shared options row below the toolbar.
+        this.borderWidthUnit = this.createOptionUnit('option.width');
+        const widthInput = this.createOptionInput(this.borderWidthUnit, {
+            value: (this.borderSettings.width || DEFAULT_BORDER_WIDTH).toString(),
+            title: t('input.borderWidth'), max: '999'
         });
-        this.makeInputInteractive(dashesInput);
+        this.borderWidthInput = widthInput;
+        widthInput.oninput = (e) => {
+            if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
+            this.borderSettings.width = Math.min(999, Math.max(1, parseInt(e.target.value) || DEFAULT_BORDER_WIDTH));
+            e.target.value = this.borderSettings.width;
+            const region = this.data.borders && this.data.borders.find(r => r.id === this.borderSettings.activeRegionId);
+            if (region) region.width = this.borderSettings.width;
+            this.render();
+        };
+
+        this.borderDashesUnit = this.createOptionUnit('option.dashes');
+        const dashesInput = this.createOptionInput(this.borderDashesUnit, {
+            value: (this.borderSettings.dashes || DEFAULT_BORDER_DASHES).toString(),
+            title: t('input.borderDashes'), max: '99'
+        });
         this.borderDashesInput = dashesInput;
         dashesInput.oninput = (e) => {
             if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
@@ -6392,10 +6499,44 @@ class HexCartographerView extends ItemView {
             if (region) region.dashes = this.borderSettings.dashes;
             this.render();
         };
+    }
 
-        setTimeout(() => {
-            dashesInput.style.width = `${btn.offsetWidth}px`;
-        }, 0);
+    // One labeled unit in the shared options row.
+    createOptionUnit(labelKey) {
+        const unit = this.toolbarOptionsEl.createDiv({ cls: 'hex-option-unit' });
+        unit.createSpan({ cls: 'hex-option-label', text: t(labelKey) + ':' });
+        unit.style.display = 'none';
+        return unit;
+    }
+
+    // Number field for an option unit, flanked by −/+ steppers. On phones the field
+    // is read-only so tapping it never opens the soft keyboard (which would hide the map).
+    createOptionInput(unit, { value, title, max }) {
+        const maxN = parseInt(max);
+        let input;
+        const step = (delta) => {
+            const v = Math.min(maxN, Math.max(1, (parseInt(input.value) || 1) + delta));
+            input.value = v;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        const controls = unit.createDiv({ cls: 'hex-option-controls' });
+        this.createStepperButton(controls, '−', () => step(-1));
+        input = controls.createEl('input', {
+            type: 'number', value, cls: 'hex-option-input',
+            attr: { title, min: '1', max, inputmode: 'numeric', style: `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px; box-sizing: border-box;` }
+        });
+        if (this.deviceViewportClass() === 'phone') input.readOnly = true;
+        this.makeInputInteractive(input);
+        this.createStepperButton(controls, '+', () => step(1));
+        return input;
+    }
+
+    // Small −/+ button; changes the field without focusing it (no soft keyboard).
+    createStepperButton(unit, label, onTap) {
+        const btn = unit.createEl('button', { cls: 'hex-option-step', text: label });
+        btn.addEventListener('pointerdown', (e) => e.stopPropagation());
+        btn.onclick = onTap;
+        return btn;
     }
 
     makeInputInteractive(input) {
@@ -6415,15 +6556,20 @@ class HexCartographerView extends ItemView {
         return btn;
     }
 
-    recalcToolbarWidths() {
-        if (this.riverBtn && this.roadBtn && this.riverWidthInput && this.roadWidthInput) {
-            this.riverWidthInput.style.width = `${this.riverBtn.offsetWidth}px`;
-            this.roadWidthInput.style.width = `${this.roadBtn.offsetWidth}px`;
-            if (this.pathDashesInput && this.pathPickerBtn) this.pathDashesInput.style.width = `${this.pathPickerBtn.offsetWidth}px`;
-        }
-        if (this.borderBtn && this.borderDashesInput) {
-            this.borderDashesInput.style.width = `${this.borderBtn.offsetWidth}px`;
-        }
+    // Kept for existing callers; inputs now have a fixed width in the options row.
+    recalcToolbarWidths() {}
+
+    // Shows the options row with only the active tool's fields (river/road/border).
+    updateToolbarOptions() {
+        if (!this.toolbarOptionsEl) return;
+        const g = this.currentToolGroup;
+        const river = g === 'river', road = g === 'road', border = g === 'border';
+        if (this.riverWidthUnit) this.riverWidthUnit.style.display = river ? '' : 'none';
+        if (this.roadWidthUnit) this.roadWidthUnit.style.display = road ? '' : 'none';
+        if (this.pathDashesUnit) this.pathDashesUnit.style.display = (river || road) ? '' : 'none';
+        if (this.borderWidthUnit) this.borderWidthUnit.style.display = border ? '' : 'none';
+        if (this.borderDashesUnit) this.borderDashesUnit.style.display = border ? '' : 'none';
+        this.toolbarOptionsEl.style.display = (river || road || border) ? 'flex' : 'none';
     }
 
     // Keeps the orientation button in sync with this.hexOrientation. In one place,
@@ -6487,6 +6633,7 @@ class HexCartographerView extends ItemView {
             }
         }
 
+        if (this.borderWidthInput) this.borderWidthInput.value = (this.borderSettings.width || DEFAULT_BORDER_WIDTH).toString();
         if (this.borderDashesInput) this.borderDashesInput.value = (this.borderSettings.dashes || DEFAULT_BORDER_DASHES).toString();
 
         toolbar.querySelectorAll('[data-draw-mode]').forEach(btn => {
@@ -6538,6 +6685,8 @@ class HexCartographerView extends ItemView {
                 slot.style.backgroundColor = this[pk][pi];
             }
         });
+
+        this.updateToolbarOptions();
     }
 
 
@@ -6808,9 +6957,11 @@ class HexCartographerView extends ItemView {
                     this.borderSettings.activeRegionId = foundRegion.id;
                     this.borderSettings.pickedHex = { q: clickedHex.q, r: clickedHex.r };
                     this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
+                    this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH;
                     this.masterColor = foundRegion.color;
                     if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
                     if (this.borderDashesInput) this.borderDashesInput.value = this.borderSettings.dashes.toString();
+                    if (this.borderWidthInput) this.borderWidthInput.value = this.borderSettings.width.toString();
                     new Notice(t('notice.borderSelected', { id: foundRegion.id }));
                 } else {
                     new Notice(t('notice.noBorderAtPosition'));
@@ -7207,9 +7358,11 @@ class HexCartographerView extends ItemView {
                                 this.borderSettings.activeRegionId = foundRegion.id;
                                 this.borderSettings.pickedHex = { q: clickedHex.q, r: clickedHex.r };
                                 this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
+                                this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH;
                                 this.masterColor = foundRegion.color;
                                 if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
                                 if (this.borderDashesInput) this.borderDashesInput.value = this.borderSettings.dashes.toString();
+                                if (this.borderWidthInput) this.borderWidthInput.value = this.borderSettings.width.toString();
                                 new Notice(t('notice.borderSelected', { id: foundRegion.id }));
                             } else {
                                 new Notice(t('notice.noBorderAtPosition'));
@@ -7457,9 +7610,11 @@ class HexCartographerView extends ItemView {
                             this.borderSettings.activeRegionId = foundRegion.id;
                             this.borderSettings.pickedHex = { q: clickedHex.q, r: clickedHex.r };
                             this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
+                            this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH;
                             this.masterColor = foundRegion.color;
                             if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
                             if (this.borderDashesInput) this.borderDashesInput.value = this.borderSettings.dashes.toString();
+                            if (this.borderWidthInput) this.borderWidthInput.value = this.borderSettings.width.toString();
                             new Notice(t('notice.borderSelected', { id: foundRegion.id }));
                         } else {
                             new Notice(t('notice.noBorderAtPosition'));
@@ -7733,7 +7888,7 @@ class HexCartographerView extends ItemView {
         let region = this.data.borders.find(r => r.id === this.borderSettings.activeRegionId);
         if (!region) {
             const maxId = this.data.borders.reduce((max, r) => Math.max(max, r.id || 0), 0);
-            region = { id: maxId + 1, color: this.masterColor, dashes: this.borderSettings.dashes || DEFAULT_BORDER_DASHES, hexes: [] };
+            region = { id: maxId + 1, color: this.masterColor, width: this.borderSettings.width || DEFAULT_BORDER_WIDTH, dashes: this.borderSettings.dashes || DEFAULT_BORDER_DASHES, hexes: [] };
             this.data.borders.push(region);
             this.borderSettings.activeRegionId = region.id;
         }
@@ -9368,9 +9523,6 @@ class HexCartographerView extends ItemView {
 
         const s = this.data.gridSize;
         const sf = s + 0.5;
-        const lineWidth = 3;
-        const inset = lineWidth / 2 + 0.575; // 1px gap to hex edge + half the line width
-        const factor = (sf - inset) / sf;
 
         const neighbors = [
             { dq: 1, dr: 0 },   // Edge 0: Ost
@@ -9382,11 +9534,16 @@ class HexCartographerView extends ItemView {
         ];
 
         this.ctx.save();
-        this.ctx.lineWidth = lineWidth;
         this.ctx.lineCap = 'round';
 
         this.data.borders.forEach(region => {
             if (!region.hexes || region.hexes.length === 0) return;
+
+            // Line width is per region; inset/factor depend on it.
+            const lineWidth = region.width || DEFAULT_BORDER_WIDTH;
+            const inset = lineWidth / 2 + 0.575; // 1px gap to hex edge + half the line width
+            const factor = (sf - inset) / sf;
+            this.ctx.lineWidth = lineWidth;
 
             const regionSet = new Set(region.hexes.map(b => `${b.q}_${b.r}`));
             this.ctx.strokeStyle = region.color || '#FF0000';
