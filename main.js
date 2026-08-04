@@ -368,6 +368,7 @@ const TRANSLATIONS = {
         'menu.color': 'Farbe',
         'notice.assetMissing': 'Grafik nicht gefunden: {name}',
         'notice.assetsMissing': '{name} fehlen. Ordnerinhalt oder Pfad unter {settings} prüfen!',
+        'assetWarning.hideHints': 'Hinweise ausblenden',
         'assetName.tex': 'Waben-Texturen',
         'assetName.extras': 'Extra-Symbole',
         'assetName.veg': 'Vegetations-Symbole',
@@ -460,6 +461,8 @@ const TRANSLATIONS = {
         'menu.createNew': 'Neue Hex Cartographer Karte erstellen',
         'menu.openInEditor': 'Im Hex Cartographer öffnen',
         'menu.printMap': 'Karte drucken',
+        'menu.showInSystemExplorer': 'Im Ordner anzeigen',
+        'menu.revealInNavigation': 'Zeige Datei im Dateiexplorer',
         'menu.shareMap': 'Karte teilen',
         'menu.exportMap': 'Als Bild exportieren',
         'notice.noContentToPrint': 'Keine Karteninhalte zum Drucken vorhanden',
@@ -663,6 +666,7 @@ const TRANSLATIONS = {
         'menu.color': 'Color',
         'notice.assetMissing': 'Graphic not found: {name}',
         'notice.assetsMissing': '{name} missing. Check the folder contents or path in {settings}!',
+        'assetWarning.hideHints': 'Hide hints',
         'assetName.tex': 'Hex textures',
         'assetName.extras': 'Extra symbols',
         'assetName.veg': 'Vegetation symbols',
@@ -755,6 +759,8 @@ const TRANSLATIONS = {
         'menu.createNew': 'Create new Hex Cartographer Map',
         'menu.openInEditor': 'Open in Hex Cartographer',
         'menu.printMap': 'Print map',
+        'menu.showInSystemExplorer': 'Show in system explorer',
+        'menu.revealInNavigation': 'Reveal file in navigation',
         'menu.shareMap': 'Share map',
         'menu.exportMap': 'Export as image',
         'notice.noContentToPrint': 'No map content to print',
@@ -936,6 +942,7 @@ const TRANSLATIONS = {
         'menu.color': '颜色',
         'notice.assetMissing': '未找到图形：{name}',
         'notice.assetsMissing': '{name}缺失。请在{settings}中检查文件夹内容或路径！',
+        'assetWarning.hideHints': '隐藏提示',
         'assetName.tex': '六边形纹理',
         'assetName.extras': '额外符号',
         'assetName.veg': '植被符号',
@@ -1022,6 +1029,8 @@ const TRANSLATIONS = {
         'menu.createNew': '创建新 Hex Cartographer 地图',
         'menu.openInEditor': '在 Hex Cartographer 中打开',
         'menu.printMap': '打印地图',
+        'menu.showInSystemExplorer': '在系统资源管理器中显示',
+        'menu.revealInNavigation': '在导航中显示文件',
         'menu.shareMap': '分享地图',
         'menu.exportMap': '导出为图片',
         'notice.noContentToPrint': '没有可打印的地图内容',
@@ -1203,6 +1212,7 @@ const TRANSLATIONS = {
         'menu.color': 'Цвет',
         'notice.assetMissing': 'Графика не найдена: {name}',
         'notice.assetsMissing': '{name} отсутствуют. Проверьте содержимое папки или путь в разделе «{settings}»!',
+        'assetWarning.hideHints': 'Скрыть подсказки',
         'assetName.tex': 'Текстуры сот',
         'assetName.extras': 'Дополнительные символы',
         'assetName.veg': 'Символы растительности',
@@ -1289,6 +1299,8 @@ const TRANSLATIONS = {
         'menu.createNew': 'Создать новую карту Hex Cartographer',
         'menu.openInEditor': 'Открыть в Hex Cartographer',
         'menu.printMap': 'Печать карты',
+        'menu.showInSystemExplorer': 'Показать в системном проводнике',
+        'menu.revealInNavigation': 'Показать файл в навигации',
         'menu.shareMap': 'Поделиться картой',
         'menu.exportMap': 'Экспорт как изображение',
         'notice.noContentToPrint': 'Нет содержимого карты для печати',
@@ -1470,6 +1482,7 @@ const TRANSLATIONS = {
         'menu.color': '色',
         'notice.assetMissing': '画像が見つかりません: {name}',
         'notice.assetsMissing': '{name}がありません。{settings}でフォルダーの内容またはパスを確認してください！',
+        'assetWarning.hideHints': 'ヒントを非表示',
         'assetName.tex': 'ヘクスのテクスチャ',
         'assetName.extras': '追加シンボル',
         'assetName.veg': '植生シンボル',
@@ -1556,6 +1569,8 @@ const TRANSLATIONS = {
         'menu.createNew': '新しい Hex Cartographer マップを作成',
         'menu.openInEditor': 'Hex Cartographer で開く',
         'menu.printMap': 'マップを印刷',
+        'menu.showInSystemExplorer': 'システムのエクスプローラーで表示',
+        'menu.revealInNavigation': 'ナビゲーションでファイルを表示',
         'menu.shareMap': 'マップを共有',
         'menu.exportMap': '画像としてエクスポート',
         'notice.noContentToPrint': '印刷するマップの内容がありません',
@@ -1737,6 +1752,7 @@ const TRANSLATIONS = {
         'menu.color': 'Couleur',
         'notice.assetMissing': 'Graphique introuvable : {name}',
         'notice.assetsMissing': '{name} manquants. Vérifiez le contenu du dossier ou le chemin dans {settings} !',
+        'assetWarning.hideHints': 'Masquer les indications',
         'assetName.tex': 'Textures d\'hexagones',
         'assetName.extras': 'Symboles supplémentaires',
         'assetName.veg': 'Symboles de végétation',
@@ -1823,6 +1839,8 @@ const TRANSLATIONS = {
         'menu.createNew': 'Créer une nouvelle carte Hex Cartographer',
         'menu.openInEditor': 'Ouvrir dans Hex Cartographer',
         'menu.printMap': 'Imprimer la carte',
+        'menu.showInSystemExplorer': 'Afficher dans l’explorateur système',
+        'menu.revealInNavigation': 'Révéler le fichier dans la navigation',
         'menu.shareMap': 'Partager la carte',
         'menu.exportMap': 'Exporter en image',
         'notice.noContentToPrint': 'Aucun contenu de carte à imprimer',
@@ -2004,6 +2022,7 @@ const TRANSLATIONS = {
         'menu.color': 'Cor',
         'notice.assetMissing': 'Gráfico não encontrado: {name}',
         'notice.assetsMissing': '{name} ausentes. Verifique o conteúdo da pasta ou o caminho em {settings}!',
+        'assetWarning.hideHints': 'Ocultar avisos',
         'assetName.tex': 'Texturas de hexágonos',
         'assetName.extras': 'Símbolos extra',
         'assetName.veg': 'Símbolos de vegetação',
@@ -2090,6 +2109,8 @@ const TRANSLATIONS = {
         'menu.createNew': 'Criar novo mapa Hex Cartographer',
         'menu.openInEditor': 'Abrir no Hex Cartographer',
         'menu.printMap': 'Imprimir mapa',
+        'menu.showInSystemExplorer': 'Mostrar no explorador do sistema',
+        'menu.revealInNavigation': 'Revelar ficheiro na navegação',
         'menu.shareMap': 'Compartilhar mapa',
         'menu.exportMap': 'Exportar como imagem',
         'notice.noContentToPrint': 'Nenhum conteúdo de mapa para imprimir',
@@ -2271,6 +2292,7 @@ const TRANSLATIONS = {
         'menu.color': '색상',
         'notice.assetMissing': '그래픽을 찾을 수 없습니다: {name}',
         'notice.assetsMissing': '{name}이(가) 없습니다. {settings}에서 폴더 내용 또는 경로를 확인하세요!',
+        'assetWarning.hideHints': '힌트 숨기기',
         'assetName.tex': '헥스 텍스처',
         'assetName.extras': '추가 기호',
         'assetName.veg': '식생 기호',
@@ -2357,6 +2379,8 @@ const TRANSLATIONS = {
         'menu.createNew': '새 Hex Cartographer 지도 만들기',
         'menu.openInEditor': 'Hex Cartographer에서 열기',
         'menu.printMap': '지도 인쇄',
+        'menu.showInSystemExplorer': '시스템 탐색기에서 표시',
+        'menu.revealInNavigation': '탐색에서 파일 표시',
         'menu.shareMap': '지도 공유',
         'menu.exportMap': '이미지로 내보내기',
         'notice.noContentToPrint': '인쇄할 지도 내용이 없습니다',
@@ -2538,6 +2562,7 @@ const TRANSLATIONS = {
         'menu.color': 'Color',
         'notice.assetMissing': 'Gráfico no encontrado: {name}',
         'notice.assetsMissing': 'Faltan {name}. Comprueba el contenido de la carpeta o la ruta en {settings}!',
+        'assetWarning.hideHints': 'Ocultar avisos',
         'assetName.tex': 'Texturas de hexágonos',
         'assetName.extras': 'Símbolos adicionales',
         'assetName.veg': 'Símbolos de vegetación',
@@ -2624,6 +2649,8 @@ const TRANSLATIONS = {
         'menu.createNew': 'Crear nuevo mapa Hex Cartographer',
         'menu.openInEditor': 'Abrir en Hex Cartographer',
         'menu.printMap': 'Imprimir mapa',
+        'menu.showInSystemExplorer': 'Mostrar en el explorador del sistema',
+        'menu.revealInNavigation': 'Mostrar archivo en la navegación',
         'menu.shareMap': 'Compartir mapa',
         'menu.exportMap': 'Exportar como imagen',
         'notice.noContentToPrint': 'No hay contenido del mapa para imprimir',
@@ -2805,6 +2832,7 @@ const TRANSLATIONS = {
         'menu.color': 'Kolor',
         'notice.assetMissing': 'Nie znaleziono grafiki: {name}',
         'notice.assetsMissing': 'Brak: {name}. Sprawdź zawartość folderu lub ścieżkę w {settings}!',
+        'assetWarning.hideHints': 'Ukryj wskazówki',
         'assetName.tex': 'Tekstury sześciokątów',
         'assetName.extras': 'Dodatkowe symbole',
         'assetName.veg': 'Symbole roślinności',
@@ -2891,6 +2919,8 @@ const TRANSLATIONS = {
         'menu.createNew': 'Utwórz nową mapę Hex Cartographer',
         'menu.openInEditor': 'Otwórz w Hex Cartographer',
         'menu.printMap': 'Drukuj mapę',
+        'menu.showInSystemExplorer': 'Pokaż w eksploratorze systemu',
+        'menu.revealInNavigation': 'Pokaż plik w nawigacji',
         'menu.shareMap': 'Udostępnij mapę',
         'menu.exportMap': 'Eksportuj jako obraz',
         'notice.noContentToPrint': 'Brak zawartości mapy do wydrukowania',
@@ -3072,6 +3102,7 @@ const TRANSLATIONS = {
         'menu.color': 'Colore',
         'notice.assetMissing': 'Grafica non trovata: {name}',
         'notice.assetsMissing': '{name} mancanti. Controlla il contenuto della cartella o il percorso in {settings}!',
+        'assetWarning.hideHints': 'Nascondi avvisi',
         'assetName.tex': 'Texture degli esagoni',
         'assetName.extras': 'Simboli extra',
         'assetName.veg': 'Simboli di vegetazione',
@@ -3158,6 +3189,8 @@ const TRANSLATIONS = {
         'menu.createNew': 'Crea nuova mappa Hex Cartographer',
         'menu.openInEditor': 'Apri in Hex Cartographer',
         'menu.printMap': 'Stampa mappa',
+        'menu.showInSystemExplorer': 'Mostra nell’esplora risorse di sistema',
+        'menu.revealInNavigation': 'Mostra file nella navigazione',
         'menu.shareMap': 'Condividi mappa',
         'menu.exportMap': 'Esporta come immagine',
         'notice.noContentToPrint': 'Nessun contenuto della mappa da stampare',
@@ -3243,6 +3276,45 @@ function symbolPreviewBg(symbolColor, base = '#ffffff') {
     if (b === null || b < SYMBOL_AID_MIN_BRIGHTNESS) return base;
     const g = (b - SYMBOL_BG_DARKEN) * 255;
     return rgbToHex(g, g, g);
+}
+
+// sRGB <-> linear light, so colors are averaged in physically linear space
+// (gamma-correct) instead of the perceptual sRGB values.
+function srgbToLinear(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+function linearToSrgb01(l) { l = Math.max(0, Math.min(1, l)); return l <= 0.0031308 ? l * 12.92 : 1.055 * Math.pow(l, 1 / 2.4) - 0.055; }
+
+// Alpha-weighted, gamma-correct mean of an RGBA pixel buffer -> hex, or null if
+// fully transparent / empty.
+function averagePixelsToHex(data) {
+    let r = 0, g = 0, b = 0, w = 0;
+    for (let i = 0; i < data.length; i += 4) {
+        const a = data[i + 3] / 255;
+        if (a === 0) continue;
+        r += srgbToLinear(data[i]) * a;
+        g += srgbToLinear(data[i + 1]) * a;
+        b += srgbToLinear(data[i + 2]) * a;
+        w += a;
+    }
+    if (w === 0) return null;
+    return rgbToHex(linearToSrgb01(r / w) * 255, linearToSrgb01(g / w) * 255, linearToSrgb01(b / w) * 255);
+}
+
+// Representative average color of a texture (img or canvas). Samples at a small
+// size (aspect kept), gamma-correct and alpha-weighted. null on failure.
+function averageTextureColor(source) {
+    const sw = source.naturalWidth || source.width;
+    const sh = source.naturalHeight || source.height;
+    if (!sw || !sh) return null;
+    const s = Math.min(1, 128 / Math.max(sw, sh));
+    const cw = Math.max(1, Math.round(sw * s)), ch = Math.max(1, Math.round(sh * s));
+    const canvas = document.createElement('canvas');
+    canvas.width = cw; canvas.height = ch;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(source, 0, 0, cw, ch);
+    let data;
+    try { data = ctx.getImageData(0, 0, cw, ch).data; } catch (e) { return null; }
+    return averagePixelsToHex(data);
 }
 
 // === Registry for user graphics ===
@@ -3346,6 +3418,10 @@ class UserAssetRegistry {
                 } else {
                     Object.assign(asset, data);
                     asset.decoded = true;
+                    // Bitmap textures get a representative average color for the hex fill.
+                    if (asset.image && !asset.colorable) {
+                        asset.avgColor = averageTextureColor(asset.image);
+                    }
                 }
             } catch (e) {
                 console.warn(`Hex Cartographer: could not load user asset ${asset.filePath}`, e);
@@ -3490,6 +3566,24 @@ class UserAssetRegistry {
             img.onerror = () => resolve(null);
             img.src = src;
         });
+    }
+
+    // Reloads a bitmap graphic straight from disk (cache-busted) and recomputes its
+    // average color + image. For the disk watcher: right after an external change the
+    // cached resource URL can still serve the old bytes, so a plain re-decode would
+    // keep the old average. SVGs are vectors (colorable) and have no bitmap average.
+    async reloadFromDisk(key) {
+        const asset = this.assets.get(key);
+        if (!asset || asset.ext === 'svg') return;
+        let url = this.app.vault.adapter.getResourcePath(asset.filePath);
+        url += (url.includes('?') ? '&' : '?') + 'hxcbust=' + Date.now();
+        const img = await this.loadBitmap(url);
+        if (!img) return;
+        asset.image = img;
+        asset.decoded = true;
+        asset.failed = false;
+        const avg = averageTextureColor(img);
+        if (avg) asset.avgColor = avg;
     }
 
     // Limit the SHORTER side, not the longer one: with cover fit the
@@ -4078,6 +4172,15 @@ class HexCartographerPlugin extends Plugin {
         if (todo.length) await Promise.all(todo);
     }
 
+    // Force-reloads graphics from disk (cache-busted) and recomputes their average
+    // color. Used by the disk watcher so external edits update live.
+    async refreshTexturesFromDisk(keys) {
+        for (const key of new Set(keys)) {
+            const registry = this.getRegistryForKey(key);
+            if (registry && registry.reloadFromDisk) await registry.reloadFromDisk(key);
+        }
+    }
+
     // Runs fn() while the given graphics are present at export resolution,
     // and frees the extra memory afterwards. Needed because at runtime only a
     // screen-sized version (256 px short side) is kept in memory.
@@ -4125,7 +4228,7 @@ class HexCartographerPlugin extends Plugin {
 
     // Reloads the given categories (default: all) and redraws open
     // open maps. Called at startup, after path changes and by the watcher.
-    async reloadUserAssets(categoryIds = null) {
+    async reloadUserAssets(categoryIds = null, opts = null) {
         const ids = categoryIds || USER_ASSET_CATEGORIES.map(c => c.id);
 
         this.userAssetsPromise = Promise.all(ids.map(id => {
@@ -4135,10 +4238,11 @@ class HexCartographerPlugin extends Plugin {
         }));
         await this.userAssetsPromise;
 
+        // Only a real disk change refreshes the texture-derived hex colors.
+        const syncColors = !!(opts && opts.fromDiskChange);
         this.app.workspace.iterateAllLeaves(leaf => {
             if (leaf.view instanceof HexCartographerView) {
-                leaf.view.rebuildToolbar();
-                leaf.view.render();
+                leaf.view.handleAssetsReloaded(syncColors);
             }
         });
     }
@@ -4219,7 +4323,7 @@ class HexCartographerPlugin extends Plugin {
             this._assetReloadTimer = null;
             const ids = [...this._pendingReload];
             this._pendingReload.clear();
-            this.reloadUserAssets(ids);
+            this.reloadUserAssets(ids, { fromDiskChange: true });
         }, ASSET_WATCH_DEBOUNCE);
     }
 }
@@ -4464,6 +4568,25 @@ class HexCartographerView extends ItemView {
                             doc.close();
                             iframe.contentWindow.onafterprint = () => { document.body.removeChild(iframe); };
                             setTimeout(() => { iframe.contentWindow.print(); }, 200);
+                        });
+                });
+            }
+
+            // Standard file actions (as on Markdown files): reveal in the OS explorer
+            // and in Obsidian's file explorer. Desktop only.
+            if (!this.isTouchDevice && this.file) {
+                menu.addSeparator();
+                menu.addItem((item) => {
+                    item.setTitle(t('menu.showInSystemExplorer'))
+                        .setIcon('arrow-up-right')
+                        .onClick(() => { if (this.app.showInFolder) this.app.showInFolder(this.file.path); });
+                });
+                menu.addItem((item) => {
+                    item.setTitle(t('menu.revealInNavigation'))
+                        .setIcon('folder-open')
+                        .onClick(() => {
+                            const fe = this.app.internalPlugins.getEnabledPluginById('file-explorer');
+                            if (fe && fe.revealInFolder) fe.revealInFolder(this.file);
                         });
                 });
             }
@@ -5225,6 +5348,18 @@ class HexCartographerView extends ItemView {
             }
             .hex-toolbar-options.hex-options-phone .hex-option-step {
                 width: 34px; min-width: 34px; height: 34px; font-size: 18px; border-radius: 4px;
+            }
+            /* "Hide hints" checkbox on the red warning bar: white box when unchecked,
+               accent + white check when checked (native box would blend into red). */
+            .hex-hidehints-cb {
+                appearance: none; -webkit-appearance: none;
+                width: 15px; height: 15px; margin: 0; flex: 0 0 auto;
+                border: 1px solid #ffffff; border-radius: 3px;
+                background: #ffffff; cursor: pointer;
+            }
+            .hex-hidehints-cb:checked {
+                background: var(--interactive-accent, #4b6bfb) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M4 8.5l2.5 2.5L12 5'/%3E%3C/svg%3E") center / 11px no-repeat;
+                border-color: var(--interactive-accent, #4b6bfb);
             }
         `;
         container.appendChild(style);
@@ -7850,11 +7985,55 @@ class HexCartographerView extends ItemView {
     }
 
     // Persistent per-texture background color, remembered in the map file so all
-    // hexes of a texture share one color and it survives reopening.
+    // hexes of a texture share one color and it survives reopening. First use takes
+    // the texture's average color (once decoded); random only as a fallback. Existing
+    // maps keep their stored colors — this changes nothing already assigned.
     colorForTexture(key) {
         if (!this.data.textureColors) this.data.textureColors = {};
-        if (!this.data.textureColors[key]) this.data.textureColors[key] = randomHexColor();
+        if (!this.data.textureColors[key]) {
+            const asset = this.plugin?.getUserAsset(key);
+            this.data.textureColors[key] = (asset && asset.avgColor) || randomHexColor();
+        }
         return this.data.textureColors[key];
+    }
+
+    // After the asset folders were re-scanned (path change or disk watcher). On a real
+    // disk change the texture-derived hex colors are refreshed from the new average.
+    async handleAssetsReloaded(syncColors) {
+        this.rebuildToolbar();
+        if (syncColors) await this.refreshDerivedTextureColors();
+        this.render();
+    }
+
+    // Re-derives each used texture's hex color from the graphic's (possibly changed)
+    // average color. Only touches textures the map uses; a color that did not change
+    // stays, so nothing needless is written.
+    async refreshDerivedTextureColors() {
+        if (!this.data.textureColors) return;
+        const keys = Object.keys(this.data.textureColors).filter(isUserAssetKey);
+        if (keys.length === 0) return;
+        // Cache-busted reload so the average reflects the new bytes, not the old cache.
+        await this.plugin.refreshTexturesFromDisk(keys);
+        let changed = false;
+        for (const key of keys) {
+            const asset = this.plugin.getUserAsset(key);
+            if (asset && asset.avgColor && this.data.textureColors[key] !== asset.avgColor) {
+                this.data.textureColors[key] = asset.avgColor;
+                changed = true;
+                // If this texture is the active hex brush, update the shown palette
+                // color (master swatch/input) too — not just the stored value.
+                if (this.currentToolGroup === 'hexcolor' && this.hexTexture === key) {
+                    this.masterColor = asset.avgColor;
+                    if (this.masterColorInput) {
+                        this.masterColorInput.value = this.masterColor;
+                        if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
+                    }
+                    if (this.hexColorBtn) this.hexColorBtn._hexIconKey = null; // force thumbnail refresh
+                    this.updateHexColorButtonIcon(this.hexColorBtn);
+                }
+            }
+        }
+        if (changed) this.requestSave();
     }
 
     // Master color of the hex tool: a texture carries its own background color, only a
@@ -8159,6 +8338,16 @@ class HexCartographerView extends ItemView {
         return this.isUnresolvedUserKey(symbol) ? null : symbol;
     }
 
+    // Pattern tool reproduces the picked hex 1:1, INCLUDING missing user graphics
+    // (painted as if present). Unlike applyTexture/paintableSymbol, unresolved
+    // symbol/texture keys are kept, so painting spreads them and later filling treats
+    // the new hexes like the source. Only the pattern tool does this.
+    applyPatternGraphics(h, p) {
+        h.symbolColor = p.symbolColor;
+        if (p.symbol) h.symbol = p.symbol; else delete h.symbol;
+        if (p.texture) h.texture = p.texture; else delete h.texture;
+    }
+
     paintHex(hex) {
         const key = `${hex.q}_${hex.r}`;
         let h = this.data.hexes[key];
@@ -8170,9 +8359,7 @@ class HexCartographerView extends ItemView {
 
         if (this.currentToolGroup === 'pattern' && this.patternData) {
             h.color = this.patternData.backgroundColor || this.patternData.color;
-            h.symbol = this.paintableSymbol(this.patternData.symbol);
-            h.symbolColor = this.patternData.symbolColor;
-            this.applyTexture(h, this.patternData.texture);
+            this.applyPatternGraphics(h, this.patternData);
             return;
         }
 
@@ -8584,21 +8771,9 @@ class HexCartographerView extends ItemView {
             if (currentColor !== targetColor || currentSymbol !== targetSymbol) continue;
             if (currentTexture !== (targetTexture || null)) continue;
 
-            if (!hexData) {
-                this.data.hexes[key] = {
-                    q: hex.q,
-                    r: hex.r,
-                    color: this.patternData.color,
-                    symbol: this.paintableSymbol(this.patternData.symbol),
-                    symbolColor: this.patternData.symbolColor
-                };
-                this.applyTexture(this.data.hexes[key], this.patternData.texture);
-            } else {
-                hexData.color = this.patternData.color;
-                hexData.symbol = this.paintableSymbol(this.patternData.symbol);
-                hexData.symbolColor = this.patternData.symbolColor;
-                this.applyTexture(hexData, this.patternData.texture);
-            }
+            const target = hexData || (this.data.hexes[key] = { q: hex.q, r: hex.r });
+            target.color = this.patternData.color;
+            this.applyPatternGraphics(target, this.patternData);
 
             const neighbors = this.getHexNeighbors(hex);
             neighbors.forEach(n => queue.push(n));
@@ -8775,12 +8950,33 @@ class HexCartographerView extends ItemView {
             return;
         }
         this.assetWarningBar.style.display = 'block';
-        // Stable order: follow the category definition order.
-        for (const cat of USER_ASSET_CATEGORIES) {
-            if (!missing.has(cat.id)) continue;
-            this.buildAssetWarningLine(this.assetWarningBar.createDiv(), t('assetName.' + cat.id));
-        }
+        // Missing categories in definition order. The "hide hints" checkbox sits inline
+        // at the start of the first line, the hint sentence right after it.
+        const cats = USER_ASSET_CATEGORIES.filter(c => missing.has(c.id));
+        cats.forEach((cat, idx) => {
+            const line = this.assetWarningBar.createDiv();
+            if (idx === 0) this.buildHideHintsToggle(line);
+            this.buildAssetWarningLine(line, t('assetName.' + cat.id));
+        });
         if (dupCount > 0) this.buildDuplicateWarningLine(this.assetWarningBar.createDiv(), dupCount);
+    }
+
+    // Checkbox that hides the missing-graphic icons on the map without stopping the
+    // check — the bar stays as long as graphics are missing. Sits inline before the
+    // hint text. Remembered per map (this.data.hideAssetWarnings).
+    buildHideHintsToggle(lineEl) {
+        const tip = t('assetWarning.hideHints');
+        const label = lineEl.createEl('label', { attr: { title: tip, style: 'display: inline-flex; align-items: center; gap: 6px; cursor: pointer; vertical-align: middle;' } });
+        const cb = label.createEl('input', { type: 'checkbox', cls: 'hex-hidehints-cb', attr: { title: tip } });
+        cb.checked = !!this.data.hideAssetWarnings;
+        label.createSpan({ text: tip });
+        cb.onchange = () => {
+            this.data.hideAssetWarnings = cb.checked;
+            this.requestSave();
+            this.render();
+        };
+        // Separator between the toggle and the hint sentence.
+        lineEl.createSpan({ text: '|', attr: { style: 'margin: 0 8px; opacity: 0.85;' } });
     }
 
     // Warning line for duplicated maps. {action} carries the link opening the dialog.
@@ -8807,7 +9003,7 @@ class HexCartographerView extends ItemView {
         lineEl.appendText(parts[0]);
         if (parts.length > 1) {
             const link = lineEl.createEl('a', { text: t('tooltip.settings') });
-            link.style.cssText = 'color: #fff; text-decoration: underline; cursor: pointer;';
+            link.style.cssText = 'color: #fff; text-decoration: underline; font-weight: 700; cursor: pointer;';
             link.onclick = (e) => {
                 e.preventDefault();
                 if (this.app.setting && this.app.setting.open) {
@@ -9237,6 +9433,7 @@ class HexCartographerView extends ItemView {
         this.data.zoom = scale;
         this.data.offX = -minX * scale;
         this.data.offY = -minY * scale;
+        this._exporting = true; // suppress missing-graphic placeholder icons
 
         tmpCtx.save();
         tmpCtx.translate(this.data.offX, this.data.offY);
@@ -9269,6 +9466,7 @@ class HexCartographerView extends ItemView {
             tmpCtx.restore();
         });
 
+        this._exporting = false;
         this.ctx = origCtx;
         this.canvas = origCanvas;
         this.textCtx = origTextCtx;
@@ -9381,8 +9579,9 @@ class HexCartographerView extends ItemView {
 
         if (!asset || asset.failed) {
             // Any unresolvable user graphic (missing folder path OR missing file):
-            // a small folder icon. The red status bar names what is missing.
-            this.drawFolderIcon(pos, Math.min(maxW, maxH) * 0.35);
+            // a small folder icon. The red status bar names what is missing. Hidden
+            // on export and when the per-map "hide hints" toggle is on.
+            if (this.errorIconsVisible()) this.drawFolderIcon(pos, Math.min(maxW, maxH) * 0.35);
             return;
         }
 
@@ -9409,6 +9608,12 @@ class HexCartographerView extends ItemView {
         const dw = iw * scale;
         const dh = ih * scale;
         this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
+    }
+
+    // Placeholder icons for missing graphics are shown while editing, but never on
+    // export and not when the per-map "hide hints" toggle is on.
+    errorIconsVisible() {
+        return !this._exporting && !this.data.hideAssetWarnings;
     }
 
     // Folder glyph marking a hex whose user graphic cannot be loaded (missing
@@ -9547,9 +9752,10 @@ class HexCartographerView extends ItemView {
                 const dh = ih * scale;
                 this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
             }
-        } else {
+        } else if (this.errorIconsVisible()) {
             // Unresolvable user texture: a small folder icon over the hex color that
             // was picked when drawing (so different textures stay distinguishable).
+            // Hidden on export and when the per-map "hide hints" toggle is on.
             this.drawFolderIcon(pos, Math.min(box.w, box.h) * 0.275);
         }
 
