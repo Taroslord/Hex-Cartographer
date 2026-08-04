@@ -13,7 +13,7 @@ const DEFAULT_MASTER_COLOR = '#000000';
 const DEFAULT_RIVER_COLOR = '#3295D2';
 const DEFAULT_ROAD_COLOR = '#f5deb3';
 const DEFAULT_BORDER_COLOR = '#FF0000';
-const DEFAULT_TEXT_COLOR = '#ffffff';
+const DEFAULT_TEXT_COLOR = '#000000';
 const DEFAULT_EXTRAS_SYMBOL_COLOR = '#228B22';
 const DEFAULT_EXTRAS_BG_COLOR = '#6CC261';
 const DEFAULT_VEGETATION_SYMBOL_COLOR = '#228B22';
@@ -3637,8 +3637,8 @@ const DEFAULT_SETTINGS = {
     exportWidth: 1024,
     showCrosshair: true,
     hideHexBorders: false,        // border toggle stored inverted: false = visible
-    hexBorderColor: '#808080',    // hex border line colour (shipped: gray)
-    hexBorderOpacity: 30,         // border visibility in %, 100 = fully visible
+    hexBorderColor: '#000000',    // hex border line colour (shipped: black)
+    hexBorderOpacity: 10,         // border visibility in %, 100 = fully visible
     hexNumberingEnabled: false,
     hexNumberingDirection: 'horizontal',  // 'horizontal' | 'vertical'
     hexNumberingAlpha: false,
@@ -4914,6 +4914,7 @@ class HexCartographerView extends ItemView {
                     this.hexTexture = newData.settings.hexTexture;
                 }
                 if (newData.settings.lastUsedTextSize !== undefined) this.lastUsedTextSize = newData.settings.lastUsedTextSize;
+                if (newData.settings.lastUsedTextColor !== undefined) this.lastUsedTextColor = newData.settings.lastUsedTextColor;
                 if (newData.settings.lastUsedTextOutline !== undefined) this.lastUsedTextOutline = newData.settings.lastUsedTextOutline;
                 if (newData.settings.lastUsedTextBold !== undefined) this.lastUsedTextBold = newData.settings.lastUsedTextBold;
                 if (newData.settings.lastUsedTextShadow !== undefined) this.lastUsedTextShadow = newData.settings.lastUsedTextShadow;
@@ -5289,13 +5290,19 @@ class HexCartographerView extends ItemView {
                 border: none !important;
                 display: block !important;
             }
-            .hex-toolbar-options {
-                display: none;
+            /* Top overlay stacks the warning bar and the options row above the map
+               without resizing the canvas. Height = its visible children only. */
+            .hex-map-top-overlay {
                 position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
                 z-index: 5;
+                display: flex;
+                flex-direction: column;
+            }
+            .hex-toolbar-options {
+                display: none;
                 flex-wrap: wrap;
                 align-items: center;
                 gap: 6px 14px;
@@ -5391,10 +5398,11 @@ class HexCartographerView extends ItemView {
 
         this.updateToolbarState(toolbar);
 
-        // Red bar under the toolbar naming missing user graphics (one line per
-        // category). Hidden while nothing is missing; updated on every render.
-        this.assetWarningBar = container.createDiv({ cls: 'hex-asset-warning-bar' });
-        this.assetWarningBar.style.cssText = 'display: none; flex-shrink: 0; background: var(--text-error); color: #fff; padding: 4px 10px; font-size: 13px; font-weight: 500; line-height: 1.4;';
+        // Red bar naming missing user graphics (one line per category). Hidden while
+        // nothing is missing; updated on every render. Created detached — placed into
+        // the map overlay below so showing it does not move the map.
+        this.assetWarningBar = createDiv({ cls: 'hex-asset-warning-bar' });
+        this.assetWarningBar.style.cssText = 'display: none; background: var(--text-error); color: #fff; padding: 4px 10px; font-size: 13px; font-weight: 500; line-height: 1.4; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);';
         this._assetWarnSig = null; // fresh bar -> force a re-evaluation on next render
 
         const canvasContainer = container.createDiv();
@@ -5416,8 +5424,11 @@ class HexCartographerView extends ItemView {
         this.textCanvas = canvasContainer.createEl('canvas', { cls: 'hex-text-canvas' });
         this.textCtx = this.textCanvas.getContext('2d');
 
-        // Overlay the options row over the top of the map (last child = on top).
-        canvasContainer.appendChild(this.toolbarOptionsEl);
+        // Overlay above the map: options row on top, warning bar below it. Both
+        // toggle independently and never resize the canvas.
+        const topOverlay = canvasContainer.createDiv({ cls: 'hex-map-top-overlay' });
+        topOverlay.appendChild(this.toolbarOptionsEl);
+        topOverlay.appendChild(this.assetWarningBar);
 
         this.resizeObserver = new ResizeObserver(() => this.resizeCanvas());
         this.resizeObserver.observe(canvasContainer);
@@ -5616,7 +5627,8 @@ class HexCartographerView extends ItemView {
             const needsRender = this.currentToolGroup === 'pattern' || this.borderSettings.pickedHex;
             if (mode !== 'eraser') this.exitPathEditMode();
             if (this.drawMode === mode && (mode === 'eraser' || mode === 'fill')) {
-                this.drawMode = 'pen';
+                // Text tool has no "pen" — its neutral mode is 'none' (select/place).
+                this.drawMode = (this.currentToolGroup === 'text') ? 'none' : 'pen';
                 this.updateToolbarState(toolbar);
                 return;
             }
@@ -5626,7 +5638,8 @@ class HexCartographerView extends ItemView {
                 this.exitPathEditMode();
                 this.currentToolGroup = 'hexcolor';
             }
-            else if (this.currentToolGroup === 'text') {
+            // Eraser stays WITH the text tool: a click then deletes the text under it.
+            else if (this.currentToolGroup === 'text' && mode !== 'eraser') {
                 this.currentToolGroup = null;
             }
 
@@ -7003,6 +7016,20 @@ class HexCartographerView extends ItemView {
         this.render(); // show the new (still empty) text or the target as-is
     }
 
+    // Text tool + eraser: a click removes the text under it (and only that). Returns
+    // true when it consumed the click, so the normal draw/place path is skipped.
+    handleTextEraser(world) {
+        if (this.currentToolGroup !== 'text' || this.drawMode !== 'eraser') return false;
+        const hit = this.getTextAt(world.x, world.y);
+        if (hit) {
+            this.pushHistoryIfNeeded();
+            this.data.texts = (this.data.texts || []).filter(x => x !== hit);
+            this.render();
+            this.requestSave();
+        }
+        return true;
+    }
+
     getTextAt(worldX, worldY) {
         if (!this.data.texts) return null;
         return this.data.texts.find(t => {
@@ -7158,6 +7185,8 @@ class HexCartographerView extends ItemView {
                 this.pickPathAtHex(this.startHex);
                 return;
             }
+
+            if (this.handleTextEraser(world)) return;
 
             let hitText = this.getTextAt(world.x, world.y);
             if (hitText && this.currentToolGroup === 'text' && this.drawMode === 'none') {
@@ -7557,15 +7586,19 @@ class HexCartographerView extends ItemView {
                             return;
                         }
 
-                        let hitText = this.getTextAt(world.x, world.y);
-                        if (hitText && this.currentToolGroup === 'text' && this.drawMode === 'none') {
-                            this.pushHistoryIfNeeded();
-                            this.draggedText = hitText;
-                            this.draggedTextMoved = false;
-                            // Keep the grab offset so the anchor does not jump to the finger.
-                            this.textDragOffset = { x: hitText.x - world.x, y: hitText.y - world.y };
+                        if (this.handleTextEraser(world)) {
+                            // text deleted / click consumed
                         } else {
-                            this.processInput(this.touchState.pendingTouchStart.mouseEvent, true);
+                            let hitText = this.getTextAt(world.x, world.y);
+                            if (hitText && this.currentToolGroup === 'text' && this.drawMode === 'none') {
+                                this.pushHistoryIfNeeded();
+                                this.draggedText = hitText;
+                                this.draggedTextMoved = false;
+                                // Keep the grab offset so the anchor does not jump to the finger.
+                                this.textDragOffset = { x: hitText.x - world.x, y: hitText.y - world.y };
+                            } else {
+                                this.processInput(this.touchState.pendingTouchStart.mouseEvent, true);
+                            }
                         }
                     }
                     this.touchState.pendingTouchStart = null;
@@ -7811,12 +7844,16 @@ class HexCartographerView extends ItemView {
                         return;
                     }
 
-                    let hitText = this.getTextAt(world.x, world.y);
-                    if (hitText && this.currentToolGroup === 'text' && this.drawMode === 'none') {
-                        this.pushHistoryIfNeeded();
-                        this.draggedText = hitText;
+                    if (this.handleTextEraser(world)) {
+                        // text deleted / click consumed
                     } else {
-                        this.processInput(this.touchState.pendingTouchStart.mouseEvent, true);
+                        let hitText = this.getTextAt(world.x, world.y);
+                        if (hitText && this.currentToolGroup === 'text' && this.drawMode === 'none') {
+                            this.pushHistoryIfNeeded();
+                            this.draggedText = hitText;
+                        } else {
+                            this.processInput(this.touchState.pendingTouchStart.mouseEvent, true);
+                        }
                     }
                 }
 
@@ -9559,8 +9596,8 @@ class HexCartographerView extends ItemView {
             }
             this.ctx.closePath();
             // Border colour + visibility from settings (shipped: gray at 30%).
-            const bc = hexToRgb(this.plugin.settings.hexBorderColor || '#808080');
-            const bo = (Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : 30) / 100;
+            const bc = hexToRgb(this.plugin.settings.hexBorderColor || DEFAULT_SETTINGS.hexBorderColor);
+            const bo = (Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : DEFAULT_SETTINGS.hexBorderOpacity) / 100;
             this.ctx.strokeStyle = `rgba(${bc.r},${bc.g},${bc.b},${bo})`;
             this.ctx.lineWidth = 1;
             this.ctx.stroke();
@@ -10353,6 +10390,7 @@ class HexCartographerView extends ItemView {
                     hexColorColor: this.hexColorColor,
                     hexTexture: this.hexTexture,
                     lastUsedTextSize: this.lastUsedTextSize,
+                    lastUsedTextColor: this.lastUsedTextColor,
                     lastUsedTextOutline: this.lastUsedTextOutline,
                     lastUsedTextBold: this.lastUsedTextBold,
                     lastUsedTextShadow: this.lastUsedTextShadow,
@@ -11513,7 +11551,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
             .setName(t('settings.hexBorderStyle'))
             .setDesc(t('settings.hexBorderStyleDesc'));
         const styleRow = borderStyle.controlEl.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 8px;' } });
-        const borderPicker = createColorPickerElement(styleRow, this.app, this.plugin.settings.hexBorderColor || '#808080', async (color) => {
+        const borderPicker = createColorPickerElement(styleRow, this.app, this.plugin.settings.hexBorderColor || DEFAULT_SETTINGS.hexBorderColor, async (color) => {
             this.plugin.settings.hexBorderColor = color;
             await this.plugin.saveSettings();
             renderOpenMaps();
@@ -11525,10 +11563,10 @@ class HexCartographerSettingTab extends PluginSettingTab {
             type: 'number',
             attr: { min: '0', max: '100', step: '1', style: 'width: 64px;', title: t('settings.hexBorderOpacityTooltip') }
         });
-        opacityInput.value = String(Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : 30);
+        opacityInput.value = String(Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : DEFAULT_SETTINGS.hexBorderOpacity);
         opacityInput.addEventListener('change', async () => {
             let v = parseInt(opacityInput.value);
-            if (!Number.isFinite(v)) v = 30;
+            if (!Number.isFinite(v)) v = DEFAULT_SETTINGS.hexBorderOpacity;
             v = Math.max(0, Math.min(100, v));
             opacityInput.value = String(v);
             this.plugin.settings.hexBorderOpacity = v;
