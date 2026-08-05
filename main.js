@@ -316,7 +316,7 @@ const TRANSLATIONS = {
         // Einstellungen
         'settings.exportWidth': 'Standard-Breite für Bildexport in Pixeln.',
         'settings.fastLoad': 'Schnelles Laden',
-        'settings.fastLoadDesc': 'Lädt Karten schneller. Achtung: In Hex Cartographer 1.2 und älter öffnen diese Karten nicht. Obsidian Sync überträgt sie nur mit „Alle anderen Dateien synchronisieren" (Zahnrad öffnet die Sync-Einstellungen).',
+        'settings.fastLoadDesc': 'Lädt Karten schneller. Achtung: In Hex Cartographer vor 2.0 öffnen diese Karten nicht. Obsidian Sync überträgt sie nur mit „Alle anderen Dateien synchronisieren" (Zahnrad öffnet die Sync-Einstellungen).',
         'notice.duplicateMaps': 'Achtung: {count} Karte(n) sind doppelt vorhanden.',
         'notice.duplicateMapTooltip': 'Diese Karte existiert zweimal — einmal als .hexcartographer, einmal als .hexcartographer.md.',
         'duplicate.barText': '{count} Karte(n) doppelt vorhanden. {action}',
@@ -614,7 +614,7 @@ const TRANSLATIONS = {
         // Settings
         'settings.exportWidth': 'Default width for image export in pixels.',
         'settings.fastLoad': 'Fast loading',
-        'settings.fastLoadDesc': 'Loads maps faster. Warning: these maps won\'t open in Hex Cartographer 1.2 and earlier. Obsidian Sync transfers them only with ‘Sync all other files’ on (gear opens Sync settings).',
+        'settings.fastLoadDesc': 'Loads maps faster. Warning: these maps won\'t open in Hex Cartographer versions before 2.0. Obsidian Sync transfers them only with ‘Sync all other files’ on (gear opens Sync settings).',
         'notice.duplicateMaps': 'Warning: {count} map(s) exist twice.',
         'notice.duplicateMapTooltip': 'This map exists twice — once as .hexcartographer and once as .hexcartographer.md.',
         'duplicate.barText': '{count} map(s) exist twice. {action}',
@@ -890,7 +890,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': '确定要删除文本吗？',
         'settings.exportWidth': '图片导出的默认宽度（像素）。',
         'settings.fastLoad': '快速加载',
-        'settings.fastLoadDesc': '更快地加载地图。注意：这些地图在 Hex Cartographer 1.2 及更早版本中无法打开。仅当启用“同步所有其他文件”时，Obsidian Sync 才会同步（齿轮打开同步设置）。',
+        'settings.fastLoadDesc': '更快地加载地图。注意：这些地图在 Hex Cartographer 2.0 之前的版本中无法打开。仅当启用“同步所有其他文件”时，Obsidian Sync 才会同步（齿轮打开同步设置）。',
         'notice.duplicateMaps': '注意：有 {count} 张地图重复存在。',
         'notice.duplicateMapTooltip': '此地图存在两份——一份为 .hexcartographer，一份为 .hexcartographer.md。',
         'duplicate.barText': '有 {count} 张地图重复。{action}',
@@ -1160,7 +1160,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': 'Действительно удалить текст?',
         'settings.exportWidth': 'Стандартная ширина для экспорта изображений в пикселях.',
         'settings.fastLoad': 'Быстрая загрузка',
-        'settings.fastLoadDesc': 'Загружает карты быстрее. Внимание: эти карты не откроются в Hex Cartographer 1.2 и старше. Obsidian Sync синхронизирует их только при включённой «Синхронизировать все прочие файлы» (шестерёнка открывает настройки Sync).',
+        'settings.fastLoadDesc': 'Загружает карты быстрее. Внимание: эти карты не откроются в Hex Cartographer версий до 2.0. Obsidian Sync синхронизирует их только при включённой «Синхронизировать все прочие файлы» (шестерёнка открывает настройки Sync).',
         'notice.duplicateMaps': 'Внимание: {count} карт(ы) существуют дважды.',
         'notice.duplicateMapTooltip': 'Эта карта существует дважды — как .hexcartographer и как .hexcartographer.md.',
         'duplicate.barText': '{count} карт(ы) существуют дважды. {action}',
@@ -1430,7 +1430,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': '本当にテキストを削除しますか？',
         'settings.exportWidth': '画像エクスポートのデフォルト幅（ピクセル）。',
         'settings.fastLoad': '高速読み込み',
-        'settings.fastLoadDesc': 'マップをより速く読み込みます。注意：これらのマップは Hex Cartographer 1.2 以前では開けません。Obsidian Sync は「その他のすべてのファイルを同期」が有効な場合のみ同期します（歯車で同期設定を開く）。',
+        'settings.fastLoadDesc': 'マップをより速く読み込みます。注意：これらのマップは Hex Cartographer 2.0 より前のバージョンでは開けません。Obsidian Sync は「その他のすべてのファイルを同期」が有効な場合のみ同期します（歯車で同期設定を開く）。',
         'notice.duplicateMaps': '注意：{count} 件のマップが二重に存在します。',
         'notice.duplicateMapTooltip': 'このマップは二重に存在します（.hexcartographer と .hexcartographer.md）。',
         'duplicate.barText': '{count} 件のマップが二重に存在します。{action}',
@@ -1700,7 +1700,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': 'Vraiment supprimer le texte ?',
         'settings.exportWidth': 'Largeur par défaut pour l\'export d\'image en pixels.',
         'settings.fastLoad': 'Chargement rapide',
-        'settings.fastLoadDesc': 'Charge les cartes plus vite. Attention : ces cartes ne s’ouvrent pas dans Hex Cartographer 1.2 et antérieur. Obsidian Sync ne les synchronise qu’avec « Synchroniser tous les autres fichiers » (l’engrenage ouvre les paramètres de synchro).',
+        'settings.fastLoadDesc': 'Charge les cartes plus vite. Attention : ces cartes ne s’ouvrent pas dans les versions de Hex Cartographer antérieures à 2.0. Obsidian Sync ne les synchronise qu’avec « Synchroniser tous les autres fichiers » (l’engrenage ouvre les paramètres de synchro).',
         'notice.duplicateMaps': 'Attention : {count} carte(s) existent en double.',
         'notice.duplicateMapTooltip': 'Cette carte existe en double — une fois en .hexcartographer et une fois en .hexcartographer.md.',
         'duplicate.barText': '{count} carte(s) en double. {action}',
@@ -1970,7 +1970,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': 'Realmente excluir o texto?',
         'settings.exportWidth': 'Largura padrão para exportação de imagem em pixels.',
         'settings.fastLoad': 'Carregamento rápido',
-        'settings.fastLoadDesc': 'Carrega os mapas mais depressa. Atenção: estes mapas não abrem no Hex Cartographer 1.2 e anteriores. O Obsidian Sync só os sincroniza com «Sincronizar todos os outros ficheiros» ativo (a engrenagem abre as definições de sincronização).',
+        'settings.fastLoadDesc': 'Carrega os mapas mais depressa. Atenção: estes mapas não abrem no versões do Hex Cartographer anteriores à 2.0. O Obsidian Sync só os sincroniza com «Sincronizar todos os outros ficheiros» ativo (a engrenagem abre as definições de sincronização).',
         'notice.duplicateMaps': 'Atenção: {count} mapa(s) existem em duplicado.',
         'notice.duplicateMapTooltip': 'Este mapa existe duas vezes — como .hexcartographer e como .hexcartographer.md.',
         'duplicate.barText': '{count} mapa(s) em duplicado. {action}',
@@ -2240,7 +2240,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': '텍스트를 정말 삭제하시겠습니까?',
         'settings.exportWidth': '이미지 내보내기의 기본 너비(픽셀).',
         'settings.fastLoad': '빠른 로딩',
-        'settings.fastLoadDesc': '지도를 더 빠르게 불러옵니다. 주의: 이 지도는 Hex Cartographer 1.2 이하에서는 열리지 않습니다. Obsidian Sync는 ‘기타 모든 파일 동기화’가 켜져 있을 때만 동기화합니다(톱니바퀴로 동기화 설정 열기).',
+        'settings.fastLoadDesc': '지도를 더 빠르게 불러옵니다. 주의: 이 지도는 2.0 이전의 Hex Cartographer 버전에서는 열리지 않습니다. Obsidian Sync는 ‘기타 모든 파일 동기화’가 켜져 있을 때만 동기화합니다(톱니바퀴로 동기화 설정 열기).',
         'notice.duplicateMaps': '주의: {count}개의 지도가 중복되어 있습니다.',
         'notice.duplicateMapTooltip': '이 지도는 .hexcartographer와 .hexcartographer.md로 두 번 존재합니다.',
         'duplicate.barText': '{count}개의 지도가 중복되어 있습니다. {action}',
@@ -2510,7 +2510,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': '¿Eliminar texto realmente?',
         'settings.exportWidth': 'Ancho predeterminado para exportación de imagen en píxeles.',
         'settings.fastLoad': 'Carga rápida',
-        'settings.fastLoadDesc': 'Carga los mapas más rápido. Atención: estos mapas no se abren en Hex Cartographer 1.2 y anteriores. Obsidian Sync solo los sincroniza con «Sincronizar todos los demás archivos» activado (el engranaje abre los ajustes de sincronización).',
+        'settings.fastLoadDesc': 'Carga los mapas más rápido. Atención: estos mapas no se abren en versiones de Hex Cartographer anteriores a 2.0. Obsidian Sync solo los sincroniza con «Sincronizar todos los demás archivos» activado (el engranaje abre los ajustes de sincronización).',
         'notice.duplicateMaps': 'Atención: {count} mapa(s) existen por duplicado.',
         'notice.duplicateMapTooltip': 'Este mapa existe dos veces: como .hexcartographer y como .hexcartographer.md.',
         'duplicate.barText': '{count} mapa(s) duplicados. {action}',
@@ -2780,7 +2780,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': 'Czy na pewno usunąć tekst?',
         'settings.exportWidth': 'Domyślna szerokość eksportu obrazu w pikselach.',
         'settings.fastLoad': 'Szybkie ładowanie',
-        'settings.fastLoadDesc': 'Wczytuje mapy szybciej. Uwaga: tych map nie otworzysz w Hex Cartographer 1.2 i starszych. Obsidian Sync synchronizuje je tylko przy włączonym „Synchronizuj wszystkie inne pliki" (koło zębate otwiera ustawienia synchronizacji).',
+        'settings.fastLoadDesc': 'Wczytuje mapy szybciej. Uwaga: tych map nie otworzysz w wersjach Hex Cartographer starszych niż 2.0. Obsidian Sync synchronizuje je tylko przy włączonym „Synchronizuj wszystkie inne pliki" (koło zębate otwiera ustawienia synchronizacji).',
         'notice.duplicateMaps': 'Uwaga: {count} mapa(y) występują podwójnie.',
         'notice.duplicateMapTooltip': 'Ta mapa istnieje dwukrotnie — jako .hexcartographer i jako .hexcartographer.md.',
         'duplicate.barText': '{count} mapa(y) podwójnie. {action}',
@@ -3050,7 +3050,7 @@ const TRANSLATIONS = {
         'modal.confirmDeleteText': 'Eliminare davvero il testo?',
         'settings.exportWidth': 'Larghezza predefinita per l\'esportazione di immagini in pixel.',
         'settings.fastLoad': 'Caricamento rapido',
-        'settings.fastLoadDesc': 'Carica le mappe più velocemente. Attenzione: queste mappe non si aprono in Hex Cartographer 1.2 e precedenti. Obsidian Sync le sincronizza solo con «Sincronizza tutti gli altri file» attivo (l’ingranaggio apre le impostazioni di sincronizzazione).',
+        'settings.fastLoadDesc': 'Carica le mappe più velocemente. Attenzione: queste mappe non si aprono in versioni di Hex Cartographer precedenti alla 2.0. Obsidian Sync le sincronizza solo con «Sincronizza tutti gli altri file» attivo (l’ingranaggio apre le impostazioni di sincronizzazione).',
         'notice.duplicateMaps': 'Attenzione: {count} mappa/e esistono in doppio.',
         'notice.duplicateMapTooltip': 'Questa mappa esiste due volte — come .hexcartographer e come .hexcartographer.md.',
         'duplicate.barText': '{count} mappa/e in doppio. {action}',
@@ -11705,23 +11705,22 @@ class HexCartographerSettingTab extends PluginSettingTab {
     // Clamp + "more" toggle for one description if its text exceeds 3 lines. Reversible
     // (safe to re-run on resize); keeps the user's expanded choice via a data flag.
     evaluateDescClamp(el) {
-        if (!el) return;
-        // Measure the true (unclamped) height.
-        el.classList.remove('hex-clamp', 'hex-clamp-expanded');
-        if (el.clientHeight === 0) return; // hidden (collapsed section) -> handled on open
-        const cs = getComputedStyle(el);
-        let lineHeight = parseFloat(cs.lineHeight);
-        if (!Number.isFinite(lineHeight)) lineHeight = (parseFloat(cs.fontSize) || 13) * 1.4;
-        const overflows = el.scrollHeight > lineHeight * 3 + 2; // tolerance for rounding
+        if (!el || el.offsetParent === null) return; // hidden (collapsed section) -> on open
+        const expanded = el.dataset.hexExpanded === '1';
+        // Detect overflow while CLAMPED to 3 lines: content taller than the clamped box
+        // means more than 3 lines. Robust against padding / line-height rounding — the
+        // old "scrollHeight > 3×lineHeight" mis-fired on texts that fit exactly 3 lines.
+        el.classList.add('hex-clamp');
+        el.classList.remove('hex-clamp-expanded');
+        const overflows = el.scrollHeight > el.clientHeight + 1; // +1 for sub-pixel rounding
 
         let btn = el.parentElement.querySelector(':scope > .hex-desc-more');
         if (!overflows) {                       // fits in 3 lines -> no clamp, no toggle
+            el.classList.remove('hex-clamp');
             if (btn) btn.remove();
             delete el.dataset.hexExpanded;
             return;
         }
-        const expanded = el.dataset.hexExpanded === '1';
-        el.classList.add('hex-clamp');
         if (expanded) el.classList.add('hex-clamp-expanded');
         if (!btn) {
             btn = el.parentElement.createEl('a', { cls: 'hex-desc-more' });
