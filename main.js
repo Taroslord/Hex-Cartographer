@@ -463,6 +463,9 @@ const TRANSLATIONS = {
         'menu.printMap': 'Karte drucken',
         'menu.showInSystemExplorer': 'Im Ordner anzeigen',
         'menu.revealInNavigation': 'Zeige Datei im Dateiexplorer',
+        'changelog.title': 'Was ist neu',
+        'changelog.showCommand': 'Was ist neu anzeigen',
+        'changelog.viewOnline': 'Online ansehen',
         'menu.shareMap': 'Karte teilen',
         'menu.exportMap': 'Als Bild exportieren',
         'notice.noContentToPrint': 'Keine Karteninhalte zum Drucken vorhanden',
@@ -761,6 +764,9 @@ const TRANSLATIONS = {
         'menu.printMap': 'Print map',
         'menu.showInSystemExplorer': 'Show in system explorer',
         'menu.revealInNavigation': 'Reveal file in navigation',
+        'changelog.title': 'What\'s new',
+        'changelog.showCommand': 'Show what\'s new',
+        'changelog.viewOnline': 'View online',
         'menu.shareMap': 'Share map',
         'menu.exportMap': 'Export as image',
         'notice.noContentToPrint': 'No map content to print',
@@ -1031,6 +1037,9 @@ const TRANSLATIONS = {
         'menu.printMap': '打印地图',
         'menu.showInSystemExplorer': '在系统资源管理器中显示',
         'menu.revealInNavigation': '在导航中显示文件',
+        'changelog.title': '新功能',
+        'changelog.showCommand': '显示新功能',
+        'changelog.viewOnline': '在线查看',
         'menu.shareMap': '分享地图',
         'menu.exportMap': '导出为图片',
         'notice.noContentToPrint': '没有可打印的地图内容',
@@ -1301,6 +1310,9 @@ const TRANSLATIONS = {
         'menu.printMap': 'Печать карты',
         'menu.showInSystemExplorer': 'Показать в системном проводнике',
         'menu.revealInNavigation': 'Показать файл в навигации',
+        'changelog.title': 'Что нового',
+        'changelog.showCommand': 'Показать, что нового',
+        'changelog.viewOnline': 'Смотреть онлайн',
         'menu.shareMap': 'Поделиться картой',
         'menu.exportMap': 'Экспорт как изображение',
         'notice.noContentToPrint': 'Нет содержимого карты для печати',
@@ -1571,6 +1583,9 @@ const TRANSLATIONS = {
         'menu.printMap': 'マップを印刷',
         'menu.showInSystemExplorer': 'システムのエクスプローラーで表示',
         'menu.revealInNavigation': 'ナビゲーションでファイルを表示',
+        'changelog.title': '新着情報',
+        'changelog.showCommand': '新着情報を表示',
+        'changelog.viewOnline': 'オンラインで見る',
         'menu.shareMap': 'マップを共有',
         'menu.exportMap': '画像としてエクスポート',
         'notice.noContentToPrint': '印刷するマップの内容がありません',
@@ -1841,6 +1856,9 @@ const TRANSLATIONS = {
         'menu.printMap': 'Imprimer la carte',
         'menu.showInSystemExplorer': 'Afficher dans l’explorateur système',
         'menu.revealInNavigation': 'Révéler le fichier dans la navigation',
+        'changelog.title': 'Nouveautés',
+        'changelog.showCommand': 'Afficher les nouveautés',
+        'changelog.viewOnline': 'Voir en ligne',
         'menu.shareMap': 'Partager la carte',
         'menu.exportMap': 'Exporter en image',
         'notice.noContentToPrint': 'Aucun contenu de carte à imprimer',
@@ -2111,6 +2129,9 @@ const TRANSLATIONS = {
         'menu.printMap': 'Imprimir mapa',
         'menu.showInSystemExplorer': 'Mostrar no explorador do sistema',
         'menu.revealInNavigation': 'Revelar ficheiro na navegação',
+        'changelog.title': 'Novidades',
+        'changelog.showCommand': 'Mostrar novidades',
+        'changelog.viewOnline': 'Ver online',
         'menu.shareMap': 'Compartilhar mapa',
         'menu.exportMap': 'Exportar como imagem',
         'notice.noContentToPrint': 'Nenhum conteúdo de mapa para imprimir',
@@ -2381,6 +2402,9 @@ const TRANSLATIONS = {
         'menu.printMap': '지도 인쇄',
         'menu.showInSystemExplorer': '시스템 탐색기에서 표시',
         'menu.revealInNavigation': '탐색에서 파일 표시',
+        'changelog.title': '새로운 기능',
+        'changelog.showCommand': '새로운 기능 표시',
+        'changelog.viewOnline': '온라인에서 보기',
         'menu.shareMap': '지도 공유',
         'menu.exportMap': '이미지로 내보내기',
         'notice.noContentToPrint': '인쇄할 지도 내용이 없습니다',
@@ -2651,6 +2675,9 @@ const TRANSLATIONS = {
         'menu.printMap': 'Imprimir mapa',
         'menu.showInSystemExplorer': 'Mostrar en el explorador del sistema',
         'menu.revealInNavigation': 'Mostrar archivo en la navegación',
+        'changelog.title': 'Novedades',
+        'changelog.showCommand': 'Mostrar novedades',
+        'changelog.viewOnline': 'Ver en línea',
         'menu.shareMap': 'Compartir mapa',
         'menu.exportMap': 'Exportar como imagen',
         'notice.noContentToPrint': 'No hay contenido del mapa para imprimir',
@@ -2921,6 +2948,9 @@ const TRANSLATIONS = {
         'menu.printMap': 'Drukuj mapę',
         'menu.showInSystemExplorer': 'Pokaż w eksploratorze systemu',
         'menu.revealInNavigation': 'Pokaż plik w nawigacji',
+        'changelog.title': 'Co nowego',
+        'changelog.showCommand': 'Pokaż co nowego',
+        'changelog.viewOnline': 'Zobacz online',
         'menu.shareMap': 'Udostępnij mapę',
         'menu.exportMap': 'Eksportuj jako obraz',
         'notice.noContentToPrint': 'Brak zawartości mapy do wydrukowania',
@@ -3191,6 +3221,9 @@ const TRANSLATIONS = {
         'menu.printMap': 'Stampa mappa',
         'menu.showInSystemExplorer': 'Mostra nell’esplora risorse di sistema',
         'menu.revealInNavigation': 'Mostra file nella navigazione',
+        'changelog.title': 'Novità',
+        'changelog.showCommand': 'Mostra novità',
+        'changelog.viewOnline': 'Vedi online',
         'menu.shareMap': 'Condividi mappa',
         'menu.exportMap': 'Esporta come immagine',
         'notice.noContentToPrint': 'Nessun contenuto della mappa da stampare',
@@ -3649,10 +3682,118 @@ const DEFAULT_SETTINGS = {
     hexNumberingFontSize: 10,
 };
 
+// Compares dotted versions: <0 if a older than b, 0 if equal, >0 if a newer.
+function compareVersions(a, b) {
+    const pa = String(a).split('.'), pb = String(b).split('.');
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const d = (parseInt(pa[i]) || 0) - (parseInt(pb[i]) || 0);
+        if (d) return d < 0 ? -1 : 1;
+    }
+    return 0;
+}
+
+// Release notes shown once after an update (newest first). Add a new entry on top
+// each release. The body is plain, author-written text; only the dialog chrome is
+// translated. Optional footer links (empty = hidden).
+const CHANGELOG_URL = ''; // e.g. your GitHub releases page (empty = hidden)
+// Donation link (same Ko-fi as in Settings). Placeholder for now — a pack-specific
+// link can replace it later. Single source, reused by the settings donate button.
+const KOFI_URL = 'https://ko-fi.com/christophwerner';
+// Release notes shown once after an update (newest first). Each block is a heading
+// (h), a paragraph (p) or a bullet list (ul). Add a new entry on top each release.
+const CHANGELOG = [
+    {
+        version: '2.0.0',
+        date: '2026-08-05',
+        title: '2.0 is here!',
+        blocks: [
+            { p: `The most-requested feature has arrived: your own graphics! On top of that, lots of small improvements and fixes. Here are the highlights since 1.1:` },
+            { h: `✨ Custom graphics – the big highlight` },
+            { ul: [
+                `Bring in your own symbols and textures directly from folders in your vault – for vegetation, mountains, buildings, extras, and hex textures.`,
+                `Thumbnail previews right in the selection menu, instead of just names.`,
+                `Recolor SVG symbols (for SVGs saved as a "compound path").`,
+                `A graphic missing? No problem – the map keeps working, and a placeholder marks exactly where something's missing. These markers show only while editing – never in your exported images – and you can hide them completely with a toggle.`,
+                `A notice bar flags any missing graphics at a glance and names the affected categories – shown as a tidy overlay above the map.`,
+            ] },
+            { h: `🎨 Get started fast – and help keep Hex Cartographer free` },
+            { p: `Hex Cartographer is free, and it'll stay that way. Keeping it running and adding new features takes a lot of time, though – so I've built something I'm genuinely proud of: my very first Hex Cartographer graphics pack.` },
+            { p: `The art is ready to use, carefully prepared, and covers most of what you need for vibrant, colorful maps right out of the box – perfect if you just can't wait to dive in and start mapping with graphics. And if you love making your own, it's a great template and reference to build your own symbols and textures from.` },
+            { p: `Picking up the pack is a simple, rewarding way to support my work – and it directly helps keep the plugin free and the updates coming for everyone. Think of it as buying me a coffee – and getting a full art pack in return.` },
+            { h: `🧩 New symbols & tools` },
+            { ul: [
+                `New symbols: cactus, deciduous forest, coniferous forest, volcano, crossed swords.`,
+                `Textures automatically get a matching base color (water → blues, mountains → grey/brown) – so hexes still look great even before a texture loads – or when one is missing entirely.`,
+                `Change a graphic on disk and the map updates live.`,
+                `When a symbol's color is very light, it gets a subtly darker backdrop so it always stays visible.`,
+                `A new options row for the river/road/border tools with clear labels (width, dashes) and +/– buttons – finger-friendly on tablet and phone, too.`,
+                `Borders now have an adjustable width.`,
+            ] },
+            { h: `📝 Text & handling` },
+            { ul: [
+                `Delete text with a click: turn on the Text tool + Eraser → click a text, gone.`,
+                `New texts start in black, and your last-used text settings are remembered.`,
+                `Three-dot menu: "Show in system explorer" and "Reveal file in navigation".`,
+                `Faster loading of large maps.`,
+                `Zoom & view are remembered per device (desktop, tablet, phone).`,
+            ] },
+            { h: `🔧 More polish` },
+            { ul: [
+                `New default border color: a subtle black at 10%.`,
+                `Plenty of smaller refinements across settings, previews, and mobile.`,
+            ] },
+            { p: `Thanks to everyone for your feedback and requests – happy map-making! 🗺️` },
+        ],
+    },
+];
+
+// "What's new" dialog. A branded header makes clear the popup belongs to Hex
+// Cartographer. Renders the full changelog (newest first) so history stays visible,
+// plus a donation call-to-action. Shown once per update; also on demand via command.
+class ChangelogModal extends Modal {
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+
+        // Branded header: icon + plugin name, so the user can place the popup.
+        const header = contentEl.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 8px; margin-bottom: 6px;' } });
+        const icon = header.createSpan({ attr: { style: 'display: inline-flex; color: var(--interactive-accent);' } });
+        setIcon(icon, 'map');
+        header.createEl('strong', { text: 'Hex Cartographer', attr: { style: 'font-size: 1.15em;' } });
+        header.createSpan({ text: '· ' + t('changelog.title'), attr: { style: 'color: var(--text-muted);' } });
+
+        const body = contentEl.createDiv({ attr: { style: 'max-height: 60vh; overflow: auto; padding-right: 6px;' } });
+        for (const entry of CHANGELOG) {
+            body.createEl('h2', { text: '🎉 ' + (entry.title || ('Version ' + entry.version)), attr: { style: 'margin: 10px 0 2px;' } });
+            body.createEl('div', {
+                text: 'Version ' + entry.version + (entry.date ? ' · ' + entry.date : ''),
+                attr: { style: 'color: var(--text-muted); font-size: 12px; margin-bottom: 8px;' }
+            });
+            for (const b of (entry.blocks || [])) {
+                if (b.h) body.createEl('h3', { text: b.h, attr: { style: 'margin: 14px 0 4px;' } });
+                if (b.p) body.createEl('p', { text: b.p, attr: { style: 'margin: 6px 0;' } });
+                if (b.ul) { const ul = body.createEl('ul', { attr: { style: 'margin: 4px 0;' } }); for (const li of b.ul) ul.createEl('li', { text: li }); }
+            }
+        }
+
+        const footer = contentEl.createDiv({ attr: { style: 'display: flex; gap: 12px; align-items: center; margin-top: 16px;' } });
+        if (CHANGELOG_URL) {
+            footer.createEl('a', { text: t('changelog.viewOnline'), attr: { href: CHANGELOG_URL, target: '_blank' } });
+        }
+        footer.createDiv({ attr: { style: 'flex: 1;' } });
+        // Donation call-to-action (placeholder link -> Ko-fi, same as Settings).
+        footer.createEl('a', { text: '☕ ' + t('settings.donateButton'), cls: 'mod-cta', attr: { href: KOFI_URL, target: '_blank', style: 'text-decoration: none;' } });
+        const ok = footer.createEl('button', { text: 'OK', cls: 'mod-cta' });
+        ok.onclick = () => this.close();
+    }
+    onClose() { this.contentEl.empty(); }
+}
+
 // === Main plugin class ===
 class HexCartographerPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
+        this._changelogPending = this.computeChangelogPending();
         currentLanguage = getObsidianLanguage();
 
         this.userAssets = new Map();
@@ -3735,6 +3876,17 @@ class HexCartographerPlugin extends Plugin {
             callback: () => new DuplicateMapsModal(this.app, this).open(),
         });
 
+        // "What's new" — on demand (also handy for testing without a real update).
+        this.addCommand({
+            id: 'show-changelog',
+            name: t('changelog.showCommand'),
+            callback: () => this.openChangelog(),
+        });
+
+        // Show the changelog once after an update, but only in a map context: on
+        // startup if a map is focused, and whenever a map tab becomes active.
+        this.app.workspace.onLayoutReady(() => this.flushPendingChangelog());
+
         this.registerEvent(
             this.app.workspace.on('file-menu', (menu, file) => {
                 menu.addItem((item) => {
@@ -3808,6 +3960,9 @@ class HexCartographerPlugin extends Plugin {
         }));
 
         this.registerEvent(this.app.workspace.on('active-leaf-change', (leaf) => {
+            // Show a pending changelog when the user switches into / opens a map tab.
+            this.flushPendingChangelog();
+
             document.querySelectorAll('.nav-file-title.hex-active').forEach(el => {
                 el.classList.remove('is-active');
                 el.classList.remove('hex-active');
@@ -3897,6 +4052,9 @@ class HexCartographerPlugin extends Plugin {
             }
         };
 
+        // Suppress the changelog while the map opens + is being named, so it never
+        // stacks behind the rename dialog. It is shown once that dialog closes.
+        this._suppressChangelog = true;
         try {
             const now = new Date().toISOString().split('T')[0];
             const frontmatter = `---\ntype: hexcartographer\ncreated: ${now}\n---\n\n`;
@@ -3924,9 +4082,28 @@ class HexCartographerPlugin extends Plugin {
                     console.error('Hex-Cartographer: rename prompt unavailable', e);
                 }
             }
+            // Show the changelog (if pending) only after the rename dialog is closed.
+            this.showChangelogAfterModalCloses();
         } catch (err) {
+            this._suppressChangelog = false;
             new Notice(t('notice.fileCreateError', { error: err }));
         }
+    }
+
+    // Waits until no modal is open (the rename dialog was dismissed), then shows a
+    // pending changelog — so the new map is named first and the popup never stacks.
+    showChangelogAfterModalCloses() {
+        let tries = 0;
+        const tick = () => {
+            if (!document.querySelector('.modal-container')) {
+                this._suppressChangelog = false;
+                this.flushPendingChangelog();
+                return;
+            }
+            if (++tries > 1500) { this._suppressChangelog = false; return; } // ~5 min safety
+            setTimeout(tick, 200);
+        };
+        setTimeout(tick, 200);
     }
 
     isHexMapPath(path) {
@@ -4118,7 +4295,49 @@ class HexCartographerPlugin extends Plugin {
     }
 
     async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        const stored = await this.loadData();
+        // Whether this vault already has plugin data — used to tell an upgrade from a
+        // fresh install at the 2.0 boundary (before then no version was recorded).
+        this._hadStoredData = stored != null && Object.keys(stored).length > 0;
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, stored);
+    }
+
+    // Decides whether the changelog is due (version changed since last shown, not a
+    // fresh install) and records the version silently for fresh installs. On the 2.0
+    // boundary (no marker existed before) an existing install is recognized via prior
+    // data.json content, so upgraders see it while fresh installs are not nagged.
+    // Returns a pending flag; the popup itself is shown only in a map context.
+    computeChangelogPending() {
+        const current = this.manifest.version;
+        const seen = this.settings.lastChangelogVersion;
+        if (seen === undefined) {
+            // 2.0 boundary: no marker existed before. Existing install -> show once;
+            // brand-new install -> record silently, never shown.
+            if (this._hadStoredData) return true;
+            this.settings.lastChangelogVersion = current;
+            this.saveSettings();
+            return false;
+        }
+        // Only when the current build is genuinely newer than what was last shown
+        // (equal or older stored version -> nothing, e.g. after a manual downgrade).
+        return compareVersions(seen, current) < 0;
+    }
+
+    // Shows the pending changelog, but ONLY when a Hex Cartographer map is the ACTIVE
+    // tab — so the popup never appears out of context (e.g. while editing a plain
+    // Markdown note, where the user could not place it). Called on layout-ready, when
+    // switching into a map tab, and when a map opens after an update.
+    flushPendingChangelog() {
+        if (!this._changelogPending || this._suppressChangelog) return;
+        if (!this.app.workspace.getActiveViewOfType(HexCartographerView)) return;
+        this._changelogPending = false;
+        this.settings.lastChangelogVersion = this.manifest.version;
+        this.saveSettings();
+        this.openChangelog();
+    }
+
+    openChangelog() {
+        new ChangelogModal(this.app).open();
     }
 
     async saveSettings() {
@@ -10956,6 +11175,17 @@ class TextInputModal extends Modal {
         this._apply = () => { this.onSubmit(...readValues()); };
         okBtn.onclick = () => { this.handled = true; this._apply(); this.close(); };
 
+        // Enter confirms like OK (texts are single-line). Buttons keep their own
+        // Enter/click; Escape still discards (see onEscapeKey).
+        contentEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                this.handled = true;
+                this._apply();
+                this.close();
+            }
+        });
+
         // Live preview: every change is pushed to the map immediately. Delegated on
         // contentEl so all text/number/select/checkbox inputs are covered; color,
         // palette and link changes call _previewFn directly (no matching DOM event).
@@ -11440,7 +11670,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 btn.setButtonText(t('settings.donateButton'))
                     .setCta()
                     .onClick(() => {
-                        window.open('https://ko-fi.com/christophwerner', '_blank');
+                        window.open(KOFI_URL, '_blank');
                     });
             });
 
