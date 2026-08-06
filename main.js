@@ -262,6 +262,7 @@ const TRANSLATIONS = {
         // Notices
         'notice.fileCreateError': 'Fehler beim Erstellen der Datei: {error}',
         'notice.nothingToUndo': 'Nichts zum Rückgängigmachen',
+        'notice.mapRecovered': 'Karte konnte nicht gespeichert werden (Sync-Konflikt) und wurde als „{name}" gerettet.',
         'notice.nothingToRedo': 'Nichts zum Wiederholen',
         'notice.noHexesToShow': 'Keine Waben oder Texte zum Anzeigen',
         'notice.noPattern': 'Kein Muster ausgewählt. Nutze den Picker-Button, um ein Muster aufzunehmen.',
@@ -463,6 +464,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': 'Langes Halten auf Werkzeug-Buttons = Symbolvariante wählen oder Palettenfarbe ändern.',
         'guide.touch.zoom': 'Zwei-Finger-Pinch = Zoom.',
         'guide.touch.pan': 'Zwei-Finger-Ziehen = Karte verschieben.<br>Edit Modus aus: Auch mit einem Finger ziehen möglich.',
+        'guide.touch.undoredo': 'Zwei-Finger-Tipp = Rückgängig.<br>Drei-Finger-Tipp = Wiederherstellen.',
 
         // Modal — color picker
         'modal.colorPickerTitle': 'Farbe wählen',
@@ -578,6 +580,7 @@ const TRANSLATIONS = {
         // Notices
         'notice.fileCreateError': 'Error creating file: {error}',
         'notice.nothingToUndo': 'Nothing to undo',
+        'notice.mapRecovered': 'The map could not be saved (sync conflict) and was rescued as “{name}”.',
         'notice.nothingToRedo': 'Nothing to redo',
         'notice.noHexesToShow': 'No hexes or texts to display',
         'notice.noPattern': 'No pattern selected. Use the picker button to pick a pattern.',
@@ -779,6 +782,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': 'Long press on tool buttons = Choose symbol variant or change palette color.',
         'guide.touch.zoom': 'Two-finger pinch = Zoom.',
         'guide.touch.pan': 'Two-finger drag = Pan map.<br>Edit mode off: Also swipe with one finger to pan.',
+        'guide.touch.undoredo': 'Two-finger tap = Undo.<br>Three-finger tap = Redo.',
 
         // Modal — Color picker
         'modal.colorPickerTitle': 'Choose Color',
@@ -878,6 +882,7 @@ const TRANSLATIONS = {
         'option.dashes': '虚线',
         'notice.fileCreateError': '创建文件时出错：{error}',
         'notice.nothingToUndo': '没有可撤销的操作',
+        'notice.mapRecovered': '地图无法保存（同步冲突），已作为“{name}”恢复。',
         'notice.nothingToRedo': '没有可重做的操作',
         'notice.noHexesToShow': '没有可显示的六角格或文本',
         'notice.noPattern': '未选择图案。使用采集按钮来采集图案。',
@@ -1071,6 +1076,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': '长按工具按钮 = 选择符号变体或更改调色板颜色。',
         'guide.touch.zoom': '双指捏合 = 缩放。',
         'guide.touch.pan': '双指拖动 = 平移地图。<br>编辑模式关闭时：也可以单指滑动来平移。',
+        'guide.touch.undoredo': '双指点按 = 撤销。<br>三指点按 = 重做。',
         'modal.colorPickerTitle': '选择颜色',
         'modal.colorPickerCancel': '取消',
         'tooltip.colorEyedropper': '取色器\n点击地图以采集任意颜色',
@@ -1166,6 +1172,7 @@ const TRANSLATIONS = {
         'option.dashes': 'Штрихи',
         'notice.fileCreateError': 'Ошибка при создании файла: {error}',
         'notice.nothingToUndo': 'Нечего отменять',
+        'notice.mapRecovered': 'Карту не удалось сохранить (конфликт синхронизации), она восстановлена как «{name}».',
         'notice.nothingToRedo': 'Нечего повторять',
         'notice.noHexesToShow': 'Нет сот или текстов для отображения',
         'notice.noPattern': 'Шаблон не выбран. Используйте кнопку захвата, чтобы скопировать шаблон.',
@@ -1359,6 +1366,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': 'Долгое нажатие на кнопки инструментов = Выбрать вариант символа или изменить цвет палитры.',
         'guide.touch.zoom': 'Сведение двумя пальцами = Масштаб.',
         'guide.touch.pan': 'Перетаскивание двумя пальцами = Перемещение карты.<br>Режим редактирования выключен: Также можно перемещать одним пальцем.',
+        'guide.touch.undoredo': 'Касание двумя пальцами = Отменить.<br>Касание тремя пальцами = Повторить.',
         'modal.colorPickerTitle': 'Выбрать цвет',
         'modal.colorPickerCancel': 'Отмена',
         'tooltip.colorEyedropper': 'Пипетка\nНажмите на карту, чтобы захватить любой цвет',
@@ -1454,6 +1462,7 @@ const TRANSLATIONS = {
         'option.dashes': '破線',
         'notice.fileCreateError': 'ファイル作成エラー：{error}',
         'notice.nothingToUndo': '元に戻す操作がありません',
+        'notice.mapRecovered': 'マップを保存できませんでした（同期の競合）。「{name}」として復旧しました。',
         'notice.nothingToRedo': 'やり直す操作がありません',
         'notice.noHexesToShow': '表示するヘックスまたはテキストがありません',
         'notice.noPattern': 'パターンが選択されていません。ピッカーボタンでパターンを取得してください。',
@@ -1647,6 +1656,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': 'ツールボタンを長押し = シンボルバリエーションの選択やパレット色の変更。',
         'guide.touch.zoom': '2本指ピンチ = ズーム。',
         'guide.touch.pan': '2本指ドラッグ = マップを移動。<br>編集モードオフ時：1本指スワイプでも移動できます。',
+        'guide.touch.undoredo': '2本指タップ = 元に戻す。<br>3本指タップ = やり直す。',
         'modal.colorPickerTitle': '色を選択',
         'modal.colorPickerCancel': 'キャンセル',
         'tooltip.colorEyedropper': 'スポイト\nマップをタップして任意の色を取得',
@@ -1742,6 +1752,7 @@ const TRANSLATIONS = {
         'option.dashes': 'Tirets',
         'notice.fileCreateError': 'Erreur lors de la création du fichier : {error}',
         'notice.nothingToUndo': 'Rien à annuler',
+        'notice.mapRecovered': 'La carte n’a pas pu être enregistrée (conflit de synchronisation) et a été récupérée sous « {name} ».',
         'notice.nothingToRedo': 'Rien à rétablir',
         'notice.noHexesToShow': 'Aucun hexagone ou texte à afficher',
         'notice.noPattern': 'Aucun motif sélectionné. Utilisez le bouton picker pour capturer un motif.',
@@ -1935,6 +1946,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': 'Appui long sur les boutons d\'outils = Choisir une variante de symbole ou modifier la couleur de la palette.',
         'guide.touch.zoom': 'Pincer à deux doigts = Zoom.',
         'guide.touch.pan': 'Glisser à deux doigts = Déplacer la carte.<br>Mode édition désactivé : Glisser avec un doigt pour déplacer aussi.',
+        'guide.touch.undoredo': 'Toucher à deux doigts = Annuler.<br>Toucher à trois doigts = Rétablir.',
         'modal.colorPickerTitle': 'Choisir une couleur',
         'modal.colorPickerCancel': 'Annuler',
         'tooltip.colorEyedropper': 'Pipette\nTouchez la carte pour capturer une couleur',
@@ -2030,6 +2042,7 @@ const TRANSLATIONS = {
         'option.dashes': 'Traços',
         'notice.fileCreateError': 'Erro ao criar o arquivo: {error}',
         'notice.nothingToUndo': 'Nada para desfazer',
+        'notice.mapRecovered': 'O mapa não pôde ser salvo (conflito de sincronização) e foi recuperado como “{name}”.',
         'notice.nothingToRedo': 'Nada para refazer',
         'notice.noHexesToShow': 'Nenhum hexágono ou texto para exibir',
         'notice.noPattern': 'Nenhum padrão selecionado. Use o botão picker para capturar um padrão.',
@@ -2223,6 +2236,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': 'Toque longo nos botões de ferramentas = Escolher variante de símbolo ou alterar cor da paleta.',
         'guide.touch.zoom': 'Pinça com dois dedos = Zoom.',
         'guide.touch.pan': 'Arrastar com dois dedos = Mover o mapa.<br>Modo de edição desativado: Também deslizar com um dedo para mover.',
+        'guide.touch.undoredo': 'Toque com dois dedos = Desfazer.<br>Toque com três dedos = Refazer.',
         'modal.colorPickerTitle': 'Escolher cor',
         'modal.colorPickerCancel': 'Cancelar',
         'tooltip.colorEyedropper': 'Conta-gotas\nToque no mapa para capturar uma cor',
@@ -2318,6 +2332,7 @@ const TRANSLATIONS = {
         'option.dashes': '대시',
         'notice.fileCreateError': '파일 생성 오류: {error}',
         'notice.nothingToUndo': '실행 취소할 항목이 없습니다',
+        'notice.mapRecovered': '지도를 저장할 수 없어(동기화 충돌) “{name}”(으)로 복구했습니다.',
         'notice.nothingToRedo': '다시 실행할 항목이 없습니다',
         'notice.noHexesToShow': '표시할 헥스 셀이나 텍스트가 없습니다',
         'notice.noPattern': '패턴이 선택되지 않았습니다. 피커 버튼을 사용하여 패턴을 캡처하세요.',
@@ -2511,6 +2526,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': '기호 변형 선택 또는 팔레트 색상 변경.',
         'guide.touch.zoom': '두 손가락 핀치 = 확대/축소.',
         'guide.touch.pan': '두 손가락 드래그 = 지도 이동.<br>편집 모드 꺼짐: 한 손가락으로도 스와이프하여 이동할 수 있습니다.',
+        'guide.touch.undoredo': '두 손가락 탭 = 실행 취소.<br>세 손가락 탭 = 다시 실행.',
         'modal.colorPickerTitle': '색상 선택',
         'modal.colorPickerCancel': '취소',
         'tooltip.colorEyedropper': '스포이트\n지도를 탭하여 색상을 캡처합니다',
@@ -2606,6 +2622,7 @@ const TRANSLATIONS = {
         'option.dashes': 'Trazos',
         'notice.fileCreateError': 'Error al crear el archivo: {error}',
         'notice.nothingToUndo': 'Nada que deshacer',
+        'notice.mapRecovered': 'El mapa no se pudo guardar (conflicto de sincronización) y se recuperó como «{name}».',
         'notice.nothingToRedo': 'Nada que rehacer',
         'notice.noHexesToShow': 'No hay celdas ni textos para mostrar',
         'notice.noPattern': 'Ningún patrón seleccionado. Usa el botón picker para capturar un patrón.',
@@ -2799,6 +2816,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': 'Elegir variante de símbolo o cambiar color de paleta.',
         'guide.touch.zoom': 'Pellizcar con dos dedos = Zoom.',
         'guide.touch.pan': 'Arrastrar con dos dedos = Mover mapa.<br>Modo edición desactivado: También deslizar con un dedo para mover el mapa.',
+        'guide.touch.undoredo': 'Toque con dos dedos = Deshacer.<br>Toque con tres dedos = Rehacer.',
         'modal.colorPickerTitle': 'Elegir color',
         'modal.colorPickerCancel': 'Cancelar',
         'tooltip.colorEyedropper': 'Cuentagotas\nToca el mapa para capturar cualquier color',
@@ -2894,6 +2912,7 @@ const TRANSLATIONS = {
         'option.dashes': 'Kreski',
         'notice.fileCreateError': 'Błąd podczas tworzenia pliku: {error}',
         'notice.nothingToUndo': 'Nie ma czego cofnąć',
+        'notice.mapRecovered': 'Nie udało się zapisać mapy (konflikt synchronizacji), odzyskano ją jako „{name}”.',
         'notice.nothingToRedo': 'Nie ma czego ponowić',
         'notice.noHexesToShow': 'Brak komórek lub tekstów do wyświetlenia',
         'notice.noPattern': 'Nie wybrano wzoru. Użyj przycisku picker, aby pobrać wzór.',
@@ -3087,6 +3106,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': 'Wybór wariantu symbolu lub zmiana koloru palety.',
         'guide.touch.zoom': 'Szczypanie dwoma palcami = Zoom.',
         'guide.touch.pan': 'Przeciąganie dwoma palcami = Przesuwanie mapy.<br>Tryb edycji wyłączony: Również przeciągnij jednym palcem, aby przesunąć mapę.',
+        'guide.touch.undoredo': 'Dotknięcie dwoma palcami = Cofnij.<br>Dotknięcie trzema palcami = Ponów.',
         'modal.colorPickerTitle': 'Wybierz kolor',
         'modal.colorPickerCancel': 'Anuluj',
         'tooltip.colorEyedropper': 'Pipeta\nDotknij mapy, aby pobrać dowolny kolor',
@@ -3182,6 +3202,7 @@ const TRANSLATIONS = {
         'option.dashes': 'Tratti',
         'notice.fileCreateError': 'Errore nella creazione del file: {error}',
         'notice.nothingToUndo': 'Niente da annullare',
+        'notice.mapRecovered': 'Impossibile salvare la mappa (conflitto di sincronizzazione); è stata recuperata come «{name}».',
         'notice.nothingToRedo': 'Niente da ripetere',
         'notice.noHexesToShow': 'Nessuna cella o testo da visualizzare',
         'notice.noPattern': 'Nessun motivo selezionato. Usa il pulsante picker per acquisire un motivo.',
@@ -3375,6 +3396,7 @@ const TRANSLATIONS = {
         'guide.touch.longpress': 'Scegliere variante simbolo o cambiare colore tavolozza.',
         'guide.touch.zoom': 'Pizzico con due dita = Zoom.',
         'guide.touch.pan': 'Trascinamento con due dita = Spostare mappa.<br>Modalità modifica disattivata: Anche scorrere con un dito per spostare la mappa.',
+        'guide.touch.undoredo': 'Tocco con due dita = Annulla.<br>Tocco con tre dita = Ripeti.',
         'modal.colorPickerTitle': 'Scegli colore',
         'modal.colorPickerCancel': 'Annulla',
         'tooltip.colorEyedropper': 'Contagocce\nTocca la mappa per acquisire qualsiasi colore',
@@ -4056,10 +4078,34 @@ class HexCartographerPlugin extends Plugin {
         this.registerEvent(this.app.vault.on('delete', (file) => {
             const leaves = this.app.workspace.getLeavesOfType('hex-cartographer');
             leaves.forEach(leaf => {
-                if (leaf.view instanceof HexCartographerView && leaf.view.file && leaf.view.file.path === file.path) {
-                    if (leaf.view.saveTimeout) clearTimeout(leaf.view.saveTimeout);
-                    leaf.detach();
+                const view = leaf.view;
+                if (!(view instanceof HexCartographerView) || !view.file || view.file.path !== file.path) return;
+                const deletedPath = file.path;
+                // Unsaved drawing lives ONLY in memory (debounced save). If Sync deletes the
+                // file mid-draw, neither the original nor the empty "[conflicted]" twin holds
+                // it — so rescue it straight from memory into a fresh file and keep the tab.
+                if (view._dirty && this.mapHasContent(view.data)) {
+                    this.recoverDeletedMap(leaf, view, deletedPath);
+                    return;
                 }
+                // No unsaved work: do NOT close immediately (Sync deletes briefly while
+                // resolving a conflict). Re-check after a short delay — reload if it came
+                // back, follow a "[conflicted]" twin (holds the saved data), else close.
+                if (view.saveTimeout) { clearTimeout(view.saveTimeout); view.saveTimeout = null; }
+                setTimeout(() => {
+                    if (leaf.view !== view) return;                          // leaf reused
+                    if (!view.file || view.file.path !== deletedPath) return; // already moved on
+                    if (this.app.vault.getAbstractFileByPath(deletedPath)) { // came back
+                        view.reloadFile();
+                        return;
+                    }
+                    const twin = this.findConflictTwin(deletedPath);
+                    if (twin) {
+                        leaf.setViewState({ type: 'hex-cartographer', state: { file: twin.path } });
+                        return;
+                    }
+                    leaf.detach(); // genuinely deleted -> close as before
+                }, 1500);
             });
         }));
 
@@ -4068,7 +4114,11 @@ class HexCartographerPlugin extends Plugin {
             leaves.forEach(leaf => {
                 const view = leaf.view;
                 if (view instanceof HexCartographerView && view.file && view.file.path === file.path) {
-                    if (!view.isSaving) {
+                    // Skip while WE are writing (isSaving) OR have unsaved edits pending
+                    // (saveTimeout). Otherwise an incoming disk write — e.g. an Obsidian
+                    // Sync copy landing mid-draw — would reload over the user's in-memory
+                    // drawing before it is saved and wipe it. Local unsaved edits win.
+                    if (!view.isSaving && !view.saveTimeout) {
                         view.reloadFile();
                     }
                 }
@@ -4082,6 +4132,14 @@ class HexCartographerPlugin extends Plugin {
                 if (view instanceof HexCartographerView && view.file &&
                     (view.file.path === oldPath || view.file === file)) {
                     view.file = file;
+                    // CRITICAL: the loaded data still belongs to this map, so move the
+                    // save-guard paths to the new name. Otherwise saveData()'s
+                    // `_dataPath !== this.file.path` check treats them as mismatched and
+                    // blocks EVERY save for the rest of the session — new maps get renamed
+                    // right after creation (promptForFileRename), so this would silently
+                    // drop all drawing until the map is reopened.
+                    view._dataPath = file.path;
+                    if (view._lastSavedPath === oldPath) view._lastSavedPath = file.path;
                 }
             });
             setTimeout(() => {
@@ -4420,6 +4478,69 @@ class HexCartographerPlugin extends Plugin {
         } catch (e) {
             console.error('Hex-Cartographer: could not switch extension to', desired, e);
         }
+    }
+
+    // Obsidian Sync writes the losing side of a conflict as "<base> [conflicted]<ext>" in
+    // the same folder. Finds such a twin for a just-deleted map so its tab can follow the
+    // surviving copy instead of closing. Most recently modified twin wins.
+    findConflictTwin(deletedPath) {
+        const slash = deletedPath.lastIndexOf('/');
+        const dir = slash >= 0 ? deletedPath.slice(0, slash) : '';
+        const name = slash >= 0 ? deletedPath.slice(slash + 1) : deletedPath;
+        const ext = name.endsWith(HEX_EXT_FULL) ? HEX_EXT_FULL : (name.endsWith(HEX_EXT_FAST) ? HEX_EXT_FAST : '');
+        const base = ext ? name.slice(0, name.length - ext.length) : name;
+        const twins = this.app.vault.getFiles().filter(f => {
+            if (!this.isHexMapPath(f.path)) return false;
+            const fdir = f.parent ? f.parent.path : '';
+            return fdir === dir && f.name.startsWith(base) && /\[conflicted/i.test(f.name);
+        });
+        twins.sort((a, b) => ((b.stat && b.stat.mtime) || 0) - ((a.stat && a.stat.mtime) || 0));
+        return twins[0] || null;
+    }
+
+    // A fresh, collision-free path next to the deleted map for a recovery save.
+    uniqueRecoveryPath(deletedPath) {
+        const slash = deletedPath.lastIndexOf('/');
+        const dir = slash >= 0 ? deletedPath.slice(0, slash) : '';
+        const name = slash >= 0 ? deletedPath.slice(slash + 1) : deletedPath;
+        const ext = name.endsWith(HEX_EXT_FULL) ? HEX_EXT_FULL : (name.endsWith(HEX_EXT_FAST) ? HEX_EXT_FAST : this.targetHexExt());
+        const base = name.endsWith(ext) ? name.slice(0, name.length - ext.length) : name;
+        const stamp = new Date().toTimeString().slice(0, 8).replace(/:/g, '');
+        const at = (suffix) => `${dir ? dir + '/' : ''}${base} (recovered ${stamp}${suffix})${ext}`;
+        let candidate = at('');
+        let i = 2;
+        while (this.app.vault.getAbstractFileByPath(candidate)) { candidate = at('-' + i); i++; }
+        return candidate;
+    }
+
+    // Rescues an open map whose file was deleted (e.g. by an Obsidian Sync conflict) while
+    // it still held UNSAVED drawing: writes the in-memory data to a new, uniquely named
+    // file — no remote version exists for it, so Sync cannot conflict — and points the tab
+    // there. This is the safety net that keeps the drawing that lived only in memory.
+    async recoverDeletedMap(leaf, view, deletedPath) {
+        try {
+            if (view.saveTimeout) { clearTimeout(view.saveTimeout); view.saveTimeout = null; }
+            const recoveryPath = this.uniqueRecoveryPath(deletedPath);
+            const file = await this.app.vault.create(recoveryPath, '\n');
+            // Re-point the view at the new file and serialize the current in-memory map.
+            view.file = file;
+            view._dataPath = file.path;
+            view._lastSavedContent = null;
+            view._lastSavedPath = null;
+            await view.saveData();
+            view._dirty = false;
+            await leaf.setViewState({ type: 'hex-cartographer', active: true, state: { file: file.path } });
+            new Notice(t('notice.mapRecovered', { name: file.basename }));
+        } catch (e) {
+            console.error('Hex-Cartographer: map recovery failed', e);
+        }
+    }
+
+    // True if the map holds anything worth rescuing.
+    mapHasContent(data) {
+        if (!data) return false;
+        const n = (o) => (o ? (Array.isArray(o) ? o.length : Object.keys(o).length) : 0);
+        return n(data.hexes) > 0 || n(data.rivers) > 0 || n(data.roads) > 0 || n(data.texts) > 0 || n(data.borders) > 0;
     }
 
     hideHexExtensionInExplorer() {
@@ -8447,8 +8568,56 @@ class HexCartographerView extends ItemView {
             this.lastHex = null;
             this.startHex = null;
             this.touchState.touches = [];
+            this.touchState.tapActive = false;
             this.render();
         }, { passive: false });
+
+        // Multi-finger tap = quick undo/redo on touch (the Procreate-style convention):
+        // two fingers = undo, three fingers = redo. A tap is a short press with almost no
+        // movement, so it never collides with two-finger pan/zoom (which moves) or with
+        // one-finger drawing. Kept as its own listeners so the logic above stays untouched.
+        const TAP_MAX_MS = 300;   // longer presses are not taps
+        const TAP_MAX_MOVE = 14;  // px a finger may drift and still count as a tap
+        this.canvas.addEventListener('touchstart', (e) => {
+            const ts = this.touchState;
+            if (!ts.tapActive) {
+                ts.tapActive = true;
+                ts.tapStart = Date.now();
+                ts.tapMoved = false;
+                ts.tapMaxFingers = 0;
+                ts.tapStartPos = {};
+            }
+            ts.tapMaxFingers = Math.max(ts.tapMaxFingers, e.touches.length);
+            for (const touch of Array.from(e.touches)) {
+                if (ts.tapStartPos[touch.identifier] === undefined) {
+                    ts.tapStartPos[touch.identifier] = { x: touch.clientX, y: touch.clientY };
+                }
+            }
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            const ts = this.touchState;
+            if (!ts.tapActive || ts.tapMoved) return;
+            for (const touch of Array.from(e.touches)) {
+                const start = ts.tapStartPos[touch.identifier];
+                if (start && Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > TAP_MAX_MOVE) {
+                    ts.tapMoved = true;
+                    break;
+                }
+            }
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            const ts = this.touchState;
+            if (e.touches.length > 0 || !ts.tapActive) return; // wait until all fingers are up
+            const isTap = !ts.tapMoved && (Date.now() - ts.tapStart < TAP_MAX_MS);
+            const fingers = ts.tapMaxFingers;
+            ts.tapActive = false;
+            if (isTap) {
+                if (fingers === 2) this.undo();
+                else if (fingers === 3) this.redo();
+            }
+        }, { passive: true });
     }
 
     calculateHexPath(start, end, width) {
@@ -10889,6 +11058,7 @@ class HexCartographerView extends ItemView {
                 this._lastSavedContent = content;
                 this._lastSavedPath = this.file.path;
                 await this.app.vault.modify(this.file, content);
+                this._dirty = false; // in-memory state is now safely on disk
             }
             catch (e) {
                 console.error(e);
@@ -10899,8 +11069,13 @@ class HexCartographerView extends ItemView {
     }
 
     requestSave() {
+        // Unsaved edits live only in memory until the debounced save fires. The delete
+        // handler uses this flag to rescue that work if Sync removes the file first.
+        this._dirty = true;
         if (this.saveTimeout) clearTimeout(this.saveTimeout);
-        this.saveTimeout = setTimeout(() => this.saveData(), 1000);
+        // Null the handle once it fires so `saveTimeout` reliably means "unsaved edits
+        // pending" — the modify handler relies on that to not reload over local edits.
+        this.saveTimeout = setTimeout(() => { this.saveTimeout = null; this.saveData(); }, 1000);
     }
 
     // Which viewport bucket this device uses. Platform is the reliable source; the
@@ -12738,6 +12913,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 ['timer', 'guide.touch.longpress'],
                 ['zoom-in', 'guide.touch.zoom'],
                 ['move', 'guide.touch.pan'],
+                ['undo-2', 'guide.touch.undoredo'],
             ]],
         ];
 
