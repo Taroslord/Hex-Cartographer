@@ -3918,6 +3918,8 @@ const CHANGELOG = [
             ] },
             { h: `📝 Text & handling` },
             { ul: [
+                `Undo and redo on touch – no buttons needed: two-finger tap to undo, three-finger tap to redo.`,
+                `Same map in two versions (for example after syncing across devices)? A new dialog compares them – a before/after slider on desktop and tablet, a tap-to-switch view on phone – so you can confidently keep the right one, rename it, or delete the old one.`,
                 `Delete text with a click: turn on the Text tool + Eraser → click a text, gone.`,
                 `New texts start in black, and your last-used text settings are remembered.`,
                 `Three-dot menu: "Show in system explorer" and "Reveal file in navigation".`,
@@ -5330,9 +5332,38 @@ class HexCartographerView extends ItemView {
                 if (fileChanged) {
                     this.app.workspace?.requestSaveLayout?.();
                 }
+            } else {
+                // The file is not in the vault (yet). On startup Obsidian Sync may still be
+                // materializing it after resolving a conflict; without this the tab would
+                // just show an empty map. Poll briefly and load it once it appears.
+                this.scheduleMissingFileLoad(state.file);
             }
         }
         await super.setState(state, result);
+    }
+
+    // Retries loading a map whose file was not present when setState ran (e.g. Sync is
+    // still writing it on startup). Aborts if the view moved on to another file.
+    scheduleMissingFileLoad(path) {
+        this._pendingLoadPath = path;
+        let tries = 0;
+        const tick = () => {
+            if (this._pendingLoadPath !== path) return;                 // superseded
+            if (this.file && this.file.path === path) { this._pendingLoadPath = null; return; }
+            const f = this.app.vault.getAbstractFileByPath(path);
+            if (f instanceof TFile) {
+                this._pendingLoadPath = null;
+                this.file = f;
+                this._lastSavedContent = null;
+                this._lastSavedPath = null;
+                this._dataPath = null;
+                this.reloadFile();
+                return;
+            }
+            if (++tries > 40) { this._pendingLoadPath = null; return; } // give up after ~20s
+            setTimeout(tick, 500);
+        };
+        setTimeout(tick, 500);
     }
 
     async reloadFile() {
@@ -5636,6 +5667,7 @@ class HexCartographerView extends ItemView {
             // (assignment below is skipped) or it is replaced. Bind it either way, so
             // saving is unblocked again after a map switch.
             this._dataPath = this.file.path;
+            this._dirty = false; // a freshly loaded map has no unsaved changes
 
             if (JSON.stringify(this.data) !== JSON.stringify(newData)) {
                 this.data = Object.assign({}, newData);
@@ -11052,6 +11084,14 @@ class HexCartographerView extends ItemView {
                 const title = this.file.basename.replace('.hexcartographer', '');
                 const content = `${frontmatter}# ${title}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
 
+                // Nothing changed since the last save -> skip the write entirely. Writing
+                // identical bytes still produces a file change that Obsidian Sync can turn
+                // into a conflict (e.g. closing a map you only looked at).
+                if (content === this._lastSavedContent && this.file.path === this._lastSavedPath) {
+                    this._dirty = false;
+                    return;
+                }
+
                 // Remember what we write — so a delayed modify event of the
                 // own save does not trigger a reload (see reloadFile). The path is
                 // kept too: the view survives map switches in fast-load mode.
@@ -11235,7 +11275,11 @@ class HexCartographerView extends ItemView {
     async onClose() {
         this.clearDecodeTimer();
         if (this.resizeObserver) this.resizeObserver.disconnect();
-        await this.saveData();
+        if (this.saveTimeout) { clearTimeout(this.saveTimeout); this.saveTimeout = null; }
+        // Only write when there is something unsaved (drawing, or a zoom/pan change — those
+        // mark _dirty too, so the per-device viewport still persists). Closing a map you only
+        // looked at writes nothing, which avoids needless Obsidian Sync conflicts.
+        if (this._dirty) await this.saveData();
     }
 }
 
