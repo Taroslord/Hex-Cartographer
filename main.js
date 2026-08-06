@@ -322,13 +322,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '{count} Karte(n) doppelt vorhanden. {action}',
         'duplicate.resolve': 'Jetzt prüfen',
         'duplicate.title': 'Doppelte Karten',
-        'duplicate.intro': 'Diese Karten liegen zweimal vor: einmal als .hexcartographer und einmal als .hexcartographer.md. Solange beide denselben Namen tragen, bleibt die alte Fassung unverändert und beide sehen im Explorer gleich aus. Das Umbenennen hängt einen Zeitstempel an die alte Fassung — es wird nichts gelöscht.',
+        'duplicate.intro': 'Diese Karten liegen doppelt vor: jeweils einmal im Modus „Schnelles Laden" (.hexcartographer) und einmal als .hexcartographer.md. Entscheide je Karte, welche Fassung behalten wird — die veraltete lässt sich umbenennen (ein Zeitstempel wird angehängt) oder löschen.',
         'duplicate.none': 'Keine weiteren doppelten Hex Cartographer Karten gefunden.',
         'duplicate.checking': 'Wird geprüft …',
         'duplicate.identical': 'Inhalt identisch',
         'duplicate.different': 'Inhalte unterschiedlich — bitte beide prüfen',
         'duplicate.modified': 'geändert',
         'duplicate.renameOld': 'Alte Fassung umbenennen',
+        'duplicate.inspectOld': 'Alte Version prüfen',
+        'inspect.title': 'Versionen vergleichen',
+        'inspect.old': 'Alt',
+        'inspect.new': 'Neu',
+        'inspect.rendering': 'Vorschau wird erstellt …',
+        'inspect.noPreview': 'Zum Vergleichen bitte zuerst eine Karte öffnen.',
+        'inspect.close': 'Schließen',
+        'inspect.tapHint': 'Klick/Tipp zum Wechseln',
+        'inspect.dragHint': 'Regler ziehen zum Vergleichen',
+        'duplicate.outdated': 'Veraltet',
+        'duplicate.deleteOld': 'Alte Version löschen',
+        'duplicate.confirmDelete': 'Alte Version wirklich löschen?',
+        'duplicate.confirmYes': 'Ja, löschen',
+        'duplicate.confirmOpen': 'Nein, öffnen',
+        'duplicate.confirmCancel': 'Abbruch',
         'duplicate.command': 'Doppelte Karten prüfen',
         'settings.openSyncSettings': 'Sync-Einstellungen öffnen',
         'settings.exportWidthDesc': 'Standardbreite in Pixeln beim Exportieren als Bild.',
@@ -623,13 +638,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '{count} map(s) exist twice. {action}',
         'duplicate.resolve': 'Check now',
         'duplicate.title': 'Duplicate maps',
-        'duplicate.intro': 'These maps exist twice: once as .hexcartographer and once as .hexcartographer.md. While both share a name, the old variant stays as it is and both look identical in the explorer. Renaming appends a timestamp to the old variant — nothing is deleted.',
+        'duplicate.intro': 'These maps exist twice each: once in "Fast loading" mode (.hexcartographer) and once as .hexcartographer.md. For each map, decide which version to keep — the outdated one can be renamed (a timestamp is appended) or deleted.',
         'duplicate.none': 'No further duplicate Hex Cartographer maps found.',
         'duplicate.checking': 'Checking …',
         'duplicate.identical': 'Contents are identical',
         'duplicate.different': 'Contents differ — please check both',
         'duplicate.modified': 'modified',
         'duplicate.renameOld': 'Rename old variant',
+        'duplicate.inspectOld': 'Check old version',
+        'inspect.title': 'Compare versions',
+        'inspect.old': 'Old',
+        'inspect.new': 'New',
+        'inspect.rendering': 'Generating preview …',
+        'inspect.noPreview': 'Open a map first to compare versions.',
+        'inspect.close': 'Close',
+        'inspect.tapHint': 'Click/tap to switch',
+        'inspect.dragHint': 'Drag the slider to compare',
+        'duplicate.outdated': 'Outdated',
+        'duplicate.deleteOld': 'Delete old version',
+        'duplicate.confirmDelete': 'Really delete the old version?',
+        'duplicate.confirmYes': 'Yes, delete',
+        'duplicate.confirmOpen': 'No, open it',
+        'duplicate.confirmCancel': 'Cancel',
         'duplicate.command': 'Check for duplicate maps',
         'settings.openSyncSettings': 'Open Sync settings',
         'settings.exportWidthDesc': 'Default width in pixels when exporting as image.',
@@ -902,13 +932,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '有 {count} 张地图重复。{action}',
         'duplicate.resolve': '立即检查',
         'duplicate.title': '重复的地图',
-        'duplicate.intro': '这些地图存在两份：一份为 .hexcartographer，一份为 .hexcartographer.md。只要两者同名，旧版本就会保持不变，并且在文件列表中看起来完全一样。重命名会给旧版本加上时间戳——不会删除任何内容。',
+        'duplicate.intro': '这些地图各存在两份：一份为"快速加载"模式（.hexcartographer），一份为 .hexcartographer.md。请为每张地图决定保留哪一份——过时的版本可重命名（追加时间戳）或删除。',
         'duplicate.none': '未发现其他重复的 Hex Cartographer 地图。',
         'duplicate.checking': '正在检查……',
         'duplicate.identical': '内容相同',
         'duplicate.different': '内容不同——请检查两者',
         'duplicate.modified': '修改于',
         'duplicate.renameOld': '重命名旧版本',
+        'duplicate.inspectOld': '检查旧版本',
+        'inspect.title': '比较版本',
+        'inspect.old': '旧',
+        'inspect.new': '新',
+        'inspect.rendering': '正在生成预览……',
+        'inspect.noPreview': '请先打开一张地图以比较版本。',
+        'inspect.close': '关闭',
+        'inspect.tapHint': '点击/轻触以切换',
+        'inspect.dragHint': '拖动滑块进行比较',
+        'duplicate.outdated': '已过时',
+        'duplicate.deleteOld': '删除旧版本',
+        'duplicate.confirmDelete': '确实要删除旧版本吗？',
+        'duplicate.confirmYes': '是，删除',
+        'duplicate.confirmOpen': '否，打开',
+        'duplicate.confirmCancel': '取消',
         'duplicate.command': '检查重复的地图',
         'settings.openSyncSettings': '打开同步设置',
         'settings.exportWidthDesc': '导出为图片时的默认宽度（像素）。',
@@ -1175,13 +1220,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '{count} карт(ы) существуют дважды. {action}',
         'duplicate.resolve': 'Проверить',
         'duplicate.title': 'Дублирующиеся карты',
-        'duplicate.intro': 'Эти карты существуют дважды: как .hexcartographer и как .hexcartographer.md. Пока имена совпадают, старый вариант остаётся без изменений, и в проводнике оба выглядят одинаково. Переименование добавляет к старому варианту метку времени — ничего не удаляется.',
+        'duplicate.intro': 'Эти карты существуют в двух копиях каждая: одна в режиме «Быстрая загрузка» (.hexcartographer), другая как .hexcartographer.md. Для каждой карты решите, какую версию оставить — устаревшую можно переименовать (добавляется отметка времени) или удалить.',
         'duplicate.none': 'Других дублирующихся карт Hex Cartographer не найдено.',
         'duplicate.checking': 'Проверка …',
         'duplicate.identical': 'Содержимое одинаково',
         'duplicate.different': 'Содержимое различается — проверьте оба файла',
         'duplicate.modified': 'изменено',
         'duplicate.renameOld': 'Переименовать старый вариант',
+        'duplicate.inspectOld': 'Проверить старую версию',
+        'inspect.title': 'Сравнить версии',
+        'inspect.old': 'Старая',
+        'inspect.new': 'Новая',
+        'inspect.rendering': 'Создание предпросмотра …',
+        'inspect.noPreview': 'Сначала откройте карту, чтобы сравнить версии.',
+        'inspect.close': 'Закрыть',
+        'inspect.tapHint': 'Нажмите, чтобы переключить',
+        'inspect.dragHint': 'Перетащите ползунок для сравнения',
+        'duplicate.outdated': 'Устарело',
+        'duplicate.deleteOld': 'Удалить старую версию',
+        'duplicate.confirmDelete': 'Действительно удалить старую версию?',
+        'duplicate.confirmYes': 'Да, удалить',
+        'duplicate.confirmOpen': 'Нет, открыть',
+        'duplicate.confirmCancel': 'Отмена',
         'duplicate.command': 'Проверить дублирующиеся карты',
         'settings.openSyncSettings': 'Открыть настройки синхронизации',
         'settings.exportWidthDesc': 'Стандартная ширина в пикселях при экспорте в изображение.',
@@ -1448,13 +1508,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '{count} 件のマップが二重に存在します。{action}',
         'duplicate.resolve': '今すぐ確認',
         'duplicate.title': '重複したマップ',
-        'duplicate.intro': 'これらのマップは .hexcartographer と .hexcartographer.md の二重に存在します。名前が同じ間は古い方はそのままで、エクスプローラーでは見分けがつきません。名前の変更は古い方にタイムスタンプを付けるだけで、削除は行いません。',
+        'duplicate.intro': 'これらのマップはそれぞれ二重に存在します。1つは「高速読み込み」モード（.hexcartographer）、もう1つは .hexcartographer.md です。マップごとに、どちらのバージョンを残すか選んでください。古い方は名前を変更（タイムスタンプを付加）するか、削除できます。',
         'duplicate.none': 'ほかに重複した Hex Cartographer のマップはありません。',
         'duplicate.checking': '確認中 …',
         'duplicate.identical': '内容は同一です',
         'duplicate.different': '内容が異なります — 両方をご確認ください',
         'duplicate.modified': '更新',
         'duplicate.renameOld': '古い方の名前を変更',
+        'duplicate.inspectOld': '古いバージョンを確認',
+        'inspect.title': 'バージョンを比較',
+        'inspect.old': '旧',
+        'inspect.new': '新',
+        'inspect.rendering': 'プレビューを生成中 …',
+        'inspect.noPreview': '比較するには先にマップを開いてください。',
+        'inspect.close': '閉じる',
+        'inspect.tapHint': 'クリック/タップで切り替え',
+        'inspect.dragHint': 'スライダーをドラッグして比較',
+        'duplicate.outdated': '古い',
+        'duplicate.deleteOld': '古いバージョンを削除',
+        'duplicate.confirmDelete': '古いバージョンを本当に削除しますか？',
+        'duplicate.confirmYes': 'はい、削除',
+        'duplicate.confirmOpen': 'いいえ、開く',
+        'duplicate.confirmCancel': 'キャンセル',
         'duplicate.command': '重複したマップを確認',
         'settings.openSyncSettings': '同期設定を開く',
         'settings.exportWidthDesc': '画像としてエクスポートする際のデフォルト幅（ピクセル）。',
@@ -1721,13 +1796,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '{count} carte(s) en double. {action}',
         'duplicate.resolve': 'Vérifier',
         'duplicate.title': 'Cartes en double',
-        'duplicate.intro': 'Ces cartes existent en double : une fois en .hexcartographer et une fois en .hexcartographer.md. Tant qu\'elles portent le même nom, l\'ancienne version reste inchangée et les deux sont identiques dans l\'explorateur. Le renommage ajoute un horodatage à l\'ancienne version — rien n\'est supprimé.',
+        'duplicate.intro': 'Ces cartes existent chacune en double : l\'une en mode « Chargement rapide » (.hexcartographer), l\'autre en .hexcartographer.md. Pour chaque carte, choisissez la version à conserver — l\'obsolète peut être renommée (un horodatage est ajouté) ou supprimée.',
         'duplicate.none': 'Aucune autre carte Hex Cartographer en double n\'a été trouvée.',
         'duplicate.checking': 'Vérification …',
         'duplicate.identical': 'Contenus identiques',
         'duplicate.different': 'Contenus différents — vérifiez les deux',
         'duplicate.modified': 'modifié',
         'duplicate.renameOld': 'Renommer l\'ancienne version',
+        'duplicate.inspectOld': 'Vérifier l\'ancienne version',
+        'inspect.title': 'Comparer les versions',
+        'inspect.old': 'Ancien',
+        'inspect.new': 'Nouveau',
+        'inspect.rendering': 'Génération de l\'aperçu …',
+        'inspect.noPreview': 'Ouvrez d\'abord une carte pour comparer les versions.',
+        'inspect.close': 'Fermer',
+        'inspect.tapHint': 'Cliquez/touchez pour changer',
+        'inspect.dragHint': 'Faites glisser le curseur pour comparer',
+        'duplicate.outdated': 'Obsolète',
+        'duplicate.deleteOld': 'Supprimer l\'ancienne version',
+        'duplicate.confirmDelete': 'Supprimer vraiment l\'ancienne version ?',
+        'duplicate.confirmYes': 'Oui, supprimer',
+        'duplicate.confirmOpen': 'Non, ouvrir',
+        'duplicate.confirmCancel': 'Annuler',
         'duplicate.command': 'Rechercher les cartes en double',
         'settings.openSyncSettings': 'Ouvrir les paramètres de synchronisation',
         'settings.exportWidthDesc': 'Largeur par défaut en pixels lors de l\'export en image.',
@@ -1994,13 +2084,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '{count} mapa(s) em duplicado. {action}',
         'duplicate.resolve': 'Verificar agora',
         'duplicate.title': 'Mapas duplicados',
-        'duplicate.intro': 'Estes mapas existem duas vezes: como .hexcartographer e como .hexcartographer.md. Enquanto tiverem o mesmo nome, a versão antiga fica inalterada e ambas parecem iguais no explorador. Renomear acrescenta uma data e hora à versão antiga — nada é eliminado.',
+        'duplicate.intro': 'Estes mapas existem em duas cópias cada: uma no modo "Carregamento rápido" (.hexcartographer) e outra como .hexcartographer.md. Para cada mapa, decida qual versão manter — a desatualizada pode ser renomeada (um carimbo de data/hora é anexado) ou excluída.',
         'duplicate.none': 'Não foram encontrados mais mapas duplicados do Hex Cartographer.',
         'duplicate.checking': 'A verificar …',
         'duplicate.identical': 'Conteúdos idênticos',
         'duplicate.different': 'Conteúdos diferentes — verifique ambos',
         'duplicate.modified': 'modificado',
         'duplicate.renameOld': 'Renomear versão antiga',
+        'duplicate.inspectOld': 'Verificar versão antiga',
+        'inspect.title': 'Comparar versões',
+        'inspect.old': 'Antiga',
+        'inspect.new': 'Nova',
+        'inspect.rendering': 'Gerando pré-visualização …',
+        'inspect.noPreview': 'Abra um mapa primeiro para comparar as versões.',
+        'inspect.close': 'Fechar',
+        'inspect.tapHint': 'Clique/toque para alternar',
+        'inspect.dragHint': 'Arraste o controle deslizante para comparar',
+        'duplicate.outdated': 'Desatualizada',
+        'duplicate.deleteOld': 'Excluir versão antiga',
+        'duplicate.confirmDelete': 'Excluir mesmo a versão antiga?',
+        'duplicate.confirmYes': 'Sim, excluir',
+        'duplicate.confirmOpen': 'Não, abrir',
+        'duplicate.confirmCancel': 'Cancelar',
         'duplicate.command': 'Verificar mapas duplicados',
         'settings.openSyncSettings': 'Abrir configurações de sincronização',
         'settings.exportWidthDesc': 'Largura padrão em pixels ao exportar como imagem.',
@@ -2267,13 +2372,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '{count}개의 지도가 중복되어 있습니다. {action}',
         'duplicate.resolve': '지금 확인',
         'duplicate.title': '중복된 지도',
-        'duplicate.intro': '이 지도들은 .hexcartographer와 .hexcartographer.md로 두 번 존재합니다. 이름이 같은 동안에는 예전 파일이 그대로 남고 탐색기에서 구별할 수 없습니다. 이름 변경은 예전 파일에 시간 표시를 붙일 뿐, 삭제하지 않습니다.',
+        'duplicate.intro': '이 지도들은 각각 두 개로 존재합니다: 하나는 "빠른 로딩" 모드(.hexcartographer), 다른 하나는 .hexcartographer.md입니다. 각 지도마다 어느 버전을 남길지 선택하세요 — 오래된 버전은 이름을 변경(타임스탬프가 추가됨)하거나 삭제할 수 있습니다.',
         'duplicate.none': '중복된 Hex Cartographer 지도가 더 이상 없습니다.',
         'duplicate.checking': '확인 중 …',
         'duplicate.identical': '내용이 동일합니다',
         'duplicate.different': '내용이 다릅니다 — 두 파일을 모두 확인하세요',
         'duplicate.modified': '수정됨',
         'duplicate.renameOld': '예전 파일 이름 변경',
+        'duplicate.inspectOld': '이전 버전 확인',
+        'inspect.title': '버전 비교',
+        'inspect.old': '이전',
+        'inspect.new': '신규',
+        'inspect.rendering': '미리보기 생성 중 …',
+        'inspect.noPreview': '비교하려면 먼저 지도를 여세요.',
+        'inspect.close': '닫기',
+        'inspect.tapHint': '클릭/탭하여 전환',
+        'inspect.dragHint': '슬라이더를 드래그하여 비교',
+        'duplicate.outdated': '오래됨',
+        'duplicate.deleteOld': '이전 버전 삭제',
+        'duplicate.confirmDelete': '이전 버전을 정말 삭제할까요?',
+        'duplicate.confirmYes': '예, 삭제',
+        'duplicate.confirmOpen': '아니요, 열기',
+        'duplicate.confirmCancel': '취소',
         'duplicate.command': '중복된 지도 확인',
         'settings.openSyncSettings': '동기화 설정 열기',
         'settings.exportWidthDesc': '이미지로 내보낼 때 기본 너비(픽셀)입니다.',
@@ -2540,13 +2660,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '{count} mapa(s) duplicados. {action}',
         'duplicate.resolve': 'Comprobar ahora',
         'duplicate.title': 'Mapas duplicados',
-        'duplicate.intro': 'Estos mapas existen dos veces: como .hexcartographer y como .hexcartographer.md. Mientras compartan el nombre, la versión antigua permanece intacta y ambas se ven iguales en el explorador. Cambiar el nombre añade una marca de tiempo a la versión antigua; no se elimina nada.',
+        'duplicate.intro': 'Estos mapas existen por duplicado: uno en modo "Carga rápida" (.hexcartographer) y otro como .hexcartographer.md. Para cada mapa, decide qué versión conservar: la obsoleta se puede renombrar (se añade una marca de tiempo) o eliminar.',
         'duplicate.none': 'No se han encontrado más mapas duplicados de Hex Cartographer.',
         'duplicate.checking': 'Comprobando …',
         'duplicate.identical': 'Contenidos idénticos',
         'duplicate.different': 'Los contenidos difieren: revise ambos',
         'duplicate.modified': 'modificado',
         'duplicate.renameOld': 'Renombrar versión antigua',
+        'duplicate.inspectOld': 'Comprobar versión antigua',
+        'inspect.title': 'Comparar versiones',
+        'inspect.old': 'Antigua',
+        'inspect.new': 'Nueva',
+        'inspect.rendering': 'Generando vista previa …',
+        'inspect.noPreview': 'Abre un mapa primero para comparar las versiones.',
+        'inspect.close': 'Cerrar',
+        'inspect.tapHint': 'Haz clic o toca para cambiar',
+        'inspect.dragHint': 'Arrastra el control deslizante para comparar',
+        'duplicate.outdated': 'Obsoleta',
+        'duplicate.deleteOld': 'Eliminar versión antigua',
+        'duplicate.confirmDelete': '¿Eliminar realmente la versión antigua?',
+        'duplicate.confirmYes': 'Sí, eliminar',
+        'duplicate.confirmOpen': 'No, abrir',
+        'duplicate.confirmCancel': 'Cancelar',
         'duplicate.command': 'Buscar mapas duplicados',
         'settings.openSyncSettings': 'Abrir ajustes de sincronización',
         'settings.exportWidthDesc': 'Ancho predeterminado en píxeles al exportar como imagen.',
@@ -2813,13 +2948,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '{count} mapa(y) podwójnie. {action}',
         'duplicate.resolve': 'Sprawdź teraz',
         'duplicate.title': 'Zduplikowane mapy',
-        'duplicate.intro': 'Te mapy istnieją dwukrotnie: jako .hexcartographer i jako .hexcartographer.md. Dopóki mają tę samą nazwę, stara wersja pozostaje nietknięta, a obie wyglądają tak samo w eksploratorze. Zmiana nazwy dodaje do starej wersji znacznik czasu — nic nie jest usuwane.',
+        'duplicate.intro': 'Te mapy istnieją w dwóch kopiach każda: jedna w trybie „Szybkie ładowanie" (.hexcartographer), druga jako .hexcartographer.md. Dla każdej mapy zdecyduj, którą wersję zachować — nieaktualną można przemianować (z dołączonym znacznikiem czasu) lub usunąć.',
         'duplicate.none': 'Nie znaleziono więcej zduplikowanych map Hex Cartographer.',
         'duplicate.checking': 'Sprawdzanie …',
         'duplicate.identical': 'Zawartość identyczna',
         'duplicate.different': 'Zawartość różna — sprawdź obie',
         'duplicate.modified': 'zmieniono',
         'duplicate.renameOld': 'Zmień nazwę starej wersji',
+        'duplicate.inspectOld': 'Sprawdź starą wersję',
+        'inspect.title': 'Porównaj wersje',
+        'inspect.old': 'Stara',
+        'inspect.new': 'Nowa',
+        'inspect.rendering': 'Generowanie podglądu …',
+        'inspect.noPreview': 'Najpierw otwórz mapę, aby porównać wersje.',
+        'inspect.close': 'Zamknij',
+        'inspect.tapHint': 'Kliknij/dotknij, aby przełączyć',
+        'inspect.dragHint': 'Przeciągnij suwak, aby porównać',
+        'duplicate.outdated': 'Nieaktualna',
+        'duplicate.deleteOld': 'Usuń starą wersję',
+        'duplicate.confirmDelete': 'Na pewno usunąć starą wersję?',
+        'duplicate.confirmYes': 'Tak, usuń',
+        'duplicate.confirmOpen': 'Nie, otwórz',
+        'duplicate.confirmCancel': 'Anuluj',
         'duplicate.command': 'Sprawdź zduplikowane mapy',
         'settings.openSyncSettings': 'Otwórz ustawienia synchronizacji',
         'settings.exportWidthDesc': 'Domyślna szerokość w pikselach przy eksporcie jako obraz.',
@@ -3086,13 +3236,28 @@ const TRANSLATIONS = {
         'duplicate.barText': '{count} mappa/e in doppio. {action}',
         'duplicate.resolve': 'Controlla ora',
         'duplicate.title': 'Mappe duplicate',
-        'duplicate.intro': 'Queste mappe esistono due volte: come .hexcartographer e come .hexcartographer.md. Finché hanno lo stesso nome, la versione vecchia resta invariata ed entrambe appaiono identiche nell\'esploratore. La rinomina aggiunge un orario alla versione vecchia: non viene eliminato nulla.',
+        'duplicate.intro': 'Queste mappe esistono in doppia copia: una in modalità "Caricamento rapido" (.hexcartographer) e una come .hexcartographer.md. Per ogni mappa, decidi quale versione mantenere — quella obsoleta può essere rinominata (viene aggiunto un timestamp) o eliminata.',
         'duplicate.none': 'Non sono state trovate altre mappe Hex Cartographer duplicate.',
         'duplicate.checking': 'Controllo in corso …',
         'duplicate.identical': 'Contenuti identici',
         'duplicate.different': 'Contenuti diversi — controlla entrambe',
         'duplicate.modified': 'modificato',
         'duplicate.renameOld': 'Rinomina versione vecchia',
+        'duplicate.inspectOld': 'Controlla versione vecchia',
+        'inspect.title': 'Confronta versioni',
+        'inspect.old': 'Vecchia',
+        'inspect.new': 'Nuova',
+        'inspect.rendering': 'Generazione anteprima …',
+        'inspect.noPreview': 'Apri prima una mappa per confrontare le versioni.',
+        'inspect.close': 'Chiudi',
+        'inspect.tapHint': 'Clicca/tocca per cambiare',
+        'inspect.dragHint': 'Trascina il cursore per confrontare',
+        'duplicate.outdated': 'Obsoleta',
+        'duplicate.deleteOld': 'Elimina versione vecchia',
+        'duplicate.confirmDelete': 'Eliminare davvero la versione vecchia?',
+        'duplicate.confirmYes': 'Sì, elimina',
+        'duplicate.confirmOpen': 'No, apri',
+        'duplicate.confirmCancel': 'Annulla',
         'duplicate.command': 'Cerca mappe duplicate',
         'settings.openSyncSettings': 'Apri impostazioni di sincronizzazione',
         'settings.exportWidthDesc': 'Larghezza predefinita in pixel durante l\'esportazione come immagine.',
@@ -4213,6 +4378,35 @@ class HexCartographerPlugin extends Plugin {
             });
         } finally {
             this._swappingLeaves.delete(leaf);
+        }
+    }
+
+    // An open map view whose renderer (symbols, assets, draw routines) can be borrowed
+    // for offscreen previews. Null if no map is open.
+    firstOpenMapView() {
+        const leaves = this.app.workspace.getLeavesOfType('hex-cartographer');
+        for (const leaf of leaves) {
+            const v = leaf.view;
+            if (v && typeof v.renderFullMapForOutput === 'function' && v.svgSymbolsLoaded) return v;
+        }
+        return null;
+    }
+
+    // Renders map data to an offscreen canvas by cloning an open view's render context.
+    // The clone shares symbols/assets but carries its own data, so the live map is never
+    // disturbed and nothing is written to disk. Null if no map is open.
+    async renderMapPreview(data, hexOrientation, targetWidth) {
+        const host = this.firstOpenMapView();
+        if (!host) return null;
+        const proxy = Object.create(Object.getPrototypeOf(host));
+        Object.assign(proxy, host);
+        proxy.data = data;
+        proxy.hexOrientation = hexOrientation;
+        try {
+            return await proxy.renderFullMapForOutput({ targetWidth });
+        } catch (e) {
+            console.error('Hex-Cartographer: preview render failed', e);
+            return null;
         }
     }
 
@@ -6253,6 +6447,26 @@ class HexCartographerView extends ItemView {
         return menu;
     }
 
+    // Works around an Obsidian bug: in a 3rd-level submenu (root -> group -> folders),
+    // hovering a sibling folder does NOT switch the open submenu, because openSubmenu
+    // bails while another sibling's submenu is still open (its guard mismatches items
+    // that live in a submenu, not the root). We close the stale sibling and open the
+    // hovered one ourselves. Keyed off the pointer TYPE, not the device: mouse/pen hover
+    // switches (so an iPad with a mouse works), a finger tap keeps Obsidian's native
+    // open-on-tap. Every internal access is guarded so older Obsidian versions fall back
+    // to the native behavior without crashing.
+    fixSubmenuHover(menu, item) {
+        const dom = item && item.dom;
+        if (!dom || typeof dom.addEventListener !== 'function') return;
+        if (!menu || typeof menu.openSubmenu !== 'function' || typeof menu.closeSubmenu !== 'function') return;
+        dom.addEventListener('pointerenter', (e) => {
+            if (e && e.pointerType === 'touch') return; // finger tap -> native behavior
+            if (menu.currentSubmenu === item.submenu) return; // this one is already open
+            menu.closeSubmenu();
+            menu.openSubmenu(item);
+        });
+    }
+
     // Sort by displayed name. Must happen at display time because the
     // labels are translated — alphabetical order differs per language.
     sortByLabel(items, labelOf) {
@@ -6278,6 +6492,7 @@ class HexCartographerView extends ItemView {
             menu.addItem(item => {
                 item.setTitle(folder.name);
                 this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), folder, currentKey, onSelect, previewKind, '', checked);
+                this.fixSubmenuHover(menu, item);
             });
         });
 
@@ -9226,7 +9441,8 @@ class HexCartographerView extends ItemView {
         // affected map itself may never be opened.
         const dupCount = (this.plugin.duplicateHexMaps || []).length;
 
-        const sig = [...missing].sort().join(',') + '|dup:' + dupCount;
+        const hidden = !!this.data.hideAssetWarnings;
+        const sig = [...missing].sort().join(',') + '|dup:' + dupCount + '|hide:' + (hidden ? 1 : 0);
         if (sig === this._assetWarnSig) return;
         this._assetWarnSig = sig;
 
@@ -9236,14 +9452,19 @@ class HexCartographerView extends ItemView {
             return;
         }
         this.assetWarningBar.style.display = 'block';
-        // Missing categories in definition order. The "hide hints" checkbox sits inline
-        // at the start of the first line, the hint sentence right after it.
+        // All missing categories go into ONE sentence ("<A>, <B>, <C> fehlen. … {settings}
+        // … prüfen!"), so the settings hint appears only once. The "hide hints" checkbox
+        // sits inline at the start; when hints are hidden only the checkbox remains (the
+        // sentence and its "|" separator are suppressed until hints are shown again).
         const cats = USER_ASSET_CATEGORIES.filter(c => missing.has(c.id));
-        cats.forEach((cat, idx) => {
+        if (cats.length > 0) {
             const line = this.assetWarningBar.createDiv();
-            if (idx === 0) this.buildHideHintsToggle(line);
-            this.buildAssetWarningLine(line, t('assetName.' + cat.id));
-        });
+            this.buildHideHintsToggle(line);
+            if (!hidden) {
+                const names = cats.map(c => t('assetName.' + c.id)).join(', ');
+                this.buildAssetWarningLine(line, names);
+            }
+        }
         if (dupCount > 0) this.buildDuplicateWarningLine(this.assetWarningBar.createDiv(), dupCount);
     }
 
@@ -9261,8 +9482,10 @@ class HexCartographerView extends ItemView {
             this.requestSave();
             this.render();
         };
-        // Separator between the toggle and the hint sentence.
-        lineEl.createSpan({ text: '|', attr: { style: 'margin: 0 8px; opacity: 0.85;' } });
+        // Separator between the toggle and the hint sentence — only while hints are shown.
+        if (!this.data.hideAssetWarnings) {
+            lineEl.createSpan({ text: '|', attr: { style: 'margin: 0 8px; opacity: 0.85;' } });
+        }
     }
 
     // Warning line for duplicated maps. {action} carries the link opening the dialog.
@@ -11590,11 +11813,272 @@ function getFolderSuggestModal() {
     return _FolderSuggestModal;
 }
 
-// Lists maps that exist under both extensions and offers the non-destructive fix:
-// rename the outdated variant so the names stop colliding and the remaining one can
-// migrate normally again. Deleting is deliberately NOT offered — the twin usually
-// comes from sync divergence and may hold real work; Obsidian's own file menu is the
-// right place for an irreversible action.
+// Read-only parse of a saved map's JSON payload for preview rendering. Mirrors the
+// essential migrations from reloadFile (hex array -> map, old border format) without
+// touching any view state. Returns the data plus the stored hex orientation.
+function parseHexMapForPreview(content) {
+    let json = content;
+    if (content.includes('```json')) {
+        const m = content.match(/```json\s*([\s\S]*?)\s*```/);
+        if (m) json = m[1];
+    }
+    const d = JSON.parse(json);
+
+    if (Array.isArray(d.hexes)) {
+        const map = {};
+        d.hexes.forEach(h => {
+            map[`${h.q}_${h.r}`] = { q: h.q, r: h.r, color: h.backgroundColor || h.color, symbol: h.symbol, symbolColor: h.symbolColor };
+        });
+        d.hexes = map;
+    } else if (d.hexes && typeof d.hexes === 'object') {
+        Object.values(d.hexes).forEach(h => { if (h.backgroundColor) h.color = h.backgroundColor; });
+    } else {
+        d.hexes = {};
+    }
+
+    d.borders = d.borders || [];
+    if (d.borders.length > 0 && d.borders[0].q !== undefined) {
+        d.borders = [{ id: 1, color: DEFAULT_BORDER_COLOR, hexes: d.borders }];
+    }
+    d.rivers = d.rivers || [];
+    d.roads = d.roads || [];
+    d.texts = d.texts || [];
+    if (!d.gridSize || d.gridSize < 1 || !isFinite(d.gridSize)) d.gridSize = DEFAULT_GRID_SIZE;
+    if (!d.zoom || !isFinite(d.zoom)) d.zoom = 1;
+
+    const hexOrientation = !!(d.settings && d.settings.hexOrientation === true);
+    return { data: d, hexOrientation };
+}
+
+// Compares the two duplicate variants visually WITHOUT opening either file (read-only
+// vault.read + offscreen render), so inspecting never changes a file's mtime. Phone:
+// an Old/New toggle. Desktop/tablet: a before/after wipe slider. The old variant is
+// always the one flagged outdated in the list.
+class InspectDuplicateModal extends Modal {
+    constructor(app, plugin, pair, outdated) {
+        super(app);
+        this.plugin = plugin;
+        this.pair = pair;
+        this.oldFile = outdated;
+        this.newFile = (pair.fast === outdated) ? pair.full : pair.fast;
+    }
+
+    onOpen() {
+        this.titleEl.setText(t('inspect.title'));
+        this.render();
+    }
+
+    async render() {
+        const { contentEl } = this;
+        contentEl.empty();
+        const status = contentEl.createEl('p', { text: t('inspect.rendering') });
+        status.style.cssText = 'text-align: center; color: var(--text-muted);';
+
+        let oldUrl = null, newUrl = null;
+        try {
+            oldUrl = await this.renderFileUrl(this.oldFile);
+            newUrl = await this.renderFileUrl(this.newFile);
+        } catch (e) {
+            console.error('Hex-Cartographer: inspect render failed', e);
+        }
+
+        contentEl.empty();
+        if (!oldUrl || !newUrl) {
+            const msg = contentEl.createEl('p', { text: t('inspect.noPreview') });
+            msg.style.cssText = 'text-align: center;';
+            this.addCloseButton(contentEl);
+            return;
+        }
+
+        if (typeof Platform !== 'undefined' && Platform && Platform.isPhone) {
+            this.buildToggle(contentEl, oldUrl, newUrl);
+        } else {
+            this.buildSlider(contentEl, oldUrl, newUrl);
+        }
+        this.addCloseButton(contentEl);
+    }
+
+    async renderFileUrl(file) {
+        const content = await this.app.vault.read(file);
+        const { data, hexOrientation } = parseHexMapForPreview(content);
+        const canvas = await this.plugin.renderMapPreview(data, hexOrientation, 900);
+        return canvas ? canvas.toDataURL('image/png') : null;
+    }
+
+    metaLine(file) {
+        const ext = file.path.endsWith(HEX_EXT_FULL) ? HEX_EXT_FULL : HEX_EXT_FAST;
+        return `${ext} · ${new Date(file.stat.mtime).toLocaleString()}`;
+    }
+
+    // Phone: two tabs switch the shown image; starts on the old version.
+    buildToggle(container, oldUrl, newUrl) {
+        const tabs = container.createDiv();
+        tabs.style.cssText = 'display: flex; gap: 8px; justify-content: center; margin-bottom: 8px;';
+        const oldTab = tabs.createEl('button', { text: t('inspect.old') });
+        const newTab = tabs.createEl('button', { text: t('inspect.new') });
+
+        const frame = container.createDiv();
+        frame.style.cssText = 'border: 1px solid var(--background-modifier-border); border-radius: 6px; overflow: hidden;';
+        const img = frame.createEl('img');
+        img.style.cssText = 'display: block; width: 100%;';
+
+        const meta = container.createDiv();
+        meta.style.cssText = 'text-align: center; font-size: 12px; margin-top: 6px;';
+
+        const tabStyle = (active) => 'flex: 1; max-width: 160px; font-weight: 600;' +
+            (active ? ' background: var(--interactive-accent); color: var(--text-on-accent);' : '');
+        const select = (isOld) => {
+            img.src = isOld ? oldUrl : newUrl;
+            const file = isOld ? this.oldFile : this.newFile;
+            meta.setText((isOld ? t('inspect.old') : t('inspect.new')) + ' · ' + this.metaLine(file));
+            meta.style.color = isOld ? 'var(--text-error)' : 'var(--text-normal)';
+            oldTab.style.cssText = tabStyle(isOld);
+            newTab.style.cssText = tabStyle(!isOld);
+        };
+        oldTab.onclick = () => select(true);
+        newTab.onclick = () => select(false);
+        select(true);
+    }
+
+    // Desktop/tablet: both images stacked, a slider wipes the old one over the new.
+    // Clicking the images opens a fullscreen lightbox (see openLightbox), starting on
+    // whichever side was clicked.
+    buildSlider(container, oldUrl, newUrl) {
+        const wrap = container.createDiv();
+        wrap.style.cssText = 'position: relative; width: 100%; border: 1px solid var(--background-modifier-border); border-radius: 6px; overflow: hidden; user-select: none; cursor: pointer;';
+
+        const imgNew = wrap.createEl('img', { attr: { src: newUrl } });
+        imgNew.style.cssText = 'display: block; width: 100%;';
+        const imgOld = wrap.createEl('img', { attr: { src: oldUrl } });
+        imgOld.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
+
+        const divider = wrap.createDiv();
+        divider.style.cssText = 'position: absolute; top: 0; bottom: 0; width: 2px; background: var(--interactive-accent); pointer-events: none;';
+        const badge = (text, side, color) => {
+            const b = wrap.createDiv({ text });
+            b.style.cssText = `position: absolute; top: 6px; ${side}: 6px; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #fff; background: ${color}; pointer-events: none;`;
+            return b;
+        };
+        badge(t('inspect.old'), 'left', 'var(--text-error)');
+        badge(t('inspect.new'), 'right', 'var(--interactive-accent)');
+
+        let sliderVal = 50;
+        const setPos = (val) => {
+            sliderVal = val;
+            imgOld.style.clipPath = `inset(0 ${100 - val}% 0 0)`;
+            divider.style.left = val + '%';
+        };
+        setPos(50);
+
+        // Click opens the lightbox on the side that was clicked (left = old, right = new).
+        // stopPropagation keeps Obsidian's own image-zoom preview from also opening.
+        wrap.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const rect = wrap.getBoundingClientRect();
+            const pct = rect.width ? ((e.clientX - rect.left) / rect.width) * 100 : 50;
+            this.openLightbox(oldUrl, newUrl, pct <= sliderVal);
+        };
+
+        const range = container.createEl('input', { type: 'range', attr: { min: '0', max: '100', value: '50' } });
+        range.style.cssText = 'width: 100%; margin-top: 10px;';
+        range.addEventListener('input', () => setPos(Number(range.value)));
+
+        const hint = container.createEl('p', { text: t('inspect.dragHint') });
+        hint.style.cssText = 'text-align: center; font-size: 12px; color: var(--text-muted); margin: 4px 0 0;';
+
+        const meta = container.createDiv();
+        meta.style.cssText = 'text-align: center; font-size: 12px; margin-top: 4px;';
+        meta.createSpan({ text: t('inspect.old') + ' ' + this.metaLine(this.oldFile) }).style.color = 'var(--text-error)';
+        meta.createSpan({ text: '   |   ' + t('inspect.new') + ' ' + this.metaLine(this.newFile) });
+    }
+
+    // Fullscreen darkened overlay showing one version at full size. Click the image to
+    // flip old <-> new (a badge names the current one); click the dark area or press
+    // Escape to close and return to the slider. Desktop/tablet only (opened from the
+    // slider). Escape is captured so it closes the lightbox, not the whole modal.
+    openLightbox(oldUrl, newUrl, startOld) {
+        const overlay = document.body.createDiv();
+        overlay.style.cssText = 'position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;';
+
+        const img = overlay.createEl('img');
+        img.style.cssText = 'max-width: 92vw; max-height: 82vh; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6); cursor: pointer;';
+
+        const badge = overlay.createDiv();
+        badge.style.cssText = 'position: fixed; top: 16px; left: 16px; padding: 4px 12px; border-radius: 6px; font-weight: 700; color: #fff; pointer-events: none;';
+
+        const hint = overlay.createDiv({ text: t('inspect.tapHint') });
+        hint.style.cssText = 'margin-top: 16px; color: rgba(255, 255, 255, 0.8); font-size: 13px; pointer-events: none;';
+
+        let showingOld = startOld;
+        const apply = () => {
+            const file = showingOld ? this.oldFile : this.newFile;
+            img.src = showingOld ? oldUrl : newUrl;
+            badge.setText((showingOld ? t('inspect.old') : t('inspect.new')) + ' · ' + this.metaLine(file));
+            badge.style.background = showingOld ? 'var(--text-error)' : 'var(--interactive-accent)';
+        };
+        apply();
+
+        const close = () => { document.removeEventListener('keydown', onKey, true); overlay.remove(); };
+        const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } };
+        img.onclick = (e) => { e.preventDefault(); e.stopPropagation(); showingOld = !showingOld; apply(); };
+        overlay.onclick = close;
+        document.addEventListener('keydown', onKey, true);
+    }
+
+    addCloseButton(container) {
+        const row = container.createDiv();
+        row.style.cssText = 'display: flex; justify-content: center; margin-top: 16px;';
+        const ok = row.createEl('button', { text: t('inspect.close'), cls: 'mod-cta' });
+        ok.onclick = () => this.close();
+    }
+
+    onClose() {
+        this.contentEl.empty();
+    }
+}
+
+// Safety prompt before deleting an outdated duplicate. Three choices: delete, open
+// it first (to inspect before deciding), or cancel. The choice is reported once via
+// the callback; Escape or backdrop counts as 'cancel'.
+class ConfirmDeleteDuplicateModal extends Modal {
+    constructor(app, fileName, onChoice) {
+        super(app);
+        this.fileName = fileName;
+        this.onChoice = onChoice;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.createEl('p', { text: t('duplicate.confirmDelete') });
+        const nameEl = contentEl.createEl('p', { text: this.fileName });
+        nameEl.style.cssText = 'font-weight: 600; margin: 4px 0 12px;';
+
+        const row = contentEl.createDiv();
+        row.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;';
+        const del = row.createEl('button', { text: t('duplicate.confirmYes'), cls: 'mod-warning' });
+        del.onclick = () => this.choose('delete');
+        const open = row.createEl('button', { text: t('duplicate.confirmOpen') });
+        open.onclick = () => this.choose('open');
+        const cancel = row.createEl('button', { text: t('duplicate.confirmCancel') });
+        cancel.onclick = () => this.choose('cancel');
+    }
+
+    choose(choice) {
+        this._choice = choice;
+        this.close();
+    }
+
+    onClose() {
+        this.contentEl.empty();
+        if (this.onChoice) this.onChoice(this._choice || 'cancel');
+    }
+}
+
+// Lists maps that exist under both extensions and offers two fixes for the outdated
+// variant: rename it (non-destructive, appends a timestamp) or delete it. Delete is
+// guarded by a confirmation with an "open it first" escape hatch, since the twin may
+// hold real work from a sync divergence.
 class DuplicateMapsModal extends Modal {
     constructor(app, plugin) {
         super(app);
@@ -11629,11 +12113,23 @@ class DuplicateMapsModal extends Modal {
             name.setText(pair.base.split('/').pop());
             name.style.cssText = 'font-weight: 600; margin-bottom: 4px;';
 
+            // The outdated variant is the one edited longer ago — that is what the
+            // "Outdated" tag marks and what rename/delete act on. Equal timestamps fall
+            // back to the variant that does not match the current fast-load setting.
+            const dtMtime = pair.fast.stat.mtime - pair.full.stat.mtime;
+            const outdated = dtMtime === 0
+                ? (this.plugin.settings.fastLoad ? pair.full : pair.fast)
+                : (dtMtime < 0 ? pair.fast : pair.full);
             const when = (f) => new Date(f.stat.mtime).toLocaleString();
             for (const [label, f] of [[HEX_EXT_FAST, pair.fast], [HEX_EXT_FULL, pair.full]]) {
                 const row = box.createDiv();
                 row.setText(`${label} — ${t('duplicate.modified')}: ${when(f)}`);
                 row.style.cssText = 'font-size: 12px; color: var(--text-muted);';
+                // Mark the old version so the user sees at a glance which to rename/delete.
+                if (f === outdated) {
+                    const tag = row.createSpan({ text: ' — ' + t('duplicate.outdated') });
+                    tag.style.cssText = 'font-weight: 600; color: var(--text-error);';
+                }
             }
 
             const verdict = box.createDiv();
@@ -11645,9 +12141,13 @@ class DuplicateMapsModal extends Modal {
                 verdict.style.fontWeight = same ? '400' : '600';
             });
 
-            // The outdated variant is the one that does not match the current setting.
-            const outdated = this.plugin.settings.fastLoad ? pair.full : pair.fast;
-            const btn = box.createEl('button', { text: t('duplicate.renameOld') });
+            const btnRow = box.createDiv();
+            btnRow.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px;';
+
+            const inspect = btnRow.createEl('button', { text: t('duplicate.inspectOld') });
+            inspect.onclick = () => new InspectDuplicateModal(this.app, this.plugin, pair, outdated).open();
+
+            const btn = btnRow.createEl('button', { text: t('duplicate.renameOld') });
             btn.onclick = async () => {
                 btn.disabled = true;
                 try {
@@ -11657,6 +12157,25 @@ class DuplicateMapsModal extends Modal {
                 }
                 this.plugin.hideHexExtensionInExplorer();
                 await this.render();
+            };
+
+            const del = btnRow.createEl('button', { text: t('duplicate.deleteOld'), cls: 'mod-warning' });
+            del.onclick = () => {
+                new ConfirmDeleteDuplicateModal(this.app, outdated.path.split('/').pop(), async (choice) => {
+                    if (choice === 'delete') {
+                        try {
+                            await this.app.fileManager.trashFile(outdated);
+                        } catch (e) {
+                            console.error('Hex-Cartographer: could not delete duplicate', e);
+                        }
+                        this.plugin.hideHexExtensionInExplorer();
+                        await this.render();
+                    } else if (choice === 'open') {
+                        this.close();
+                        await this.app.workspace.getLeaf().openFile(outdated);
+                    }
+                    // 'cancel': keep the list open, do nothing.
+                }).open();
             };
         }
     }
