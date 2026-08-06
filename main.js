@@ -3818,18 +3818,12 @@ class HexCartographerPlugin extends Plugin {
 
         this.registerEvent(
             this.app.workspace.on('file-open', async (file) => {
-                if (!file || !file.path) return;
-                if (file.path.endsWith('.hexcartographer.md')) {
-                    await new Promise(resolve => setTimeout(resolve, 10));
-                    const leaves = this.app.workspace.getLeavesOfType('markdown');
-                    for (const leaf of leaves) {
-                        if (leaf.view.file && leaf.view.file.path === file.path) {
-                            this.maskLeafDuringSwap(leaf);
-                            await leaf.setViewState({
-                                type: 'hex-cartographer',
-                                state: { file: file.path }
-                            });
-                        }
+                if (!file || !file.path || !file.path.endsWith('.hexcartographer.md')) return;
+                await new Promise(resolve => setTimeout(resolve, 10));
+                const leaves = this.app.workspace.getLeavesOfType('markdown');
+                for (const leaf of leaves) {
+                    if (leaf.view.file && leaf.view.file.path === file.path) {
+                        await this.swapMarkdownToHex(leaf);
                     }
                 }
             })
@@ -3837,14 +3831,7 @@ class HexCartographerPlugin extends Plugin {
 
         this.registerEvent(
             this.app.workspace.on('active-leaf-change', async (leaf) => {
-                if (leaf && leaf.view && leaf.view.getViewType() === 'markdown' &&
-                    leaf.view.file && leaf.view.file.path.endsWith('.hexcartographer.md')) {
-                    this.maskLeafDuringSwap(leaf);
-                    await leaf.setViewState({
-                        type: 'hex-cartographer',
-                        state: { file: leaf.view.file.path }
-                    });
-                }
+                await this.swapMarkdownToHex(leaf);
             })
         );
 
@@ -4203,6 +4190,30 @@ class HexCartographerPlugin extends Plugin {
             const el = leaf && leaf.view && leaf.view.contentEl;
             if (el) el.style.visibility = 'hidden';
         } catch (e) { /* best effort */ }
+    }
+
+    // Swap a Markdown view of a `.hexcartographer.md` file to the map view.
+    // Both file-open and active-leaf-change can fire for the same leaf; the Set
+    // dedupes so the swap runs only once. popstate:true suppresses Obsidian's
+    // history entry for the swap itself — the Markdown open already recorded the
+    // previous file, so back/forward stay correct.
+    async swapMarkdownToHex(leaf) {
+        if (!leaf || !leaf.view || leaf.view.getViewType() !== 'markdown') return;
+        const file = leaf.view.file;
+        if (!file || !file.path.endsWith('.hexcartographer.md')) return;
+        if (!this._swappingLeaves) this._swappingLeaves = new Set();
+        if (this._swappingLeaves.has(leaf)) return;
+        this._swappingLeaves.add(leaf);
+        try {
+            this.maskLeafDuringSwap(leaf);
+            await leaf.setViewState({
+                type: 'hex-cartographer',
+                state: { file: file.path },
+                popstate: true
+            });
+        } finally {
+            this._swappingLeaves.delete(leaf);
+        }
     }
 
     async ensureHexExtension(file) {
@@ -4946,6 +4957,22 @@ class HexCartographerView extends ItemView {
         btn.appendChild(svg);
     }
 
+    // Obsidian records a tab's back/forward history only when the VIEW TYPE changes.
+    // With fast-load every map is the same view type, so switching maps would leave the
+    // tab's navigation empty. We record the map we are leaving ourselves (as Obsidian's
+    // own web viewer does for URL changes). Back/forward moves are skipped: then the
+    // current file already sits on a history stack, put there by Obsidian's go().
+    recordMapNavigation() {
+        const leaf = this.leaf;
+        const current = this.file && this.file.path;
+        if (!leaf || !current || typeof leaf.recordHistory !== 'function' || typeof leaf.getHistoryState !== 'function') return;
+        const hist = leaf.history;
+        const topFile = (stack) => (stack && stack.length ? (stack[stack.length - 1]?.state?.state?.file) : undefined);
+        // A back/forward navigation has just pushed the current file onto one stack.
+        if (hist && (topFile(hist.backHistory) === current || topFile(hist.forwardHistory) === current)) return;
+        try { leaf.recordHistory(leaf.getHistoryState()); } catch (e) { /* internal API absent */ }
+    }
+
     async setState(state, result) {
         if (state && state.file) {
             const file = this.app.vault.getAbstractFileByPath(state.file);
@@ -4957,6 +4984,9 @@ class HexCartographerView extends ItemView {
                 // own-save guard in reloadFile() would block reopening an earlier map.
                 const fileChanged = !this.file || this.file.path !== file.path;
                 if (fileChanged) {
+                    // Record the map we are leaving in the tab's nav history (before
+                    // this.file is replaced), so back/forward work across fast-load maps.
+                    this.recordMapNavigation();
                     // Finish a pending save for the map we are leaving — while
                     // this.file still points at it — so its edits are not lost.
                     if (this.saveTimeout) {
