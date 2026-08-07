@@ -4094,10 +4094,9 @@ const KOFI_URL = 'https://ko-fi.com/christophwerner';
 const CHANGELOG = [
     {
         version: '2.0.0',
-        date: '2026-08-05',
         title: '2.0 is here!',
         blocks: [
-            { p: `The most-requested feature has arrived: your own graphics! On top of that, lots of small improvements and fixes. Here are the highlights since 1.1:` },
+            { p: `The most-requested feature has arrived: your own graphics – plus a brand-new projection tool for tracing. On top of that, lots of improvements and some important fixes. Here are the highlights since 1.1:` },
             { h: `✨ Custom graphics – the big highlight` },
             { ul: [
                 `Bring in your own symbols and textures directly from folders in your vault – for vegetation, mountains, buildings, extras, and hex textures.`,
@@ -4105,6 +4104,13 @@ const CHANGELOG = [
                 `Recolor SVG symbols (for SVGs saved as a "compound path").`,
                 `A graphic missing? No problem – the map keeps working, and a placeholder marks exactly where something's missing. These markers show only while editing – never in your exported images – and you can hide them completely with a toggle.`,
                 `A notice bar flags any missing graphics at a glance and names the affected categories – shown as a tidy overlay above the map.`,
+            ] },
+            { h: `🖼️ Projection – trace over a reference image` },
+            { ul: [
+                `Load any image from your vault as a semi-transparent overlay and draw your map right on top of it.`,
+                `Move, scale, and rotate it freely – drag the corners to scale, the sides to rotate – with a movable pivot point for precise placement.`,
+                `Set its transparency, show or hide it, and choose whether it sits behind your hexes or above their fills (your symbols always stay on top).`,
+                `Clip it to your drawn hexes, and decide whether it appears in exports and prints.`,
             ] },
             { h: `🎨 Get started fast – and help keep Hex Cartographer free` },
             { p: `Hex Cartographer is free, and it'll stay that way. Keeping it running and adding new features takes a lot of time, though – so I've built something I'm genuinely proud of: my very first Hex Cartographer graphics pack.` },
@@ -4118,20 +4124,28 @@ const CHANGELOG = [
                 `When a symbol's color is very light, it gets a subtly darker backdrop so it always stays visible.`,
                 `A new options row for the river/road/border tools with clear labels (width, dashes) and +/– buttons – finger-friendly on tablet and phone, too.`,
                 `Borders now have an adjustable width.`,
+                `The fill tool now handles even very large enclosed areas – the old size limit is gone.`,
             ] },
             { h: `📝 Text & handling` },
             { ul: [
                 `Undo and redo on touch – no buttons needed: two-finger tap to undo, three-finger tap to redo.`,
-                `Same map in two versions (for example after syncing across devices)? A new dialog compares them – a before/after slider on desktop and tablet, a tap-to-switch view on phone – so you can confidently keep the right one, rename it, or delete the old one.`,
+                `Using Fast loading on some synced devices but not others can leave the same map stored twice. A new dialog compares the two versions – a before/after slider on desktop and tablet, a tap-to-switch view on phone – so you can confidently keep the right one, rename it, or delete the old one.`,
                 `Delete text with a click: turn on the Text tool + Eraser → click a text, gone.`,
                 `New texts start in black, and your last-used text settings are remembered.`,
                 `Three-dot menu: "Show in system explorer" and "Reveal file in navigation".`,
                 `Faster loading of large maps.`,
                 `Zoom & view are remembered per device (desktop, tablet, phone).`,
             ] },
+            { h: `🛡️ Safer than ever` },
+            { ul: [
+                `Your work is protected: saving has been hardened so a map can't be lost while you're drawing – even when Obsidian Sync moves files between devices mid-edit.`,
+                `Your last-opened map is restored after a restart.`,
+                `Back and forward navigation now works reliably across all map types.`,
+            ] },
             { h: `🔧 More polish` },
             { ul: [
                 `New default border color: a subtle black at 10%.`,
+                `A new Performance settings section lets you set how many undo steps are kept and enable fast loading – handy on memory-limited devices.`,
                 `Plenty of smaller refinements across settings, previews, and mobile.`,
             ] },
             { p: `Thanks to everyone for your feedback and requests – happy map-making! 🗺️` },
