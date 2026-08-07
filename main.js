@@ -35,9 +35,13 @@ const DEFAULT_BORDER_DASHES = 1;
 const DEFAULT_BORDER_WIDTH = 3;
 const DEFAULT_PATH_DASHES = 1;
 const PATH_END_INSET = 0.15;
-const MAX_HISTORY = 50;
+const MAX_HISTORY = 50;            // default undo depth
+const UNDO_STEPS_MIN = 1;
+const UNDO_STEPS_MAX = 200;        // guardrail: each step is a full map snapshot in RAM
+const clampUndoSteps = (n) => Math.max(UNDO_STEPS_MIN, Math.min(UNDO_STEPS_MAX, Number.isFinite(n) ? Math.round(n) : MAX_HISTORY));
 const MIN_ZOOM = 0.01; // Minimum zoom (1% of a hex)
 const MAX_ZOOM = 4; // Maximum zoom (number x 100% of a hex. 4 = 400%)
+const PROJ_MIN_SCALE = 0.001; // Smallest projection scale (0.1% of original pixel size)
 const VIEWPORT_PADDING = 0.9;
 
 // Default radius of the anchor dot in SCREEN pixels (divided by zoom when drawing),
@@ -225,6 +229,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': 'Waben\nKlick: Waben einfärben\nRechtsklick in Karte: Löschen',
         'tooltip.fill': 'Fülleimer\nKlick: Zusammenhängende Fläche füllen\nErneut klicken: Fülleimer ausschalten',
         'tooltip.text': 'Text-Werkzeug\nKlick auf Karte: Neuen Text erstellen\nKlick auf Text: Text bearbeiten/verschieben\nRechtsklick in Karte auf Text: Text löschen',
+        'tooltip.projection': 'Projektion',
+        'projection.load': 'Bitmap laden',
+        'projection.swap': 'Bitmap austauschen',
+        'projection.delete': 'Bild löschen',
+        'projection.reset': 'Zurücksetzen',
+        'projection.visibility': 'Projektion ein-/ausblenden',
+        'projection.clip': 'Auf Waben beschneiden',
+        'projection.background': 'Im Hintergrund zeichnen',
+        'projection.transparency': 'Transparenz',
+        'projection.scale': 'Skalierung',
+        'projection.rotation': 'Rotation',
+        'projection.pickTitle': 'Projektionsbild wählen',
+        'projection.noImages': 'Keine Bilder im Vault gefunden',
+        'notice.projectionLoadFailed': 'Bild konnte nicht geladen werden.',
         'tooltip.eraser': 'Radierer\nKlick: Wabeninhalt löschen\nDoppelklick: Zusammenhängendes löschen',
         'tooltip.undo': 'Rückgängig\nStrg+Z: Letzte Aktion rückgängig machen',
         'tooltip.redo': 'Wiederholen\nStrg+Y: Rückgängig gemachte Aktion wiederholen',
@@ -318,6 +336,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Standard-Breite für Bildexport in Pixeln.',
         'settings.fastLoad': 'Schnelles Laden',
         'settings.fastLoadDesc': 'Lädt Karten schneller. Achtung: In Hex Cartographer vor 2.0 öffnen diese Karten nicht. Obsidian Sync überträgt sie nur mit „Alle anderen Dateien synchronisieren" (Zahnrad öffnet die Sync-Einstellungen).',
+        'settings.perfSection': 'Performance',
+        'settings.undoSteps': 'Undo-Schritte',
+        'settings.undoStepsDesc': 'Wie viele Schritte rückgängig gemacht werden können. Jeder Schritt speichert die gesamte Karte — ein zu hoher Wert verbraucht viel Arbeitsspeicher (Standard 50, max. 200).',
+        'settings.undoStepsReset': 'Auf Standard zurücksetzen (50)',
         'notice.duplicateMaps': 'Achtung: {count} Karte(n) sind doppelt vorhanden.',
         'notice.duplicateMapTooltip': 'Diese Karte existiert zweimal — einmal als .hexcartographer, einmal als .hexcartographer.md.',
         'duplicate.barText': '{count} Karte(n) doppelt vorhanden. {action}',
@@ -543,6 +565,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': 'Hexes\nClick: Color hexes\nRight-click on map: Delete',
         'tooltip.fill': 'Fill Bucket\nClick: Fill connected area\nClick again: Turn off fill',
         'tooltip.text': 'Text Tool\nClick on map: Create new text\nClick on text: Edit/move text\nRight-click on map text: Delete text',
+        'tooltip.projection': 'Projection',
+        'projection.load': 'Load bitmap',
+        'projection.swap': 'Swap bitmap',
+        'projection.delete': 'Delete image',
+        'projection.reset': 'Reset',
+        'projection.visibility': 'Show/hide projection',
+        'projection.clip': 'Clip to hexes',
+        'projection.background': 'Draw in background',
+        'projection.transparency': 'Transparency',
+        'projection.scale': 'Scale',
+        'projection.rotation': 'Rotation',
+        'projection.pickTitle': 'Choose projection image',
+        'projection.noImages': 'No images found in the vault',
+        'notice.projectionLoadFailed': 'Could not load the image.',
         'tooltip.eraser': 'Eraser\nClick: Delete hex content\nDouble-click: Delete connected area',
         'tooltip.undo': 'Undo\nCtrl+Z: Undo last action',
         'tooltip.redo': 'Redo\nCtrl+Y: Redo undone action',
@@ -636,6 +672,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Default width for image export in pixels.',
         'settings.fastLoad': 'Fast loading',
         'settings.fastLoadDesc': 'Loads maps faster. Warning: these maps won\'t open in Hex Cartographer versions before 2.0. Obsidian Sync transfers them only with ‘Sync all other files’ on (gear opens Sync settings).',
+        'settings.perfSection': 'Performance',
+        'settings.undoSteps': 'Undo steps',
+        'settings.undoStepsDesc': 'How many steps can be undone. Each step stores the entire map — too high a value uses a lot of memory (default 50, max. 200).',
+        'settings.undoStepsReset': 'Reset to default (50)',
         'notice.duplicateMaps': 'Warning: {count} map(s) exist twice.',
         'notice.duplicateMapTooltip': 'This map exists twice — once as .hexcartographer and once as .hexcartographer.md.',
         'duplicate.barText': '{count} map(s) exist twice. {action}',
@@ -853,6 +893,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': '六角格\n点击：为六角格着色\n右键地图：删除',
         'tooltip.fill': '填充工具\n点击：填充相连区域\n再次点击：关闭填充工具',
         'tooltip.text': '文本工具\n点击地图：创建新文本\n点击文本：编辑/移动文本\n右键地图文本：删除文本',
+        'tooltip.projection': '投影',
+        'projection.load': '加载位图',
+        'projection.swap': '替换位图',
+        'projection.delete': '删除图像',
+        'projection.reset': '重置',
+        'projection.visibility': '显示/隐藏投影',
+        'projection.clip': '裁剪到六边形',
+        'projection.background': '绘制在背景中',
+        'projection.transparency': '透明度',
+        'projection.scale': '缩放',
+        'projection.rotation': '旋转',
+        'projection.pickTitle': '选择投影图像',
+        'projection.noImages': '在库中未找到图像',
+        'notice.projectionLoadFailed': '无法加载图像。',
         'tooltip.eraser': '橡皮擦\n点击：删除六角格内容\n双击：删除相连内容',
         'tooltip.undo': '撤销\nCtrl+Z：撤销上一步操作',
         'tooltip.redo': '重做\nCtrl+Y：重做已撤销的操作',
@@ -932,6 +986,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': '图片导出的默认宽度（像素）。',
         'settings.fastLoad': '快速加载',
         'settings.fastLoadDesc': '更快地加载地图。注意：这些地图在 Hex Cartographer 2.0 之前的版本中无法打开。仅当启用“同步所有其他文件”时，Obsidian Sync 才会同步（齿轮打开同步设置）。',
+        'settings.perfSection': '性能',
+        'settings.undoSteps': '撤销步数',
+        'settings.undoStepsDesc': '可撤销的步数。每一步都会保存整张地图——数值过大会占用大量内存（默认 50，最大 200）。',
+        'settings.undoStepsReset': '重置为默认值（50）',
         'notice.duplicateMaps': '注意：有 {count} 张地图重复存在。',
         'notice.duplicateMapTooltip': '此地图存在两份——一份为 .hexcartographer，一份为 .hexcartographer.md。',
         'duplicate.barText': '有 {count} 张地图重复。{action}',
@@ -1143,6 +1201,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': 'Соты\nКлик: Окрасить соты\nПравый клик на карте: Удалить',
         'tooltip.fill': 'Заливка\nКлик: Залить связанную область\nПовторный клик: Отключить заливку',
         'tooltip.text': 'Текстовый инструмент\nКлик по карте: Создать новый текст\nКлик по тексту: Редактировать/переместить текст\nПравый клик по тексту на карте: Удалить текст',
+        'tooltip.projection': 'Проекция',
+        'projection.load': 'Загрузить изображение',
+        'projection.swap': 'Заменить изображение',
+        'projection.delete': 'Удалить изображение',
+        'projection.reset': 'Сбросить',
+        'projection.visibility': 'Показать/скрыть проекцию',
+        'projection.clip': 'Обрезать по гексам',
+        'projection.background': 'Рисовать на заднем плане',
+        'projection.transparency': 'Прозрачность',
+        'projection.scale': 'Масштаб',
+        'projection.rotation': 'Поворот',
+        'projection.pickTitle': 'Выберите изображение для проекции',
+        'projection.noImages': 'В хранилище нет изображений',
+        'notice.projectionLoadFailed': 'Не удалось загрузить изображение.',
         'tooltip.eraser': 'Ластик\nКлик: Удалить содержимое соты\nДвойной клик: Удалить связанные элементы',
         'tooltip.undo': 'Отменить\nCtrl+Z: Отменить последнее действие',
         'tooltip.redo': 'Повторить\nCtrl+Y: Повторить отменённое действие',
@@ -1222,6 +1294,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Стандартная ширина для экспорта изображений в пикселях.',
         'settings.fastLoad': 'Быстрая загрузка',
         'settings.fastLoadDesc': 'Загружает карты быстрее. Внимание: эти карты не откроются в Hex Cartographer версий до 2.0. Obsidian Sync синхронизирует их только при включённой «Синхронизировать все прочие файлы» (шестерёнка открывает настройки Sync).',
+        'settings.perfSection': 'Производительность',
+        'settings.undoSteps': 'Шаги отмены',
+        'settings.undoStepsDesc': 'Сколько шагов можно отменить. Каждый шаг сохраняет всю карту — слишком большое значение расходует много памяти (по умолчанию 50, макс. 200).',
+        'settings.undoStepsReset': 'Сбросить к значению по умолчанию (50)',
         'notice.duplicateMaps': 'Внимание: {count} карт(ы) существуют дважды.',
         'notice.duplicateMapTooltip': 'Эта карта существует дважды — как .hexcartographer и как .hexcartographer.md.',
         'duplicate.barText': '{count} карт(ы) существуют дважды. {action}',
@@ -1433,6 +1509,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': 'ヘックス\nクリック：ヘックスを着色\nマップ上で右クリック：削除',
         'tooltip.fill': '塗りつぶし\nクリック：つながった領域を塗りつぶす\n再度クリック：塗りつぶしをオフ',
         'tooltip.text': 'テキストツール\nマップをクリック：新しいテキストを作成\nテキストをクリック：テキストを編集/移動\nマップ上のテキストを右クリック：テキスト削除',
+        'tooltip.projection': '投影',
+        'projection.load': 'ビットマップを読み込む',
+        'projection.swap': 'ビットマップを差し替え',
+        'projection.delete': '画像を削除',
+        'projection.reset': 'リセット',
+        'projection.visibility': '投影の表示/非表示',
+        'projection.clip': 'ヘクスに合わせて切り抜き',
+        'projection.background': '背景に描画',
+        'projection.transparency': '透明度',
+        'projection.scale': '拡大縮小',
+        'projection.rotation': '回転',
+        'projection.pickTitle': '投影画像を選択',
+        'projection.noImages': 'Vault に画像が見つかりません',
+        'notice.projectionLoadFailed': '画像を読み込めませんでした。',
         'tooltip.eraser': '消しゴム\nクリック：ヘックスの内容を削除\nダブルクリック：つながった要素を削除',
         'tooltip.undo': '元に戻す\nCtrl+Z：最後の操作を元に戻す',
         'tooltip.redo': 'やり直し\nCtrl+Y：元に戻した操作をやり直す',
@@ -1512,6 +1602,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': '画像エクスポートのデフォルト幅（ピクセル）。',
         'settings.fastLoad': '高速読み込み',
         'settings.fastLoadDesc': 'マップをより速く読み込みます。注意：これらのマップは Hex Cartographer 2.0 より前のバージョンでは開けません。Obsidian Sync は「その他のすべてのファイルを同期」が有効な場合のみ同期します（歯車で同期設定を開く）。',
+        'settings.perfSection': 'パフォーマンス',
+        'settings.undoSteps': '元に戻す回数',
+        'settings.undoStepsDesc': '元に戻せる回数。各ステップはマップ全体を保存するため、値が大きすぎるとメモリを大量に消費します（既定 50、最大 200）。',
+        'settings.undoStepsReset': '既定値に戻す（50）',
         'notice.duplicateMaps': '注意：{count} 件のマップが二重に存在します。',
         'notice.duplicateMapTooltip': 'このマップは二重に存在します（.hexcartographer と .hexcartographer.md）。',
         'duplicate.barText': '{count} 件のマップが二重に存在します。{action}',
@@ -1723,6 +1817,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': 'Hexagones\nClic : Colorier les hexagones\nClic droit sur la carte : Supprimer',
         'tooltip.fill': 'Pot de peinture\nClic : Remplir une zone contiguë\nCliquer à nouveau : Désactiver le pot de peinture',
         'tooltip.text': 'Outil texte\nClic sur la carte : Créer un nouveau texte\nClic sur un texte : Modifier/déplacer le texte\nClic droit sur texte de la carte : Supprimer le texte',
+        'tooltip.projection': 'Projection',
+        'projection.load': 'Charger une image',
+        'projection.swap': 'Remplacer l\'image',
+        'projection.delete': 'Supprimer l\'image',
+        'projection.reset': 'Réinitialiser',
+        'projection.visibility': 'Afficher/masquer la projection',
+        'projection.clip': 'Rogner sur les hexagones',
+        'projection.background': 'Dessiner en arrière-plan',
+        'projection.transparency': 'Transparence',
+        'projection.scale': 'Échelle',
+        'projection.rotation': 'Rotation',
+        'projection.pickTitle': 'Choisir l\'image de projection',
+        'projection.noImages': 'Aucune image trouvée dans le coffre',
+        'notice.projectionLoadFailed': 'Impossible de charger l\'image.',
         'tooltip.eraser': 'Gomme\nClic : Effacer le contenu de l\'hexagone\nDouble-clic : Effacer les éléments contigus',
         'tooltip.undo': 'Annuler\nCtrl+Z : Annuler la dernière action',
         'tooltip.redo': 'Rétablir\nCtrl+Y : Rétablir l\'action annulée',
@@ -1802,6 +1910,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Largeur par défaut pour l\'export d\'image en pixels.',
         'settings.fastLoad': 'Chargement rapide',
         'settings.fastLoadDesc': 'Charge les cartes plus vite. Attention : ces cartes ne s’ouvrent pas dans les versions de Hex Cartographer antérieures à 2.0. Obsidian Sync ne les synchronise qu’avec « Synchroniser tous les autres fichiers » (l’engrenage ouvre les paramètres de synchro).',
+        'settings.perfSection': 'Performances',
+        'settings.undoSteps': 'Étapes d’annulation',
+        'settings.undoStepsDesc': 'Nombre d’étapes annulables. Chaque étape enregistre toute la carte — une valeur trop élevée consomme beaucoup de mémoire (par défaut 50, max. 200).',
+        'settings.undoStepsReset': 'Réinitialiser par défaut (50)',
         'notice.duplicateMaps': 'Attention : {count} carte(s) existent en double.',
         'notice.duplicateMapTooltip': 'Cette carte existe en double — une fois en .hexcartographer et une fois en .hexcartographer.md.',
         'duplicate.barText': '{count} carte(s) en double. {action}',
@@ -2013,6 +2125,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': 'Hexágonos\nClique: Colorir hexágonos\nClique direito no mapa: Excluir',
         'tooltip.fill': 'Balde de tinta\nClique: Preencher área contígua\nClicar novamente: Desativar balde de tinta',
         'tooltip.text': 'Ferramenta de texto\nClique no mapa: Criar novo texto\nClique no texto: Editar/mover texto\nClique direito em texto no mapa: Excluir texto',
+        'tooltip.projection': 'Projeção',
+        'projection.load': 'Carregar imagem',
+        'projection.swap': 'Trocar imagem',
+        'projection.delete': 'Excluir imagem',
+        'projection.reset': 'Redefinir',
+        'projection.visibility': 'Mostrar/ocultar projeção',
+        'projection.clip': 'Recortar aos hexágonos',
+        'projection.background': 'Desenhar no fundo',
+        'projection.transparency': 'Transparência',
+        'projection.scale': 'Escala',
+        'projection.rotation': 'Rotação',
+        'projection.pickTitle': 'Escolher imagem de projeção',
+        'projection.noImages': 'Nenhuma imagem encontrada no cofre',
+        'notice.projectionLoadFailed': 'Não foi possível carregar a imagem.',
         'tooltip.eraser': 'Borracha\nClique: Apagar conteúdo do hexágono\nDuplo clique: Apagar elementos contíguos',
         'tooltip.undo': 'Desfazer\nCtrl+Z: Desfazer última ação',
         'tooltip.redo': 'Refazer\nCtrl+Y: Refazer ação desfeita',
@@ -2092,6 +2218,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Largura padrão para exportação de imagem em pixels.',
         'settings.fastLoad': 'Carregamento rápido',
         'settings.fastLoadDesc': 'Carrega os mapas mais depressa. Atenção: estes mapas não abrem no versões do Hex Cartographer anteriores à 2.0. O Obsidian Sync só os sincroniza com «Sincronizar todos os outros ficheiros» ativo (a engrenagem abre as definições de sincronização).',
+        'settings.perfSection': 'Desempenho',
+        'settings.undoSteps': 'Passos de desfazer',
+        'settings.undoStepsDesc': 'Quantos passos podem ser desfeitos. Cada passo guarda o mapa inteiro — um valor demasiado alto usa muita memória (predefinição 50, máx. 200).',
+        'settings.undoStepsReset': 'Repor a predefinição (50)',
         'notice.duplicateMaps': 'Atenção: {count} mapa(s) existem em duplicado.',
         'notice.duplicateMapTooltip': 'Este mapa existe duas vezes — como .hexcartographer e como .hexcartographer.md.',
         'duplicate.barText': '{count} mapa(s) em duplicado. {action}',
@@ -2303,6 +2433,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': '헥스 셀\n클릭: 헥스 셀 색칠하기\n지도에서 우클릭: 삭제',
         'tooltip.fill': '채우기 도구\n클릭: 인접한 영역 채우기\n다시 클릭: 채우기 도구 끄기',
         'tooltip.text': '텍스트 도구\n지도 클릭: 새 텍스트 만들기\n텍스트 클릭: 텍스트 편집/이동\n지도에서 텍스트 우클릭: 텍스트 삭제',
+        'tooltip.projection': '투영',
+        'projection.load': '비트맵 불러오기',
+        'projection.swap': '비트맵 교체',
+        'projection.delete': '이미지 삭제',
+        'projection.reset': '초기화',
+        'projection.visibility': '투영 표시/숨기기',
+        'projection.clip': '헥스에 맞춰 자르기',
+        'projection.background': '배경에 그리기',
+        'projection.transparency': '투명도',
+        'projection.scale': '크기',
+        'projection.rotation': '회전',
+        'projection.pickTitle': '투영 이미지 선택',
+        'projection.noImages': '보관함에서 이미지를 찾을 수 없습니다',
+        'notice.projectionLoadFailed': '이미지를 불러올 수 없습니다.',
         'tooltip.eraser': '지우개\n클릭: 헥스 셀 내용 지우기\n더블 클릭: 인접한 요소 지우기',
         'tooltip.undo': '실행 취소\nCtrl+Z: 마지막 작업 실행 취소',
         'tooltip.redo': '다시 실행\nCtrl+Y: 취소한 작업 다시 실행',
@@ -2382,6 +2526,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': '이미지 내보내기의 기본 너비(픽셀).',
         'settings.fastLoad': '빠른 로딩',
         'settings.fastLoadDesc': '지도를 더 빠르게 불러옵니다. 주의: 이 지도는 2.0 이전의 Hex Cartographer 버전에서는 열리지 않습니다. Obsidian Sync는 ‘기타 모든 파일 동기화’가 켜져 있을 때만 동기화합니다(톱니바퀴로 동기화 설정 열기).',
+        'settings.perfSection': '성능',
+        'settings.undoSteps': '실행 취소 단계',
+        'settings.undoStepsDesc': '되돌릴 수 있는 단계 수. 각 단계는 지도 전체를 저장하므로 값이 너무 크면 메모리를 많이 사용합니다(기본 50, 최대 200).',
+        'settings.undoStepsReset': '기본값으로 재설정 (50)',
         'notice.duplicateMaps': '주의: {count}개의 지도가 중복되어 있습니다.',
         'notice.duplicateMapTooltip': '이 지도는 .hexcartographer와 .hexcartographer.md로 두 번 존재합니다.',
         'duplicate.barText': '{count}개의 지도가 중복되어 있습니다. {action}',
@@ -2593,6 +2741,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': 'Celdas\nClic: Colorear celdas\nClic derecho en mapa: Eliminar',
         'tooltip.fill': 'Cubo de relleno\nClic: Rellenar área contigua\nClic de nuevo: Desactivar cubo de relleno',
         'tooltip.text': 'Herramienta de texto\nClic en mapa: Crear nuevo texto\nClic en texto: Editar/mover texto\nClic derecho en texto del mapa: Eliminar texto',
+        'tooltip.projection': 'Proyección',
+        'projection.load': 'Cargar imagen',
+        'projection.swap': 'Cambiar imagen',
+        'projection.delete': 'Eliminar imagen',
+        'projection.reset': 'Restablecer',
+        'projection.visibility': 'Mostrar/ocultar proyección',
+        'projection.clip': 'Recortar a los hexágonos',
+        'projection.background': 'Dibujar en el fondo',
+        'projection.transparency': 'Transparencia',
+        'projection.scale': 'Escala',
+        'projection.rotation': 'Rotación',
+        'projection.pickTitle': 'Elegir imagen de proyección',
+        'projection.noImages': 'No se encontraron imágenes en el almacén',
+        'notice.projectionLoadFailed': 'No se pudo cargar la imagen.',
         'tooltip.eraser': 'Borrador\nClic: Borrar contenido de celda\nDoble clic: Borrar elementos contiguos',
         'tooltip.undo': 'Deshacer\nCtrl+Z: Deshacer última acción',
         'tooltip.redo': 'Rehacer\nCtrl+Y: Rehacer acción deshecha',
@@ -2672,6 +2834,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Ancho predeterminado para exportación de imagen en píxeles.',
         'settings.fastLoad': 'Carga rápida',
         'settings.fastLoadDesc': 'Carga los mapas más rápido. Atención: estos mapas no se abren en versiones de Hex Cartographer anteriores a 2.0. Obsidian Sync solo los sincroniza con «Sincronizar todos los demás archivos» activado (el engranaje abre los ajustes de sincronización).',
+        'settings.perfSection': 'Rendimiento',
+        'settings.undoSteps': 'Pasos de deshacer',
+        'settings.undoStepsDesc': 'Cuántos pasos se pueden deshacer. Cada paso guarda todo el mapa: un valor demasiado alto consume mucha memoria (predeterminado 50, máx. 200).',
+        'settings.undoStepsReset': 'Restablecer al valor predeterminado (50)',
         'notice.duplicateMaps': 'Atención: {count} mapa(s) existen por duplicado.',
         'notice.duplicateMapTooltip': 'Este mapa existe dos veces: como .hexcartographer y como .hexcartographer.md.',
         'duplicate.barText': '{count} mapa(s) duplicados. {action}',
@@ -2883,6 +3049,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': 'Komórki\nKliknij: Pokoloruj komórki\nPrawy klik na mapie: Usuń',
         'tooltip.fill': 'Wiadro wypełnienia\nKliknij: Wypełnij przyległy obszar\nKliknij ponownie: Wyłącz wiadro wypełnienia',
         'tooltip.text': 'Narzędzie tekstowe\nKliknij na mapę: Utwórz nowy tekst\nKliknij na tekst: Edytuj/przesuń tekst\nPrawy klik na tekst na mapie: Usuń tekst',
+        'tooltip.projection': 'Projekcja',
+        'projection.load': 'Wczytaj bitmapę',
+        'projection.swap': 'Wymień bitmapę',
+        'projection.delete': 'Usuń obraz',
+        'projection.reset': 'Resetuj',
+        'projection.visibility': 'Pokaż/ukryj projekcję',
+        'projection.clip': 'Przytnij do sześciokątów',
+        'projection.background': 'Rysuj w tle',
+        'projection.transparency': 'Przezroczystość',
+        'projection.scale': 'Skala',
+        'projection.rotation': 'Obrót',
+        'projection.pickTitle': 'Wybierz obraz projekcji',
+        'projection.noImages': 'Nie znaleziono obrazów w skarbcu',
+        'notice.projectionLoadFailed': 'Nie udało się wczytać obrazu.',
         'tooltip.eraser': 'Gumka\nKliknij: Usuń zawartość komórki\nPodwójne kliknięcie: Usuń przyległe elementy',
         'tooltip.undo': 'Cofnij\nCtrl+Z: Cofnij ostatnią akcję',
         'tooltip.redo': 'Ponów\nCtrl+Y: Ponów cofniętą akcję',
@@ -2962,6 +3142,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Domyślna szerokość eksportu obrazu w pikselach.',
         'settings.fastLoad': 'Szybkie ładowanie',
         'settings.fastLoadDesc': 'Wczytuje mapy szybciej. Uwaga: tych map nie otworzysz w wersjach Hex Cartographer starszych niż 2.0. Obsidian Sync synchronizuje je tylko przy włączonym „Synchronizuj wszystkie inne pliki" (koło zębate otwiera ustawienia synchronizacji).',
+        'settings.perfSection': 'Wydajność',
+        'settings.undoSteps': 'Kroki cofania',
+        'settings.undoStepsDesc': 'Ile kroków można cofnąć. Każdy krok zapisuje całą mapę — zbyt duża wartość zużywa dużo pamięci (domyślnie 50, maks. 200).',
+        'settings.undoStepsReset': 'Przywróć domyślne (50)',
         'notice.duplicateMaps': 'Uwaga: {count} mapa(y) występują podwójnie.',
         'notice.duplicateMapTooltip': 'Ta mapa istnieje dwukrotnie — jako .hexcartographer i jako .hexcartographer.md.',
         'duplicate.barText': '{count} mapa(y) podwójnie. {action}',
@@ -3173,6 +3357,20 @@ const TRANSLATIONS = {
         'tooltip.hexColor': 'Celle\nClic: Colora celle\nClic destro sulla mappa: Elimina',
         'tooltip.fill': 'Secchio di riempimento\nClic: Riempi area contigua\nClic di nuovo: Disattiva secchio di riempimento',
         'tooltip.text': 'Strumento testo\nClic sulla mappa: Crea nuovo testo\nClic sul testo: Modifica/sposta testo\nClic destro su testo nella mappa: Elimina testo',
+        'tooltip.projection': 'Proiezione',
+        'projection.load': 'Carica bitmap',
+        'projection.swap': 'Sostituisci bitmap',
+        'projection.delete': 'Elimina immagine',
+        'projection.reset': 'Reimposta',
+        'projection.visibility': 'Mostra/nascondi proiezione',
+        'projection.clip': 'Ritaglia sugli esagoni',
+        'projection.background': 'Disegna sullo sfondo',
+        'projection.transparency': 'Trasparenza',
+        'projection.scale': 'Scala',
+        'projection.rotation': 'Rotazione',
+        'projection.pickTitle': 'Scegli immagine di proiezione',
+        'projection.noImages': 'Nessuna immagine trovata nel vault',
+        'notice.projectionLoadFailed': 'Impossibile caricare l\'immagine.',
         'tooltip.eraser': 'Gomma\nClic: Cancella contenuto cella\nDoppio clic: Cancella elementi contigui',
         'tooltip.undo': 'Annulla\nCtrl+Z: Annulla ultima azione',
         'tooltip.redo': 'Ripeti\nCtrl+Y: Ripeti azione annullata',
@@ -3252,6 +3450,10 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Larghezza predefinita per l\'esportazione di immagini in pixel.',
         'settings.fastLoad': 'Caricamento rapido',
         'settings.fastLoadDesc': 'Carica le mappe più velocemente. Attenzione: queste mappe non si aprono in versioni di Hex Cartographer precedenti alla 2.0. Obsidian Sync le sincronizza solo con «Sincronizza tutti gli altri file» attivo (l’ingranaggio apre le impostazioni di sincronizzazione).',
+        'settings.perfSection': 'Prestazioni',
+        'settings.undoSteps': 'Passi di annullamento',
+        'settings.undoStepsDesc': 'Quanti passi si possono annullare. Ogni passo salva l’intera mappa — un valore troppo alto usa molta memoria (predefinito 50, max 200).',
+        'settings.undoStepsReset': 'Ripristina predefinito (50)',
         'notice.duplicateMaps': 'Attenzione: {count} mappa/e esistono in doppio.',
         'notice.duplicateMapTooltip': 'Questa mappa esiste due volte — come .hexcartographer e come .hexcartographer.md.',
         'duplicate.barText': '{count} mappa/e in doppio. {action}',
@@ -3849,6 +4051,7 @@ const HEX_EXT_FAST = '.hexcartographer';
 const DEFAULT_SETTINGS = {
     userAssetPreview: false,
     fastLoad: false, // save/rename maps as .hexcartographer (no Markdown flash)
+    undoSteps: MAX_HISTORY, // undo depth; each step is a full map snapshot (RAM cost)
     userTexturePath: '',
     userExtrasPath: '',
     userVegetationPath: '',
@@ -4889,7 +5092,7 @@ class HexCartographerView extends ItemView {
 
         this.history = [];
         this.redoStack = [];
-        this.maxHistory = MAX_HISTORY;
+        this.maxHistory = clampUndoSteps(plugin.settings.undoSteps);
 
         this.saveTimeout = null;
         this.isMouseDown = false;
@@ -4939,6 +5142,13 @@ class HexCartographerView extends ItemView {
         this.patternData = null;
         this.patternPickMode = false;
         this.patternSourceHex = null; // Stores q/r of the pattern hex
+
+        // Projection: an optional reference image overlaid on the map for tracing. Its
+        // transform lives in this.data.projection; the decoded image is cached here.
+        this._projectionImg = null;      // HTMLImageElement once loaded
+        this._projectionImgPath = null;  // which vault path _projectionImg holds
+        this._projectionMissing = false; // referenced file not found in the vault
+        this.projDrag = null;            // active move/scale/rotate gesture
 
         this.svgSymbols = {};
         this.svgSymbolsLoaded = false;
@@ -5701,6 +5911,9 @@ class HexCartographerView extends ItemView {
                 }
             }
 
+            // Load the projection reference image (if this map has one) from its vault path.
+            this.loadProjectionImage();
+
             if (this.containerEl) {
                 const toolbar = this.containerEl.querySelector('.hex-toolbar');
                 if (toolbar) {
@@ -5720,19 +5933,44 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    pushHistory() {
-        const dataToSave = {
+    // Snapshot of everything undo/redo restore. `projection` is included so moving,
+    // scaling, rotating, retargeting or nudging the reference image (and its origin) can
+    // be undone like any other edit.
+    historySnapshot() {
+        return {
             hexes: this.data.hexes,
             rivers: this.data.rivers,
             roads: this.data.roads,
             texts: this.data.texts,
             borders: this.data.borders,
-            gridSize: this.data.gridSize
+            gridSize: this.data.gridSize,
+            projection: this.data.projection || null
         };
-        this.history.push(JSON.stringify(dataToSave));
+    }
+
+    pushHistory() {
+        this.history.push(JSON.stringify(this.historySnapshot()));
         if (this.history.length > this.maxHistory) this.history.shift();
         this.redoStack = [];
         this.pendingHistory = false;
+    }
+
+    // Restores hex/path/text/border/projection state from a snapshot (shared by undo/redo).
+    applyHistorySnapshot(restored) {
+        this.data.hexes = restored.hexes;
+        this.data.rivers = restored.rivers;
+        this.data.roads = restored.roads;
+        this.data.texts = restored.texts;
+        this.data.borders = restored.borders || [];
+        this.data.gridSize = restored.gridSize;
+        this.data.projection = restored.projection || null;
+        // The snapshot holds x/y from its own time — re-place from the anchor in case the
+        // orientation changed since.
+        this.applyTextHexPositions();
+        this.loadProjectionImage();       // pick up a changed/removed reference image
+        this._updateProjectionUI();
+        this.render();
+        this.requestSave();
     }
 
     pushHistoryIfNeeded() {
@@ -5743,28 +5981,8 @@ class HexCartographerView extends ItemView {
 
     undo() {
         if (this.history.length > 0) {
-            const dataToSave = {
-                hexes: this.data.hexes,
-                rivers: this.data.rivers,
-                roads: this.data.roads,
-                texts: this.data.texts,
-                borders: this.data.borders,
-                gridSize: this.data.gridSize
-            };
-            this.redoStack.push(JSON.stringify(dataToSave));
-            const previousState = this.history.pop();
-            const restored = JSON.parse(previousState);
-            this.data.hexes = restored.hexes;
-            this.data.rivers = restored.rivers;
-            this.data.roads = restored.roads;
-            this.data.texts = restored.texts;
-            this.data.borders = restored.borders || [];
-            this.data.gridSize = restored.gridSize;
-            // The snapshot holds x/y from its own time — re-place from the anchor
-            // in case the orientation changed since.
-            this.applyTextHexPositions();
-            this.render();
-            this.requestSave();
+            this.redoStack.push(JSON.stringify(this.historySnapshot()));
+            this.applyHistorySnapshot(JSON.parse(this.history.pop()));
         } else {
             new Notice(t('notice.nothingToUndo'));
         }
@@ -5772,28 +5990,8 @@ class HexCartographerView extends ItemView {
 
     redo() {
         if (this.redoStack.length > 0) {
-            const dataToSave = {
-                hexes: this.data.hexes,
-                rivers: this.data.rivers,
-                roads: this.data.roads,
-                texts: this.data.texts,
-                borders: this.data.borders,
-                gridSize: this.data.gridSize
-            };
-            this.history.push(JSON.stringify(dataToSave));
-            const nextState = this.redoStack.pop();
-            const restored = JSON.parse(nextState);
-            this.data.hexes = restored.hexes;
-            this.data.rivers = restored.rivers;
-            this.data.roads = restored.roads;
-            this.data.texts = restored.texts;
-            this.data.borders = restored.borders || [];
-            this.data.gridSize = restored.gridSize;
-            // The snapshot holds x/y from its own time — re-place from the anchor
-            // in case the orientation changed since.
-            this.applyTextHexPositions();
-            this.render();
-            this.requestSave();
+            this.history.push(JSON.stringify(this.historySnapshot()));
+            this.applyHistorySnapshot(JSON.parse(this.redoStack.pop()));
         } else {
             new Notice(t('notice.nothingToRedo'));
         }
@@ -6171,6 +6369,8 @@ class HexCartographerView extends ItemView {
         this.createDrawModeButton(editContent, 'eraser', 'eraser', t('tooltip.eraser'));
 
         editContent.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
+
+        this.createProjectionTool(editContent, toolbar);
 
         this.createPatternTool(editContent);
 
@@ -7309,11 +7509,12 @@ class HexCartographerView extends ItemView {
 
     // Number field for an option unit, flanked by −/+ steppers. On phones the field
     // is read-only so tapping it never opens the soft keyboard (which would hide the map).
-    createOptionInput(unit, { value, title, max }) {
-        const maxN = parseInt(max);
+    createOptionInput(unit, { value, title, max, min = '1', decimals = 0, stepBy = 1 }) {
+        const maxN = parseFloat(max), minN = parseFloat(min);
+        const round = (v) => { const f = Math.pow(10, decimals); return Math.round(v * f) / f; };
         let input;
         const step = (delta) => {
-            const v = Math.min(maxN, Math.max(1, (parseInt(input.value) || 1) + delta));
+            const v = round(Math.min(maxN, Math.max(minN, (parseFloat(input.value) || minN) + delta * stepBy)));
             input.value = v;
             input.dispatchEvent(new Event('input', { bubbles: true }));
         };
@@ -7321,7 +7522,7 @@ class HexCartographerView extends ItemView {
         this.createStepperButton(controls, '−', () => step(-1));
         input = controls.createEl('input', {
             type: 'number', value, cls: 'hex-option-input',
-            attr: { title, min: '1', max, inputmode: 'numeric', style: `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px; box-sizing: border-box;` }
+            attr: { title, min, max, step: decimals > 0 ? '0.1' : '1', inputmode: decimals > 0 ? 'decimal' : 'numeric', style: `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px; box-sizing: border-box;` }
         });
         if (this.deviceViewportClass() === 'phone') input.readOnly = true;
         this.makeInputInteractive(input);
@@ -7361,13 +7562,17 @@ class HexCartographerView extends ItemView {
     updateToolbarOptions() {
         if (!this.toolbarOptionsEl) return;
         const g = this.currentToolGroup;
-        const river = g === 'river', road = g === 'road', border = g === 'border';
+        const river = g === 'river', road = g === 'road', border = g === 'border', proj = g === 'projection';
         if (this.riverWidthUnit) this.riverWidthUnit.style.display = river ? '' : 'none';
         if (this.roadWidthUnit) this.roadWidthUnit.style.display = road ? '' : 'none';
         if (this.pathDashesUnit) this.pathDashesUnit.style.display = (river || road) ? '' : 'none';
         if (this.borderWidthUnit) this.borderWidthUnit.style.display = border ? '' : 'none';
         if (this.borderDashesUnit) this.borderDashesUnit.style.display = border ? '' : 'none';
-        this.toolbarOptionsEl.style.display = (river || road || border) ? 'flex' : 'none';
+        for (const u of [this.projLoadUnit, this.projDeleteUnit, this.projSepBeforeTransparency, this.projOpacityUnit, this.projScaleUnit, this.projRotationUnit, this.projSepBeforeReset, this.projIconGroup]) {
+            if (u) u.style.display = proj ? '' : 'none';
+        }
+        if (proj) this._updateProjectionUI();
+        this.toolbarOptionsEl.style.display = (river || road || border || proj) ? 'flex' : 'none';
     }
 
     // Keeps the orientation button in sync with this.hexOrientation. In one place,
@@ -7490,6 +7695,7 @@ class HexCartographerView extends ItemView {
         });
 
         this.updateToolbarOptions();
+        this._updateProjectionVisButton(); // toolbar toggle, independent of the active tool
     }
 
 
@@ -7660,13 +7866,17 @@ class HexCartographerView extends ItemView {
 
     setupEventListeners() {
         this.containerEl.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                this.undo();
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+            const mod = e.ctrlKey || e.metaKey;
+            if (!mod) return;
+            const key = e.key.toLowerCase();
+            // Redo: Ctrl+Y or Ctrl+Shift+Z. Undo: Ctrl+Z (without Shift) — checked first so
+            // Shift+Z is not swallowed as undo.
+            if (key === 'y' || (e.shiftKey && key === 'z')) {
                 e.preventDefault();
                 this.redo();
+            } else if (key === 'z') {
+                e.preventDefault();
+                this.undo();
             }
         });
 
@@ -7706,6 +7916,14 @@ class HexCartographerView extends ItemView {
             this.mouseDownPos = { x: world.x, y: world.y };
             this.startHex = this.pixelToHex(world.x, world.y);
             this.lastHex = this.startHex;
+
+            // Projection tool: grab the image/handle under the cursor, else pan the map.
+            if (this.currentToolGroup === 'projection') {
+                this.isMouseDown = false;
+                if (this.beginProjectionDrag(world)) return;
+                this.isDraggingMap = true;
+                return;
+            }
 
             if (this.colorPickMode) {
                 const cx = Math.round(this.mouseDownPos.x * this.data.zoom + this.data.offX);
@@ -7836,6 +8054,7 @@ class HexCartographerView extends ItemView {
 
         this.containerEl.addEventListener('mousemove', (e) => {
             const world = this.getWorldCoords(e);
+            if (this.projDrag) { this.updateProjectionDrag(world); return; }
             if (this.isRightMouseErasing) {
                 const hex = this.pixelToHex(world.x, world.y);
                 const key = `${hex.q}_${hex.r}`;
@@ -7914,6 +8133,12 @@ class HexCartographerView extends ItemView {
         });
 
         const stop = (e) => {
+            if (this.projDrag) {
+                this.endProjectionDrag();
+                this.isMouseDown = false;
+                this.isDraggingMap = false;
+                return;
+            }
             if (this.isRightMouseErasing) {
                 this.isRightMouseErasing = false;
                 this.rightEraseLastHex = null;
@@ -8028,7 +8253,9 @@ class HexCartographerView extends ItemView {
             lastTapTime: 0,
             lastTapHex: null,
             lastTouchX: undefined,
-            lastTouchY: undefined
+            lastTouchY: undefined,
+            projTouch: false,    // one-finger projection grab in progress
+            oneFingerPan: false  // one-finger map pan (projection tool, empty area)
         };
 
         this.canvas.addEventListener('touchstart', (e) => {
@@ -8046,6 +8273,11 @@ class HexCartographerView extends ItemView {
                 this.touchState.isTwoFingerGesture = true;
                 this.touchState.hasMovedSinceStart = false;
                 this.touchState.pendingTouchStart = null;
+                // Two fingers ALWAYS control the map — even over a projection. Cancel any
+                // one-finger projection grab/pan so the pinch/pan takes over cleanly.
+                this.projDrag = null;
+                this.touchState.projTouch = false;
+                this.touchState.oneFingerPan = false;
 
                 if (this.isMouseDown && !this.touchState.hasMovedSinceStart) {
                     this.isMouseDown = false;
@@ -8074,6 +8306,25 @@ class HexCartographerView extends ItemView {
             } else if (e.touches.length === 1) {
                 this.touchState.isTwoFingerGesture = false;
                 this.touchState.hasMovedSinceStart = false;
+
+                // Projection tool: one finger on the image/handle grabs it (move/scale/
+                // rotate); one finger elsewhere pans the map. Two fingers stay map-only.
+                if (this.currentToolGroup === 'projection') {
+                    const t0 = e.touches[0];
+                    const world = this.getWorldCoords({ clientX: t0.clientX, clientY: t0.clientY });
+                    if (this.beginProjectionDrag(world)) {
+                        this.touchState.projTouch = true;
+                        this.touchState.oneFingerPan = false;
+                    } else {
+                        this.touchState.projTouch = false;
+                        this.touchState.oneFingerPan = true;
+                        this.touchState.lastTouchX = t0.clientX;
+                        this.touchState.lastTouchY = t0.clientY;
+                    }
+                    this.touchState.pendingTouchStart = null;
+                    e.preventDefault();
+                    return;
+                }
 
                 const touch = e.touches[0];
                 const mouseEvent = new MouseEvent('mousedown', {
@@ -8225,6 +8476,23 @@ class HexCartographerView extends ItemView {
         }, { passive: false });
 
         this.canvas.addEventListener('touchmove', (e) => {
+            // Projection: one-finger grab manipulates the image; one-finger elsewhere pans.
+            if (this.touchState.projTouch && this.projDrag && e.touches.length === 1) {
+                e.preventDefault();
+                const t0 = e.touches[0];
+                this.updateProjectionDrag(this.getWorldCoords({ clientX: t0.clientX, clientY: t0.clientY }));
+                return;
+            }
+            if (this.touchState.oneFingerPan && e.touches.length === 1) {
+                e.preventDefault();
+                const t0 = e.touches[0];
+                this.data.offX += t0.clientX - this.touchState.lastTouchX;
+                this.data.offY += t0.clientY - this.touchState.lastTouchY;
+                this.touchState.lastTouchX = t0.clientX;
+                this.touchState.lastTouchY = t0.clientY;
+                this.render();
+                return;
+            }
             if (e.touches.length === 2 && this.touchState.isTwoFingerGesture) {
                 e.preventDefault();
 
@@ -8346,6 +8614,18 @@ class HexCartographerView extends ItemView {
             if (this.touchState.touchStartTimeout) {
                 clearTimeout(this.touchState.touchStartTimeout);
                 this.touchState.touchStartTimeout = null;
+            }
+
+            // Finish a one-finger projection grab or pan.
+            if (this.touchState.projTouch) {
+                e.preventDefault();
+                if (e.touches.length === 0) { this.endProjectionDrag(); this.touchState.projTouch = false; }
+                return;
+            }
+            if (this.touchState.oneFingerPan) {
+                e.preventDefault();
+                if (e.touches.length === 0) { this.touchState.oneFingerPan = false; this.requestSave(); }
+                return;
             }
 
             if (this.touchState.isTwoFingerGesture && e.touches.length < 2) {
@@ -8601,6 +8881,9 @@ class HexCartographerView extends ItemView {
             this.startHex = null;
             this.touchState.touches = [];
             this.touchState.tapActive = false;
+            this.touchState.projTouch = false;
+            this.touchState.oneFingerPan = false;
+            this.projDrag = null;
             this.render();
         }, { passive: false });
 
@@ -8750,7 +9033,10 @@ class HexCartographerView extends ItemView {
     }
 
     processInput(e, isInitial) {
+        const hLenBefore = this.history.length;
+        const redoBefore = this.redoStack; // pushHistory() clears redo; keep it for no-op fills
         this.pushHistoryIfNeeded();
+        const pushedHistory = this.history.length > hLenBefore;
         const world = this.getWorldCoords(e);
         if (!isFinite(world.x) || !isFinite(world.y) || Math.abs(world.x) > 1e6 || Math.abs(world.y) > 1e6) {
             console.warn('Rejected processInput: implausible world coords', world);
@@ -8778,7 +9064,15 @@ class HexCartographerView extends ItemView {
         if (this.drawMode === 'eraser') {
             this.handleEraser(hex, world.x, world.y);
         } else if (this.drawMode === 'fill') {
-            if (isInitial) this.handleFillTool(hex);
+            if (isInitial) {
+                const changed = this.handleFillTool(hex);
+                // Nothing filled (e.g. an open, unframed area) -> drop the empty undo step
+                // and restore the redo stack that pushHistory() cleared.
+                if (!changed && pushedHistory) {
+                    this.history.pop();
+                    this.redoStack = redoBefore;
+                }
+            }
         } else if (this.drawMode === 'pen') {
             if (this.currentToolGroup === 'border') {
                 this.addBorderHex(hex);
@@ -9327,16 +9621,15 @@ class HexCartographerView extends ItemView {
                (hex.texture || null) === (pattern.texture || null);
     }
 
+    // Returns true if the fill changed the map, false if nothing happened (e.g. an open,
+    // unframed empty area) — the caller uses this to avoid recording an empty undo step.
     handleFillTool(startHex) {
         const key = `${startHex.q}_${startHex.r}`;
         const startData = this.data.hexes[key];
 
         if (!startData) {
-            if (!this.isEnclosedByFrame(startHex)) {
-                return; // Do not fill if no frame present
-            }
-            this.floodFillEmpty(startHex);
-            return;
+            if (!this.isEnclosedByFrame(startHex)) return false; // open area -> nothing
+            return this.floodFillEmpty(startHex) > 0;
         }
 
         if (this.currentToolGroup === 'pattern' && this.patternData) {
@@ -9359,6 +9652,7 @@ class HexCartographerView extends ItemView {
             const targetTexture = startData ? startData.texture : null;
             this.floodFillSymbol(startHex, targetSymbol, targetColor, config.backgroundEnabled, targetTexture);
         }
+        return true; // recolor/symbol fill on an existing hex
     }
 
     // newTexture: undefined = Textur unangetastet lassen, null = entfernen, String = setzen.
@@ -9490,52 +9784,53 @@ class HexCartographerView extends ItemView {
         return directions.map(d => ({ q: hex.q + d.q, r: hex.r + d.r }));
     }
 
+    // True if the empty region around startHex is fully enclosed by hexes. The region is
+    // bounded by the existing hexes' box (+1): if the flood escapes that box it has found
+    // an opening and is NOT enclosed. This works for arbitrarily large framed areas — no
+    // fixed distance cap. A high safety cap only guards against pathological runaway.
     isEnclosedByFrame(startHex) {
+        const bounds = this.getHexBounds();
+        if (!bounds) return false; // no hexes at all -> nothing to enclose
+        const { minQ, maxQ, minR, maxR } = bounds;
         const visited = new Set();
         const queue = [startHex];
-        const maxDistance = 50; // Maximum distance to check (prevents endless search)
-        let foundBoundary = false;
+        const SAFETY = 500000;
 
         while (queue.length > 0) {
+            if (visited.size > SAFETY) return false;
             const hex = queue.shift();
             const key = `${hex.q}_${hex.r}`;
-
             if (visited.has(key)) continue;
-
-            const distance = Math.abs(hex.q - startHex.q) + Math.abs(hex.r - startHex.r);
-            if (distance > maxDistance) {
-                return false; // Too far = not framed
+            // Reached one step outside the frame's box -> there is a gap -> open, not framed.
+            if (hex.q < minQ - 1 || hex.q > maxQ + 1 || hex.r < minR - 1 || hex.r > maxR + 1) {
+                return false;
             }
-
             visited.add(key);
-
-            const hexData = this.data.hexes[key];
-
-            if (hexData) {
-                foundBoundary = true;
-                continue; // No further in this direction
-            }
-
-            const neighbors = this.getHexNeighbors(hex);
-            neighbors.forEach(n => queue.push(n));
+            if (this.data.hexes[key]) continue; // boundary hex -> stop here
+            this.getHexNeighbors(hex).forEach(n => queue.push(n));
         }
-
-        return foundBoundary && visited.size < (maxDistance * maxDistance);
+        return true; // never escaped the box -> enclosed
     }
 
+    // Fills the enclosed empty region (bounded by the hex box + 1, no distance cap).
+    // Returns the number of hexes actually filled.
     floodFillEmpty(startHex) {
+        const bounds = this.getHexBounds();
+        if (!bounds) return 0;
+        const { minQ, maxQ, minR, maxR } = bounds;
         const visited = new Set();
         const queue = [startHex];
-        const maxDistance = 50;
+        const SAFETY = 500000;
+        let filled = 0;
 
         while (queue.length > 0) {
+            if (visited.size > SAFETY) break;
             const hex = queue.shift();
             const key = `${hex.q}_${hex.r}`;
 
             if (visited.has(key)) continue;
 
-            const distance = Math.abs(hex.q - startHex.q) + Math.abs(hex.r - startHex.r);
-            if (distance > maxDistance) continue;
+            if (hex.q < minQ - 1 || hex.q > maxQ + 1 || hex.r < minR - 1 || hex.r > maxR + 1) continue;
 
             visited.add(key);
 
@@ -9579,9 +9874,11 @@ class HexCartographerView extends ItemView {
                 }
             }
 
+            filled++;
             const neighbors = this.getHexNeighbors(hex);
             neighbors.forEach(n => queue.push(n));
         }
+        return filled;
     }
 
     render() {
@@ -9591,7 +9888,9 @@ class HexCartographerView extends ItemView {
         this.ctx.translate(this.data.offX, this.data.offY);
         this.ctx.scale(this.data.zoom, this.data.zoom);
 
-        this.drawMapLayers(); // draw order (bottom -> top)
+        this.drawMapLayers(); // draw order (bottom -> top; includes the projection)
+
+        this.drawHexBorders(); // hex grid last — on top of symbols and the projection
 
         this.drawPathWaypoints(); // Waypoints always last (above all other elements)
 
@@ -9613,9 +9912,611 @@ class HexCartographerView extends ItemView {
         this.ctx.restore();
 
         this.renderCrosshair();
+        this.renderProjectionHandles(); // move/scale/rotate handles, only in the projection tool
         this.renderTexts();
         this.renderHexNumbering();
         this.updateAssetWarningBar();
+    }
+
+    // ===== Projection: an optional reference image overlaid on the map for tracing =====
+    // Stored per map as this.data.projection = { path, cx, cy, scale, rotation, opacity, iw, ih }.
+    // cx/cy = center in world coords; scale 1 = 100% (world units per image pixel); rotation
+    // in degrees; opacity 0..1; iw/ih = the image's natural pixel size (kept so size and the
+    // missing-file placeholder stay correct even before/without the decoded image).
+
+    // World size of the projection in world units. Uses stored iw/ih, so it works even while
+    // the image is still decoding or the file is missing.
+    projectionSize() {
+        const p = this.data.projection;
+        if (!p || !p.iw || !p.ih) return null;
+        return { w: p.iw * p.scale, h: p.ih * p.scale };
+    }
+
+    // Loads (or reloads) the referenced vault image into the cache. Marks _projectionMissing
+    // when the file is gone. Read-only — never writes.
+    loadProjectionImage() {
+        const p = this.data.projection;
+        if (!p || !p.path) { this._projectionImg = null; this._projectionImgPath = null; this._projectionMissing = false; return; }
+        if (this._projectionImgPath === p.path && this._projectionImg && !this._projectionMissing) return;
+        const file = this.app.vault.getAbstractFileByPath(p.path);
+        if (!file) { this._projectionImg = null; this._projectionImgPath = p.path; this._projectionMissing = true; return; }
+        const img = new Image();
+        img.onload = () => {
+            this._projectionImg = img;
+            this._projectionImgPath = p.path;
+            this._projectionMissing = false;
+            if (!p.iw || !p.ih) { p.iw = img.naturalWidth; p.ih = img.naturalHeight; }
+            this.render();
+        };
+        img.onerror = () => { this._projectionImg = null; this._projectionMissing = true; this.render(); };
+        img.src = this.app.vault.getResourcePath(file);
+    }
+
+    // Picks a new image for the projection. First time: centered in the current view at 100%
+    // (original pixel size). Swap: keeps the previous position, scale and rotation.
+    setProjectionImage(file) {
+        const img = new Image();
+        img.onload = () => {
+            this.pushHistory(); // undoable
+            const prev = this.data.projection;
+            const iw = img.naturalWidth, ih = img.naturalHeight;
+            if (prev) {
+                prev.path = file.path; prev.iw = iw; prev.ih = ih; // keep transform + origin
+            } else {
+                const cx = (this.canvas.width / 2 - this.data.offX) / this.data.zoom;
+                const cy = (this.canvas.height / 2 - this.data.offY) / this.data.zoom;
+                this.data.projection = { path: file.path, cx, cy, scale: 1, rotation: 0, opacity: 0.75, iw, ih, origin: { u: 0.5, v: 0.5 }, visible: true, clip: false, background: false };
+            }
+            this._projectionImg = img;
+            this._projectionImgPath = file.path;
+            this._projectionMissing = false;
+            this._updateProjectionUI();
+            this.render();
+            this.requestSave();
+        };
+        img.onerror = () => new Notice(t('notice.projectionLoadFailed'));
+        img.src = this.app.vault.getResourcePath(file);
+    }
+
+    clearProjection() {
+        this.pushHistory(); // undoable
+        this.data.projection = null;
+        this._projectionImg = null; this._projectionImgPath = null; this._projectionMissing = false;
+        this.projDrag = null;
+        this._updateProjectionUI();
+        this.render();
+        this.requestSave();
+        // Disabling the just-clicked Delete button drops keyboard focus to <body>, which is
+        // outside containerEl — the view's Ctrl+Z handler would then never fire. Return focus
+        // to the canvas so keyboard undo keeps working after a delete.
+        if (this.canvas) this.canvas.focus();
+    }
+
+    // Resets only the transform values (scale 100 %, rotation 0°, transparency 100 %,
+    // origin back to center) — the image and its position stay. Undoable.
+    resetProjection() {
+        const p = this.data.projection;
+        if (!p) return;
+        this.pushHistory();
+        p.scale = 1;
+        p.rotation = 0;
+        p.opacity = 0.75;
+        p.origin = { u: 0.5, v: 0.5 };
+        this._syncProjectionInputs();
+        this.render();
+        this.requestSave();
+    }
+
+    // Axis-aligned bounding box (world coords) of all drawn hexes, including their radius.
+    // Null when the map has no hexes.
+    hexesBoundingBox() {
+        const hexes = Object.values(this.data.hexes);
+        if (hexes.length === 0) return null;
+        const box = this.hexBounds(this.data.gridSize); // full hex width/height
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const h of hexes) {
+            const pos = this.hexToPixel(h);
+            if (pos.x - box.w / 2 < minX) minX = pos.x - box.w / 2;
+            if (pos.x + box.w / 2 > maxX) maxX = pos.x + box.w / 2;
+            if (pos.y - box.h / 2 < minY) minY = pos.y - box.h / 2;
+            if (pos.y + box.h / 2 > maxY) maxY = pos.y + box.h / 2;
+        }
+        return { minX, minY, maxX, maxY };
+    }
+
+    // World-space bounding box of the (rotated) projection image. Null if none/hidden.
+    projectionWorldBounds() {
+        const p = this.data.projection, size = this.projectionSize();
+        if (!p || !size || p.visible === false) return null;
+        const rad = (p.rotation || 0) * Math.PI / 180;
+        const cos = Math.cos(rad), sin = Math.sin(rad);
+        const hw = size.w / 2, hh = size.h / 2;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const [lx, ly] of [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]]) {
+            const wx = p.cx + (lx * cos - ly * sin), wy = p.cy + (lx * sin + ly * cos);
+            if (wx < minX) minX = wx; if (wx > maxX) maxX = wx;
+            if (wy < minY) minY = wy; if (wy > maxY) maxY = wy;
+        }
+        return { minX, minY, maxX, maxY };
+    }
+
+    // Projection bounds that must be INCLUDED in an export: only when visible AND NOT
+    // clipped (clipped means confined to the hexes, so it never extends the export area).
+    _exportProjectionBounds() {
+        const p = this.data.projection;
+        if (!p || p.visible === false || p.clip) return null;
+        return this.projectionWorldBounds();
+    }
+
+    // Draws the projection image right after the hex backgrounds (below symbols). Runs
+    // inside drawMapLayers, so it is part of both the on-screen view and the export/print
+    // — but only while visible; hidden means gone everywhere (WYSIWYG). The "Beschneiden"
+    // toggle (p.clip) confines it to the hex bounding box; otherwise the full image shows.
+    // A missing file shows a placeholder on screen only (never exported).
+    drawProjection() {
+        const p = this.data.projection;
+        const size = this.projectionSize();
+        if (!p || !size || p.visible === false) return;
+        const missing = !this._projectionImg || this._projectionMissing;
+        if (this._exporting && missing) return; // no placeholder in the export
+        const ctx = this.ctx;
+        const rad = (p.rotation || 0) * Math.PI / 180;
+        ctx.save();
+        if (p.clip) {
+            const bbox = this.hexesBoundingBox();
+            if (!bbox) { ctx.restore(); return; } // clip on + no hexes -> nothing to show
+            ctx.beginPath();
+            ctx.rect(bbox.minX, bbox.minY, bbox.maxX - bbox.minX, bbox.maxY - bbox.minY);
+            ctx.clip();
+        }
+        ctx.translate(p.cx, p.cy);
+        ctx.rotate(rad);
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.opacity != null ? p.opacity : 1));
+        if (!missing) {
+            ctx.drawImage(this._projectionImg, -size.w / 2, -size.h / 2, size.w, size.h);
+        } else {
+            // Missing file: dashed placeholder box (screen only) so it can still be moved.
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = 'rgba(120,120,120,0.15)';
+            ctx.fillRect(-size.w / 2, -size.h / 2, size.w, size.h);
+            ctx.setLineDash([8 / this.data.zoom, 6 / this.data.zoom]);
+            ctx.strokeStyle = '#e03131'; // canvas can't read CSS vars — concrete red
+            ctx.lineWidth = 2 / this.data.zoom;
+            ctx.strokeRect(-size.w / 2, -size.h / 2, size.w, size.h);
+            ctx.setLineDash([]);
+        }
+        ctx.restore();
+    }
+
+    // Local (unrotated, world-unit) coords of a pointer relative to the image center.
+    projectionLocal(world) {
+        const p = this.data.projection;
+        const rad = (p.rotation || 0) * Math.PI / 180;
+        const dx = world.x - p.cx, dy = world.y - p.cy;
+        return { x: dx * Math.cos(-rad) - dy * Math.sin(-rad), y: dx * Math.sin(-rad) + dy * Math.cos(-rad) };
+    }
+
+    // The origin (pivot) as a local offset from the image center, in unrotated world
+    // units. origin.u/v are normalized (0.5,0.5 = center); default center for old maps.
+    projOriginLocal() {
+        const p = this.data.projection, size = this.projectionSize();
+        if (!p || !size) return { x: 0, y: 0 };
+        const o = p.origin || { u: 0.5, v: 0.5 };
+        return { x: (o.u - 0.5) * size.w, y: (o.v - 0.5) * size.h };
+    }
+
+    // The origin's world position (rotates with the image).
+    projOriginWorld() {
+        const p = this.data.projection;
+        const rad = (p.rotation || 0) * Math.PI / 180;
+        const ol = this.projOriginLocal();
+        return { x: p.cx + (ol.x * Math.cos(rad) - ol.y * Math.sin(rad)), y: p.cy + (ol.x * Math.sin(rad) + ol.y * Math.cos(rad)) };
+    }
+
+    // Re-derives the center so the origin stays fixed in the world under the current
+    // scale/rotation — used while scaling/rotating around a moved origin.
+    _placeCenterForOrigin(originWorld) {
+        const p = this.data.projection;
+        const rad = (p.rotation || 0) * Math.PI / 180;
+        const ol = this.projOriginLocal();
+        p.cx = originWorld.x - (ol.x * Math.cos(rad) - ol.y * Math.sin(rad));
+        p.cy = originWorld.y - (ol.x * Math.sin(rad) + ol.y * Math.cos(rad));
+    }
+
+    // Set scale/rotation from the option fields/steppers while pivoting around the origin
+    // (the origin keeps its world position), so field edits match the drag handles.
+    _setProjectionScale(scale) {
+        const p = this.data.projection;
+        if (!p) return;
+        const ow = this.projOriginWorld();
+        p.scale = Math.max(PROJ_MIN_SCALE, scale);
+        this._placeCenterForOrigin(ow);
+    }
+    _setProjectionRotation(deg) {
+        const p = this.data.projection;
+        if (!p) return;
+        const ow = this.projOriginWorld();
+        p.rotation = ((deg % 360) + 360) % 360;
+        this._placeCenterForOrigin(ow);
+    }
+
+    // What a pointer (world coords) is over: the origin, a corner (scale), a side
+    // (rotate), the body (move), or nothing. Handle sizes are constant on screen.
+    projectionHitTest(world) {
+        const p = this.data.projection;
+        const size = this.projectionSize();
+        if (!p || !size) return null;
+        const z = this.data.zoom || 1;
+        // Origin first, so it can be grabbed even inside the body.
+        const ow = this.projOriginWorld();
+        if (Math.hypot(world.x - ow.x, world.y - ow.y) < 14 / z) return { type: 'origin' };
+        const { x: lx, y: ly } = this.projectionLocal(world);
+        const hw = size.w / 2, hh = size.h / 2;
+        const cornerTol = 12 / z, rotOff = 24 / z, rotTol = 16 / z;
+        const corners = [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]];
+        for (let i = 0; i < 4; i++) {
+            if (Math.abs(lx - corners[i][0]) < cornerTol && Math.abs(ly - corners[i][1]) < cornerTol) return { type: 'scale', index: i };
+        }
+        const mids = [[0, -hh - rotOff], [hw + rotOff, 0], [0, hh + rotOff], [-hw - rotOff, 0]];
+        for (let i = 0; i < 4; i++) {
+            if (Math.hypot(lx - mids[i][0], ly - mids[i][1]) < rotTol) return { type: 'rotate', index: i };
+        }
+        if (Math.abs(lx) <= hw && Math.abs(ly) <= hh) return { type: 'move' };
+        return null;
+    }
+
+    // Screen-space handles shown only in the projection tool: an outline, corner squares
+    // for proportional scaling, and curved arrows on the four sides for rotation.
+    renderProjectionHandles() {
+        if (this.currentToolGroup !== 'projection') return;
+        const p = this.data.projection;
+        const size = this.projectionSize();
+        if (!p || !size || p.visible === false) return;
+        const ctx = this.ctx;
+        const rad = (p.rotation || 0) * Math.PI / 180;
+        const hw = size.w / 2, hh = size.h / 2;
+        const z = this.data.zoom, ox = this.data.offX, oy = this.data.offY;
+        const scr = (lx, ly) => {
+            const wx = p.cx + (lx * Math.cos(rad) - ly * Math.sin(rad));
+            const wy = p.cy + (lx * Math.sin(rad) + ly * Math.cos(rad));
+            return { x: wx * z + ox, y: wy * z + oy };
+        };
+        const accent = getComputedStyle(this.canvas).getPropertyValue('--interactive-accent').trim() || '#4a9eff';
+        const c = [scr(-hw, -hh), scr(hw, -hh), scr(hw, hh), scr(-hw, hh)];
+
+        ctx.save();
+        // Outline
+        ctx.beginPath();
+        ctx.moveTo(c[0].x, c[0].y);
+        for (let i = 1; i < 4; i++) ctx.lineTo(c[i].x, c[i].y);
+        ctx.closePath();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Corner squares (scale)
+        const s = 5;
+        for (const pt of c) {
+            ctx.fillStyle = '#fff';
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 1.5;
+            ctx.fillRect(pt.x - s, pt.y - s, s * 2, s * 2);
+            ctx.strokeRect(pt.x - s, pt.y - s, s * 2, s * 2);
+        }
+
+        // Rotation arrows on the four sides
+        const rotOff = 24 / z;
+        const mids = [[0, -hh - rotOff], [hw + rotOff, 0], [0, hh + rotOff], [-hw - rotOff, 0]];
+        for (const m of mids) {
+            const pt = scr(m[0], m[1]);
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 6, Math.PI * 0.25, Math.PI * 1.75);
+            ctx.stroke();
+            // small arrowhead at the arc end
+            const ex = pt.x + 6 * Math.cos(Math.PI * 1.75), ey = pt.y + 6 * Math.sin(Math.PI * 1.75);
+            ctx.beginPath();
+            ctx.moveTo(ex, ey);
+            ctx.lineTo(ex - 4, ey - 1);
+            ctx.lineTo(ex + 1, ey + 4);
+            ctx.closePath();
+            ctx.fillStyle = accent;
+            ctx.fill();
+        }
+
+        // Origin marker (draggable pivot): a circle with a cross.
+        const ow = this.projOriginWorld();
+        const op = { x: ow.x * z + ox, y: ow.y * z + oy };
+        const R = 7;
+        ctx.beginPath();
+        ctx.arc(op.x, op.y, R, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.fill();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(op.x - R - 3, op.y); ctx.lineTo(op.x + R + 3, op.y);
+        ctx.moveTo(op.x, op.y - R - 3); ctx.lineTo(op.x, op.y + R + 3);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    // ---- Projection interaction (shared by mouse and single-finger touch) ----
+    beginProjectionDrag(world) {
+        const p = this.data.projection;
+        if (!p) return false;
+        const hit = this.projectionHitTest(world);
+        if (!hit) return false;
+        this.pushHistory(); // one undo entry per gesture (move/scale/rotate/origin)
+        const ow = this.projOriginWorld();
+        this.projDrag = {
+            mode: hit.type,
+            startWorld: { x: world.x, y: world.y },
+            startCx: p.cx, startCy: p.cy,
+            startScale: p.scale, startRotation: p.rotation || 0,
+            originWorld: ow,
+            startDist: Math.hypot(world.x - ow.x, world.y - ow.y) || 1,
+            startAngle: Math.atan2(world.y - ow.y, world.x - ow.x),
+        };
+        return true;
+    }
+
+    updateProjectionDrag(world) {
+        const d = this.projDrag, p = this.data.projection;
+        if (!d || !p) return;
+        if (d.mode === 'move') {
+            p.cx = d.startCx + (world.x - d.startWorld.x);
+            p.cy = d.startCy + (world.y - d.startWorld.y);
+        } else if (d.mode === 'scale') {
+            const distNow = Math.hypot(world.x - d.originWorld.x, world.y - d.originWorld.y);
+            p.scale = Math.max(PROJ_MIN_SCALE, d.startScale * (distNow / d.startDist));
+            this._placeCenterForOrigin(d.originWorld); // scale around the origin
+        } else if (d.mode === 'rotate') {
+            const ang = Math.atan2(world.y - d.originWorld.y, world.x - d.originWorld.x);
+            const deg = d.startRotation + (ang - d.startAngle) * 180 / Math.PI;
+            p.rotation = ((deg % 360) + 360) % 360;
+            this._placeCenterForOrigin(d.originWorld); // rotate around the origin
+        } else if (d.mode === 'origin') {
+            // Move the origin marker only — the image stays put; recompute normalized u/v.
+            const size = this.projectionSize();
+            const rad = -(p.rotation || 0) * Math.PI / 180;
+            const dx = world.x - p.cx, dy = world.y - p.cy;
+            const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
+            const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+            p.origin = { u: 0.5 + lx / size.w, v: 0.5 + ly / size.h };
+        }
+        this._syncProjectionInputs();
+        this.render();
+    }
+
+    endProjectionDrag() {
+        if (!this.projDrag) return;
+        this.projDrag = null;
+        this.requestSave();
+    }
+
+    // Pushes ONE undo entry for a burst of field edits (typing / holding a stepper),
+    // coalescing changes within 500 ms so the whole adjustment undoes at once.
+    _snapProjectionForEdit() {
+        const now = Date.now();
+        if (!this._lastProjSnap || now - this._lastProjSnap > 500) this.pushHistory();
+        this._lastProjSnap = now;
+    }
+
+    // Mirrors the current transform into the options-row fields (during a drag).
+    _syncProjectionInputs() {
+        const p = this.data.projection;
+        if (!p) return;
+        if (this.projScaleInput) this.projScaleInput.value = (Math.round(p.scale * 1000) / 10).toString();
+        if (this.projRotationInput) this.projRotationInput.value = (Math.round((p.rotation || 0) * 10) / 10).toString();
+        if (this.projOpacityInput) this.projOpacityInput.value = Math.round((p.opacity != null ? p.opacity : 1) * 100).toString();
+    }
+
+    // Load/Swap label, Delete enabled/greyed, and the numeric fields enabled or reset+
+    // disabled — with no image there is nothing to adjust.
+    _updateProjectionUI() {
+        const has = !!this.data.projection;
+        if (this.projLoadBtn) {
+            const key = has ? 'projection.swap' : 'projection.load';
+            this.projLoadBtn.setText(t(key));
+            this.projLoadBtn.setAttribute('title', t(key));
+        }
+        const setBtn = (b) => { if (b) { b.disabled = !has; b.style.opacity = has ? '1' : '0.4'; } };
+        setBtn(this.projResetBtn);
+        setBtn(this.projDeleteBtn);
+        setBtn(this.projClipBtn);
+        setBtn(this.projBackgroundBtn);
+        // Clip toggle: scissors (off) vs square-scissors on a blue backdrop (on).
+        if (this.projClipBtn) {
+            const on = has && this.data.projection.clip === true;
+            setIcon(this.projClipBtn, on ? 'square-scissors' : 'scissors');
+            this.projClipBtn.style.background = on ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
+            this.projClipBtn.setAttribute('title', t('projection.clip'));
+        }
+        // Draw-in-background toggle: blue backdrop when on.
+        if (this.projBackgroundBtn) {
+            const on = has && this.data.projection.background === true;
+            this.projBackgroundBtn.style.background = on ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
+            this.projBackgroundBtn.setAttribute('title', t('projection.background'));
+        }
+        this._updateProjectionVisButton(); // toolbar toggle, updated here and on every toolbar refresh
+        const setField = (input, resetValue) => {
+            if (!input) return;
+            input.disabled = !has;
+            input.style.opacity = has ? '1' : '0.4';
+            if (!has) input.value = resetValue;
+            // Disable the −/+ steppers in the same controls container too.
+            const controls = input.parentElement;
+            if (controls) controls.querySelectorAll('.hex-option-step').forEach(b => {
+                b.disabled = !has;
+                b.style.opacity = has ? '1' : '0.4';
+            });
+        };
+        setField(this.projOpacityInput, '75');
+        setField(this.projScaleInput, '100');
+        setField(this.projRotationInput, '0');
+        if (has) this._syncProjectionInputs();
+    }
+
+    // The show/hide toggle lives in the toolbar (always visible), so its state is refreshed
+    // on every toolbar update — not only while the projection tool is active.
+    _updateProjectionVisButton() {
+        if (!this.projVisBtn) return;
+        const has = !!this.data.projection;
+        const hidden = has && this.data.projection.visible === false;
+        this.projVisBtn.disabled = !has;
+        this.projVisBtn.style.opacity = has ? '1' : '0.4';
+        setIcon(this.projVisBtn, hidden ? 'eye-closed' : 'eye');
+        this.projVisBtn.style.background = hidden ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
+        this.projVisBtn.setAttribute('title', t('projection.visibility'));
+    }
+
+    // Toolbar button + the projection options row (Load/Swap · Transparency · Scale ·
+    // Rotation · Delete). The inputs mirror this.data.projection and are guarded so they
+    // do nothing until an image is set; Delete greys out when there is nothing to delete.
+    createProjectionTool(editContent, toolbar) {
+        // Group the tool + its show/hide toggle so they sit flush together, matching the
+        // pattern/border button pairs (no gap between the two).
+        const group = editContent.createDiv({ attr: { style: 'display: inline-flex; align-items: center;' } });
+        const btn = this.createToolButton(group, { icon: 'projector', title: t('tooltip.projection'), dataset: { toolGroup: 'projection' } });
+        btn.onclick = () => {
+            const needsRender = this.currentToolGroup === 'pattern' || this.borderSettings.pickedHex;
+            this.exitPathEditMode();
+            this.currentToolGroup = 'projection';
+            this.drawMode = 'none';
+            this.updateToolbarState(toolbar);
+            this.render(); // show the handles
+            this.requestSave();
+        };
+
+        // Show/hide toggle sits in the TOOLBAR next to the projection tool (not a tool
+        // itself) — reachable anytime, greyed while no image is loaded.
+        this.projVisBtn = this.createToolButton(group, { icon: 'eye', title: t('projection.visibility') });
+        this.projVisBtn.onclick = () => {
+            const p = this.data.projection;
+            if (!p) return;
+            p.visible = p.visible === false; // toggle (undefined/true -> false, false -> true)
+            this._updateProjectionVisButton();
+            this.render();
+            this.requestSave();
+        };
+
+        const btnStyle = `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px 10px; box-sizing: border-box; cursor: pointer;`;
+        // A text button (Load/Delete), in the options row.
+        const optButton = ({ textKey, icon, titleKey }) => {
+            const unit = this.toolbarOptionsEl.createDiv({ cls: 'hex-option-unit' });
+            unit.style.display = 'none';
+            const b = unit.createEl('button', { cls: 'hex-option-btn', attr: { title: t(titleKey || textKey), style: btnStyle } });
+            if (textKey) b.setText(t(textKey));
+            if (icon) setIcon(b, icon);
+            b.addEventListener('pointerdown', (e) => e.stopPropagation()); // don't start a canvas drag
+            return { unit, b };
+        };
+        // Vertical separator, styled inline so it can be shown/hidden with the tool (the
+        // hex-toolbar-sep class uses !important, which an inline display:none can't override).
+        const makeSep = () => {
+            const s = this.toolbarOptionsEl.createDiv({ attr: { style: 'width: 1px; align-self: stretch; background-color: #b8b8b8; flex-shrink: 0;' } });
+            s.style.display = 'none';
+            return s;
+        };
+
+        // Load / Swap · Delete (the two file actions sit together at the front)
+        const load = optButton({ textKey: 'projection.load' });
+        this.projLoadUnit = load.unit; this.projLoadBtn = load.b;
+        this.projLoadBtn.onclick = () => new ProjectionImageModal(this.app, (file) => this.setProjectionImage(file)).open();
+
+        const del = optButton({ textKey: 'projection.delete' });
+        this.projDeleteUnit = del.unit; this.projDeleteBtn = del.b;
+        this.projDeleteBtn.onclick = () => { if (this.data.projection) this.clearProjection(); };
+
+        this.projSepBeforeTransparency = makeSep();
+
+        // Transparency (0–100 %, integer)
+        this.projOpacityUnit = this.createOptionUnit('projection.transparency');
+        this.projOpacityInput = this.createOptionInput(this.projOpacityUnit, { value: '75', title: t('projection.transparency'), min: '0', max: '100' });
+        this.projOpacityInput.oninput = (e) => {
+            const v = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+            e.target.value = v;
+            if (this.data.projection) { this._snapProjectionForEdit(); this.data.projection.opacity = v / 100; this.render(); this.requestSave(); }
+        };
+
+        // Scale (% of original pixel size, one decimal). Applied live on input (no
+        // reformat, so decimals can be typed); normalized on change.
+        this.projScaleUnit = this.createOptionUnit('projection.scale');
+        this.projScaleInput = this.createOptionInput(this.projScaleUnit, { value: '100', title: t('projection.scale'), min: '0.1', max: '5000', decimals: 1, stepBy: 0.1 });
+        this.projScaleInput.oninput = (e) => {
+            let v = parseFloat(e.target.value);
+            if (!isFinite(v)) return;
+            v = Math.min(5000, Math.max(0.1, v));
+            if (this.data.projection) { this._snapProjectionForEdit(); this._setProjectionScale(v / 100); this.render(); this.requestSave(); }
+        };
+        this.projScaleInput.onchange = (e) => {
+            const v = Math.min(5000, Math.max(0.1, Math.round((parseFloat(e.target.value) || 100) * 10) / 10));
+            e.target.value = v;
+            if (this.data.projection) { this._setProjectionScale(v / 100); this.render(); this.requestSave(); }
+        };
+
+        // Rotation (degrees, one decimal)
+        this.projRotationUnit = this.createOptionUnit('projection.rotation');
+        this.projRotationInput = this.createOptionInput(this.projRotationUnit, { value: '0', title: t('projection.rotation'), min: '0', max: '359.9', decimals: 1, stepBy: 0.1 });
+        this.projRotationInput.oninput = (e) => {
+            const v = parseFloat(e.target.value);
+            if (!isFinite(v)) return;
+            if (this.data.projection) { this._snapProjectionForEdit(); this._setProjectionRotation(v); this.render(); this.requestSave(); }
+        };
+        this.projRotationInput.onchange = (e) => {
+            const v = Math.round(((((parseFloat(e.target.value) || 0) % 360) + 360) % 360) * 10) / 10;
+            e.target.value = v;
+            if (this.data.projection) { this._setProjectionRotation(v); this.render(); this.requestSave(); }
+        };
+
+        // Icon buttons (Reset · Clip · Background) sit tightly together in one unit, with a
+        // vertical separator before them — spacing like the main toolbar.
+        const iconBtnIn = (parent, icon, titleKey) => {
+            const b = parent.createEl('button', { cls: 'hex-option-btn', attr: { title: t(titleKey), style: btnStyle } });
+            setIcon(b, icon);
+            b.addEventListener('pointerdown', (e) => e.stopPropagation()); // don't start a canvas drag
+            return b;
+        };
+
+        this.projSepBeforeReset = makeSep();
+        const iconGroup = this.toolbarOptionsEl.createDiv({ cls: 'hex-option-unit', attr: { style: 'gap: 8px;' } });
+        this.projIconGroup = iconGroup;
+
+        // Reset (icon only)
+        this.projResetBtn = iconBtnIn(iconGroup, 'refresh-ccw-dot', 'projection.reset');
+        this.projResetBtn.onclick = () => { if (this.data.projection) this.resetProjection(); };
+
+        // Clip toggle — scissors (off) vs square-scissors on blue (on). On = projection
+        // confined to the hex bounding box, on screen AND in export/print.
+        this.projClipBtn = iconBtnIn(iconGroup, 'scissors', 'projection.clip');
+        this.projClipBtn.onclick = () => {
+            const p = this.data.projection;
+            if (!p) return;
+            p.clip = !p.clip;
+            this._updateProjectionUI();
+            this.render();
+            this.requestSave();
+        };
+
+        // Draw-in-background toggle — layers icon, blue when on. On = projection behind
+        // all other graphics; off = over everything (hex grid stays on top either way).
+        this.projBackgroundBtn = iconBtnIn(iconGroup, 'arrow-down-to-line', 'projection.background');
+        this.projBackgroundBtn.onclick = () => {
+            const p = this.data.projection;
+            if (!p) return;
+            p.background = !p.background;
+            this._updateProjectionUI();
+            this.render();
+            this.requestSave();
+        };
+
+        this._updateProjectionUI();
     }
 
     // Fills the red bar under the toolbar with one line per category that has an
@@ -10037,7 +10938,8 @@ class HexCartographerView extends ItemView {
                 if (!hexKeySet.has(`${bh.q}_${bh.r}`)) borderOnlyHexes.push(bh);
             }
         }
-        if (hexes.length === 0 && texts.length === 0 && borderOnlyHexes.length === 0) return null;
+        const pb = this._exportProjectionBounds(); // unclipped, visible projection
+        if (hexes.length === 0 && texts.length === 0 && borderOnlyHexes.length === 0 && !pb) return null;
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         const angleOffset = this.hexOrientation ? 0 : -30;
         const expandBounds = (hex) => {
@@ -10061,6 +10963,7 @@ class HexCartographerView extends ItemView {
             minX = Math.min(minX, tx.x - w / 2); maxX = Math.max(maxX, tx.x + w / 2);
             minY = Math.min(minY, tx.y - textSize); maxY = Math.max(maxY, tx.y + textSize / 2);
         });
+        if (pb) { minX = Math.min(minX, pb.minX); maxX = Math.max(maxX, pb.maxX); minY = Math.min(minY, pb.minY); maxY = Math.max(maxY, pb.maxY); }
         const padding = this.data.gridSize;
         return { w: (maxX - minX) + padding * 2, h: (maxY - minY) + padding * 2 };
     }
@@ -10103,6 +11006,9 @@ class HexCartographerView extends ItemView {
             minX = Math.min(minX, tx.x - w / 2); maxX = Math.max(maxX, tx.x + w / 2);
             minY = Math.min(minY, tx.y - textSize); maxY = Math.max(maxY, tx.y + textSize / 2);
         });
+        // Unclipped, visible projection extends the export area to fit the whole image.
+        const pb = this._exportProjectionBounds();
+        if (pb) { minX = Math.min(minX, pb.minX); maxX = Math.max(maxX, pb.maxX); minY = Math.min(minY, pb.minY); maxY = Math.max(maxY, pb.maxY); }
 
         const padding = cropless ? 0 : this.data.gridSize;
         minX -= padding; minY -= padding;
@@ -10150,6 +11056,7 @@ class HexCartographerView extends ItemView {
         tmpCtx.scale(this.data.zoom, this.data.zoom);
 
         this.drawMapLayers();
+        this.drawHexBorders(); // hex grid on top of the layers (numbering is added after)
 
         tmpCtx.restore();
 
@@ -10261,18 +11168,28 @@ class HexCartographerView extends ItemView {
             this.drawHexTexture(h, pos, sf + bleed, angleOffset);
         }
 
-        if (!this.plugin.settings.hideHexBorders) {
+        // The hex border (grid) is drawn in a separate pass (drawHexBorders) so it always
+        // sits on top — above symbols and the projection overlay.
+    }
+
+    // Strokes the outline of every hex. Runs as the LAST drawing pass so the grid stays
+    // visible over symbols and the projection (useful for tracing a reference image).
+    drawHexBorders() {
+        if (this.plugin.settings.hideHexBorders) return;
+        const bc = hexToRgb(this.plugin.settings.hexBorderColor || DEFAULT_SETTINGS.hexBorderColor);
+        const bo = (Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : DEFAULT_SETTINGS.hexBorderOpacity) / 100;
+        this.ctx.strokeStyle = `rgba(${bc.r},${bc.g},${bc.b},${bo})`;
+        this.ctx.lineWidth = 1;
+        const angleOffset = this.hexOrientation ? 0 : -30;
+        const s = this.data.gridSize;
+        for (const h of Object.values(this.data.hexes)) {
+            const pos = this.hexToPixel(h);
             this.ctx.beginPath();
-            for (let i=0; i<6; i++) {
-                const a = (Math.PI/180) * (60*i + angleOffset);
-                this.ctx.lineTo(pos.x + s*Math.cos(a), pos.y + s*Math.sin(a));
+            for (let i = 0; i < 6; i++) {
+                const a = (Math.PI / 180) * (60 * i + angleOffset);
+                this.ctx.lineTo(pos.x + s * Math.cos(a), pos.y + s * Math.sin(a));
             }
             this.ctx.closePath();
-            // Border colour + visibility from settings (shipped: gray at 30%).
-            const bc = hexToRgb(this.plugin.settings.hexBorderColor || DEFAULT_SETTINGS.hexBorderColor);
-            const bo = (Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : DEFAULT_SETTINGS.hexBorderOpacity) / 100;
-            this.ctx.strokeStyle = `rgba(${bc.r},${bc.g},${bc.b},${bo})`;
-            this.ctx.lineWidth = 1;
             this.ctx.stroke();
         }
     }
@@ -10391,6 +11308,11 @@ class HexCartographerView extends ItemView {
     // Single definition of the draw order — screen and export share it
     // so the two do not drift apart.
     drawMapLayers() {
+        // Projection layer position: "background" on -> behind everything (drawn first);
+        // off -> over all other graphics (drawn last). The hex grid is still drawn after
+        // this in render(), so hex borders always stay on top.
+        const projBg = !!(this.data.projection && this.data.projection.background);
+        if (projBg) this.drawProjection();
         Object.values(this.data.hexes).forEach(h => this.drawHexBase(h));
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_VEGETATION);
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_TERRAIN);
@@ -10401,6 +11323,7 @@ class HexCartographerView extends ItemView {
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_BUILDINGS);
         this.drawSymbolLayerOnCtx(null); // User symbols on top, just before the borders
         this.drawBorders();
+        if (!projBg) this.drawProjection();
     }
 
     // Bounding box of a hex. Pointy top is narrower than tall,
@@ -11352,6 +12275,62 @@ class FileSelectorModal extends Modal {
     }
 }
 
+// Picks an existing image from anywhere in the vault for the projection overlay. Nothing
+// is copied — only the chosen file's path is used. onSelect receives the TFile.
+const PROJECTION_IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif', 'svg', 'bmp'];
+class ProjectionImageModal extends Modal {
+    constructor(app, onSelect) {
+        super(app);
+        this.onSelect = onSelect;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.createEl('h2', { text: t('projection.pickTitle') });
+
+        const filter = contentEl.createEl('input', { placeholder: t('modal.searchFile') });
+        filter.style.width = '100%';
+        filter.style.marginBottom = '10px';
+
+        const listContainer = contentEl.createDiv({
+            style: 'max-height: 400px; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--divider-color); background: var(--background-primary); border-radius: 4px;'
+        });
+
+        const images = this.app.vault.getFiles().filter(f => PROJECTION_IMAGE_EXTS.includes((f.extension || '').toLowerCase()));
+
+        const renderList = (searchTerm = '') => {
+            listContainer.empty();
+            const val = searchTerm.toLowerCase();
+            const files = images.filter(f => val === '' || f.path.toLowerCase().includes(val));
+            if (files.length === 0) {
+                listContainer.createDiv({ text: t('projection.noImages'), style: 'padding: 10px; color: var(--text-muted); text-align: center;' });
+                return;
+            }
+            files.forEach(f => {
+                const item = listContainer.createDiv({
+                    text: f.path,
+                    cls: 'suggestion-item',
+                    style: 'padding: 8px; cursor: pointer; border-bottom: 1px solid var(--divider-color); font-size: 0.95em;'
+                });
+                item.onmouseover = () => item.style.background = 'var(--background-modifier-hover)';
+                item.onmouseout = () => item.style.background = '';
+                item.onclick = () => { this.onSelect(f); this.close(); };
+            });
+        };
+
+        filter.oninput = () => renderList(filter.value);
+        renderList('');
+
+        const btnRow = contentEl.createDiv({ style: 'display: flex; justify-content: flex-end; margin-top: 15px;' });
+        const cancelBtn = btnRow.createEl('button', { text: t('modal.cancel'), cls: 'mod-cta' });
+        cancelBtn.onclick = () => this.close();
+
+        filter.focus();
+    }
+
+    onClose() { this.contentEl.empty(); }
+}
+
 class TextInputModal extends Modal {
     constructor(app, onSubmit, val = '', size = DEFAULT_TEXT_SIZE, link = '', color = DEFAULT_TEXT_COLOR, outline = true, bold = false, shadow = false, shadowDistance = DEFAULT_SHADOW_DISTANCE, shadowOpatown = DEFAULT_SHADOW_OPACITY, colorPalette = null, colorPalette2 = null, showAnchor = false, anchorRadius = TEXT_ANCHOR_RADIUS, align = 'center', anchorGap = DEFAULT_ANCHOR_GAP, anchorOutline = true, onPreview = null, onCancel = null) {
         super(app);
@@ -11859,7 +12838,9 @@ function makeNumberInput(parent, value, opts = {}) {
             if (min !== undefined) v = Math.max(Number(min), v);
             if (max !== undefined) v = Math.min(Number(max), v);
             input.value = String(v);
+            // Fire both so 'input' (live) and 'change' (on-commit) handlers react to a step.
             input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
         };
     };
     makeBtn('▲', 1);
@@ -11943,9 +12924,9 @@ class ExportMapModal extends Modal {
         // Image size
         const sizeRow = contentEl.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 8px; margin-bottom: 12px;' } });
         sizeRow.createEl('span', { text: 'px:' });
-        const widthInput = sizeRow.createEl('input', { attr: { type: 'number', min: '64', max: '8192', step: '1', value: this.imgWidth, style: 'width: 80px;' } });
+        const widthInput = makeNumberInput(sizeRow, this.imgWidth, { min: 64, max: 8192, step: 64 });
         sizeRow.createEl('span', { text: '\u00D7' });
-        const heightInput = sizeRow.createEl('input', { attr: { type: 'number', min: '64', max: '8192', step: '1', value: this.imgHeight, style: 'width: 80px;' } });
+        const heightInput = makeNumberInput(sizeRow, this.imgHeight, { min: 64, max: 8192, step: 64 });
 
         widthInput.oninput = () => {
             if (this._updating) return;
@@ -12442,52 +13423,17 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     });
             });
 
-        // Fast loading: save maps as `.hexcartographer` (no Markdown flash). A gear
-        // button opens the Obsidian Sync settings so the user can enable syncing of
-        // these files. Open maps are migrated immediately; the rest lazily on open.
-        new Setting(containerEl)
-            .setName(t('settings.fastLoad'))
-            .setDesc(t('settings.fastLoadDesc'))
-            .addExtraButton(btn => {
-                btn.setIcon('settings')
-                    .setTooltip(t('settings.openSyncSettings'))
-                    .onClick(() => {
-                        if (this.app.setting && this.app.setting.open) {
-                            this.app.setting.open();
-                            this.app.setting.openTabById('sync');
-                        }
-                    });
-            })
-            .addToggle(toggle => {
-                toggle.setValue(this.plugin.settings.fastLoad)
-                    .onChange(async (value) => {
-                        this.plugin.settings.fastLoad = value;
-                        await this.plugin.saveSettings();
-                        // Migrate currently open maps right away; others lazily on open.
-                        const leaves = this.app.workspace.getLeavesOfType('hex-cartographer');
-                        for (const leaf of leaves) {
-                            if (leaf.view && leaf.view.file) await this.plugin.ensureHexExtension(leaf.view.file);
-                        }
-                    });
-            });
-
-        new Setting(containerEl)
+        const exportWidthSetting = new Setting(containerEl)
             .setName(t('settings.exportWidth'))
-            .setDesc(t('settings.exportWidthDesc'))
-            .addText(text => {
-                text.inputEl.type = 'number';
-                text.inputEl.min = '64';
-                text.inputEl.max = '8192';
-                text.inputEl.step = '1';
-                text.setValue(String(this.plugin.settings.exportWidth))
-                    .onChange(async (value) => {
-                        const num = parseInt(value);
-                        if (num >= 64 && num <= 8192) {
-                            this.plugin.settings.exportWidth = num;
-                            await this.plugin.saveSettings();
-                        }
-                    });
-            });
+            .setDesc(t('settings.exportWidthDesc'));
+        const exportWidthInput = makeNumberInput(exportWidthSetting.controlEl, this.plugin.settings.exportWidth, { min: 64, max: 8192, step: 64 });
+        exportWidthInput.addEventListener('change', async () => {
+            const num = parseInt(exportWidthInput.value);
+            if (num >= 64 && num <= 8192) {
+                this.plugin.settings.exportWidth = num;
+                await this.plugin.saveSettings();
+            }
+        });
 
         new Setting(containerEl)
             .setName(t('settings.showCrosshair'))
@@ -12532,6 +13478,71 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     });
             });
 
+        // ── Performance ───────────────────────────────────────────
+        // Collapsible group: fast loading + undo depth. Stays open when either differs
+        // from its default (the user turned something on / changed the value).
+        const perfSection = containerEl.createEl('details', { cls: 'hex-settings-section' });
+        perfSection.open = this.plugin.settings.fastLoad !== DEFAULT_SETTINGS.fastLoad
+            || clampUndoSteps(this.plugin.settings.undoSteps) !== DEFAULT_SETTINGS.undoSteps;
+        perfSection.createEl('summary', { cls: 'hex-settings-summary', text: t('settings.perfSection') });
+        const perfBody = perfSection.createDiv({ cls: 'hex-settings-body' });
+
+        // Fast loading: save maps as `.hexcartographer` (no Markdown flash). A gear
+        // button opens the Obsidian Sync settings so the user can enable syncing of
+        // these files. Open maps are migrated immediately; the rest lazily on open.
+        new Setting(perfBody)
+            .setName(t('settings.fastLoad'))
+            .setDesc(t('settings.fastLoadDesc'))
+            .addExtraButton(btn => {
+                btn.setIcon('settings')
+                    .setTooltip(t('settings.openSyncSettings'))
+                    .onClick(() => {
+                        if (this.app.setting && this.app.setting.open) {
+                            this.app.setting.open();
+                            this.app.setting.openTabById('sync');
+                        }
+                    });
+            })
+            .addToggle(toggle => {
+                toggle.setValue(this.plugin.settings.fastLoad)
+                    .onChange(async (value) => {
+                        this.plugin.settings.fastLoad = value;
+                        await this.plugin.saveSettings();
+                        // Migrate currently open maps right away; others lazily on open.
+                        const leaves = this.app.workspace.getLeavesOfType('hex-cartographer');
+                        for (const leaf of leaves) {
+                            if (leaf.view && leaf.view.file) await this.plugin.ensureHexExtension(leaf.view.file);
+                        }
+                    });
+            });
+
+        // Undo steps: how many undo snapshots to keep. Each snapshot is a full copy of the
+        // whole map, so a large value can use a lot of memory (warned in the description).
+        const undoSetting = new Setting(perfBody)
+            .setName(t('settings.undoSteps'))
+            .setDesc(t('settings.undoStepsDesc'));
+        const undoInput = makeNumberInput(undoSetting.controlEl, clampUndoSteps(this.plugin.settings.undoSteps), { min: UNDO_STEPS_MIN, max: UNDO_STEPS_MAX, step: 1 });
+        undoInput.setAttribute('title', t('settings.undoSteps'));
+        const applyUndoSteps = async (v) => {
+            v = clampUndoSteps(v);
+            undoInput.value = String(v);
+            this.plugin.settings.undoSteps = v;
+            await this.plugin.saveSettings();
+            // Apply to open maps and trim any history beyond the new limit.
+            this.app.workspace.iterateAllLeaves(leaf => {
+                if (leaf.view instanceof HexCartographerView) {
+                    leaf.view.maxHistory = v;
+                    while (leaf.view.history.length > v) leaf.view.history.shift();
+                    while (leaf.view.redoStack.length > v) leaf.view.redoStack.shift();
+                }
+            });
+        };
+        undoInput.addEventListener('change', () => applyUndoSteps(parseInt(undoInput.value)));
+
+        const undoResetBtn = undoSetting.controlEl.createEl('button', { cls: 'clickable-icon', attr: { title: t('settings.undoStepsReset') } });
+        setIcon(undoResetBtn, 'rotate-ccw');
+        undoResetBtn.addEventListener('click', () => applyUndoSteps(DEFAULT_SETTINGS.undoSteps));
+
         // ── Hex options ───────────────────────────────────────────
         // Collapsible group: frame colour/transparency and numbering.
         const hexSection = containerEl.createEl('details', { cls: 'hex-settings-section' });
@@ -12557,11 +13568,8 @@ class HexCartographerSettingTab extends PluginSettingTab {
         borderPicker.btn.style.width = '28px';
         borderPicker.btn.style.height = '28px';
         borderPicker.btn.setAttribute('title', t('settings.hexBorderColorTooltip'));
-        const opacityInput = styleRow.createEl('input', {
-            type: 'number',
-            attr: { min: '0', max: '100', step: '1', style: 'width: 64px;', title: t('settings.hexBorderOpacityTooltip') }
-        });
-        opacityInput.value = String(Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : DEFAULT_SETTINGS.hexBorderOpacity);
+        const opacityInput = makeNumberInput(styleRow, Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : DEFAULT_SETTINGS.hexBorderOpacity, { min: 0, max: 100, step: 1 });
+        opacityInput.setAttribute('title', t('settings.hexBorderOpacityTooltip'));
         opacityInput.addEventListener('change', async () => {
             let v = parseInt(opacityInput.value);
             if (!Number.isFinite(v)) v = DEFAULT_SETTINGS.hexBorderOpacity;

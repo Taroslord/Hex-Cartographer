@@ -86,7 +86,8 @@
     user-select: none;
 }
 .hex-settings-summary:hover { color: var(--text-accent); }
-.hex-settings-body { padding-bottom: 0.5em; }
+/* Indent the section body so its settings read as a sub-menu under the summary. */
+.hex-settings-body { padding-bottom: 0.5em; padding-left: 10px; }
 
 /* Long setting descriptions are clamped to 3 lines; the .hex-desc-more link (added by
    makeDescExpandable only when the text overflows) toggles the expanded state. */
