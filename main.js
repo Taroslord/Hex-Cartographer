@@ -5117,11 +5117,11 @@ class HexCartographerView extends ItemView {
         this.draggedTextMoved = false;
 
         this.startHex = null;
-        this.borderSettings = { width: DEFAULT_BORDER_WIDTH, dashes: DEFAULT_BORDER_DASHES, activeRegionId: null, pickedHex: null, visible: true };
+        this.borderSettings = { width: DEFAULT_BORDER_WIDTH, dashes: DEFAULT_BORDER_DASHES, color: DEFAULT_BORDER_COLOR, activeRegionId: null, pickedHex: null, visible: true };
         this.borderHighlightWidth = DEFAULT_BORDER_HIGHLIGHT_WIDTH;
         this.borderPickMode = false;
-        this.riverSettings = { width: DEFAULT_RIVER_WIDTH, activeRiverId: null, editMode: false, insertAfter: null };
-        this.roadSettings = { width: DEFAULT_ROAD_WIDTH, activeRoadId: null, editMode: false, insertAfter: null };
+        this.riverSettings = { width: DEFAULT_RIVER_WIDTH, color: DEFAULT_RIVER_COLOR, activeRiverId: null, editMode: false, insertAfter: null };
+        this.roadSettings = { width: DEFAULT_ROAD_WIDTH, color: DEFAULT_ROAD_COLOR, activeRoadId: null, editMode: false, insertAfter: null };
         this.pathDashes = DEFAULT_PATH_DASHES;
         this.pathPickMode = false;
         this.pathPickPending = null;
@@ -5711,18 +5711,25 @@ class HexCartographerView extends ItemView {
                     this.borderSettings = newData.settings.borderSettings;
                     this.borderSettings.activeRegionId = null;
                     this.borderSettings.pickedHex = null;
+                    // Older maps (incl. 1.1) have no per-tool colour -> keep the default.
+                    if (this.borderSettings.color === undefined) this.borderSettings.color = DEFAULT_BORDER_COLOR;
                 }
                 if (newData.settings.riverSettings) {
                     this.riverSettings = newData.settings.riverSettings;
                     this.riverSettings.editMode = false;
                     this.riverSettings.activeRiverId = null;
                     this.riverSettings.insertAfter = null;
+                    if (this.riverSettings.color === undefined) this.riverSettings.color = DEFAULT_RIVER_COLOR;
                 }
                 if (newData.settings.roadSettings) {
                     this.roadSettings = newData.settings.roadSettings;
                     this.roadSettings.editMode = false;
                     this.roadSettings.activeRoadId = null;
                     this.roadSettings.insertAfter = null;
+                    if (this.roadSettings.color === undefined) this.roadSettings.color = DEFAULT_ROAD_COLOR;
+                }
+                if (newData.settings.pathDashes !== undefined) {
+                    this.pathDashes = newData.settings.pathDashes;
                 }
                 if (newData.settings.hexColorColor) {
                     this.hexColorColor = newData.settings.hexColorColor;
@@ -7114,6 +7121,8 @@ class HexCartographerView extends ItemView {
             this.exitPathEditMode();
             this.currentToolGroup = 'river';
             this.drawMode = 'pen';
+            this.masterColor = this.riverSettings.color || DEFAULT_RIVER_COLOR;
+            if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
             this.updateToolbarState(toolbar);
             if (needsRender) this.render();
             this.requestSave();
@@ -7130,6 +7139,8 @@ class HexCartographerView extends ItemView {
             this.exitPathEditMode();
             this.currentToolGroup = 'road';
             this.drawMode = 'pen';
+            this.masterColor = this.roadSettings.color || DEFAULT_ROAD_COLOR;
+            if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
             this.updateToolbarState(toolbar);
             if (needsRender) this.render();
             this.requestSave();
@@ -7187,6 +7198,7 @@ class HexCartographerView extends ItemView {
             const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
             if (river) river.width = this.riverSettings.width;
             this.render();
+            this.requestSave();
         };
 
         this.roadWidthUnit = this.createOptionUnit('option.width');
@@ -7202,6 +7214,7 @@ class HexCartographerView extends ItemView {
             const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
             if (road) road.width = this.roadSettings.width;
             this.render();
+            this.requestSave();
         };
 
         this.pathDashesUnit = this.createOptionUnit('option.dashes');
@@ -7219,6 +7232,7 @@ class HexCartographerView extends ItemView {
             const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
             if (road) road.dashes = this.pathDashes;
             this.render();
+            this.requestSave();
         };
     }
 
@@ -7332,17 +7346,31 @@ class HexCartographerView extends ItemView {
     }
 
     updateActivePathColor() {
-        if (this.riverSettings.editMode) {
-            const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
-            if (river) { river.color = this.masterColor; this.render(); this.requestSave(); }
+        // Path/border tools remember their own last colour (like hex/symbol tools), so the
+        // next drawn element reuses it — and update the active element if one is being edited.
+        if (this.currentToolGroup === 'river') {
+            this.riverSettings.color = this.masterColor;
+            if (this.riverSettings.editMode) {
+                const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
+                if (river) river.color = this.masterColor;
+            }
+            this.render(); this.requestSave();
         }
-        if (this.roadSettings.editMode) {
-            const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
-            if (road) { road.color = this.masterColor; this.render(); this.requestSave(); }
+        if (this.currentToolGroup === 'road') {
+            this.roadSettings.color = this.masterColor;
+            if (this.roadSettings.editMode) {
+                const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
+                if (road) road.color = this.masterColor;
+            }
+            this.render(); this.requestSave();
         }
-        if (this.borderSettings.activeRegionId !== null && this.currentToolGroup === 'border') {
-            const region = this.data.borders && this.data.borders.find(r => r.id === this.borderSettings.activeRegionId);
-            if (region) { region.color = this.masterColor; this.render(); this.requestSave(); }
+        if (this.currentToolGroup === 'border') {
+            this.borderSettings.color = this.masterColor;
+            if (this.borderSettings.activeRegionId !== null) {
+                const region = this.data.borders && this.data.borders.find(r => r.id === this.borderSettings.activeRegionId);
+                if (region) region.color = this.masterColor;
+            }
+            this.render(); this.requestSave();
         }
         if (this.currentToolGroup === 'hexcolor') {
             this.hexColorColor = this.masterColor;
@@ -7432,6 +7460,8 @@ class HexCartographerView extends ItemView {
             this.borderSettings.pickedHex = null;
             this.currentToolGroup = 'border';
             this.drawMode = 'pen';
+            this.masterColor = this.borderSettings.color || DEFAULT_BORDER_COLOR;
+            if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
             if (wasHidden) this.borderSettings.visible = true;
             this.updateToolbarState(toolbar);
             if (wasPatternActive || wasHidden) {
@@ -7493,6 +7523,7 @@ class HexCartographerView extends ItemView {
             const region = this.data.borders && this.data.borders.find(r => r.id === this.borderSettings.activeRegionId);
             if (region) region.width = this.borderSettings.width;
             this.render();
+            this.requestSave();
         };
 
         this.borderDashesUnit = this.createOptionUnit('option.dashes');
@@ -7508,6 +7539,7 @@ class HexCartographerView extends ItemView {
             const region = this.data.borders && this.data.borders.find(r => r.id === this.borderSettings.activeRegionId);
             if (region) region.dashes = this.borderSettings.dashes;
             this.render();
+            this.requestSave();
         };
     }
 
@@ -7618,6 +7650,7 @@ class HexCartographerView extends ItemView {
 
         if (this.riverWidthInput) this.riverWidthInput.value = this.riverSettings.width.toString();
         if (this.roadWidthInput) this.roadWidthInput.value = this.roadSettings.width.toString();
+        if (this.pathDashesInput) this.pathDashesInput.value = (this.pathDashes || DEFAULT_PATH_DASHES).toString();
 
         const activePathSettings = this.currentToolGroup === 'river' ? this.riverSettings : this.roadSettings;
         if (this.pathPickerBtn) {
@@ -11993,6 +12026,7 @@ class HexCartographerView extends ItemView {
                     borderSettings: this.borderSettings,
                     riverSettings: this.riverSettings,
                     roadSettings: this.roadSettings,
+                    pathDashes: this.pathDashes,
                     masterColor: this.masterColor,
                     editMode: this.editMode,
                     hexColorColor: this.hexColorColor,
@@ -13447,6 +13481,11 @@ class HexCartographerSettingTab extends PluginSettingTab {
             }
         });
 
+        // Re-render every open map (used by settings that change how maps look).
+        const renderOpenMaps = () => this.app.workspace.iterateAllLeaves(leaf => {
+            if (leaf.view instanceof HexCartographerView) leaf.view.render();
+        });
+
         new Setting(containerEl)
             .setName(t('settings.showCrosshair'))
             .setDesc(t('settings.showCrosshairDesc'))
@@ -13455,15 +13494,9 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     .onChange(async (value) => {
                         this.plugin.settings.showCrosshair = value;
                         await this.plugin.saveSettings();
-                        this.app.workspace.iterateAllLeaves(leaf => {
-                            if (leaf.view instanceof HexCartographerView) leaf.view.render();
-                        });
+                        renderOpenMaps();
                     });
             });
-
-        const renderOpenMaps = () => this.app.workspace.iterateAllLeaves(leaf => {
-            if (leaf.view instanceof HexCartographerView) leaf.view.render();
-        });
 
         // Show hexes: the grid border toggle, stored inverted (hideHexBorders).
         new Setting(containerEl)
@@ -13490,14 +13523,21 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     });
             });
 
+        // Collapsible settings section: a native <details> with a summary and an indented
+        // body. `open` sets the initial state; returns the body element to fill.
+        const makeSettingsSection = (titleKey, open) => {
+            const section = containerEl.createEl('details', { cls: 'hex-settings-section' });
+            section.open = open;
+            section.createEl('summary', { cls: 'hex-settings-summary', text: t(titleKey) });
+            return section.createDiv({ cls: 'hex-settings-body' });
+        };
+
         // ── Performance ───────────────────────────────────────────
         // Collapsible group: fast loading + undo depth. Stays open when either differs
         // from its default (the user turned something on / changed the value).
-        const perfSection = containerEl.createEl('details', { cls: 'hex-settings-section' });
-        perfSection.open = this.plugin.settings.fastLoad !== DEFAULT_SETTINGS.fastLoad
-            || clampUndoSteps(this.plugin.settings.undoSteps) !== DEFAULT_SETTINGS.undoSteps;
-        perfSection.createEl('summary', { cls: 'hex-settings-summary', text: t('settings.perfSection') });
-        const perfBody = perfSection.createDiv({ cls: 'hex-settings-body' });
+        const perfBody = makeSettingsSection('settings.perfSection',
+            this.plugin.settings.fastLoad !== DEFAULT_SETTINGS.fastLoad
+            || clampUndoSteps(this.plugin.settings.undoSteps) !== DEFAULT_SETTINGS.undoSteps);
 
         // Fast loading: save maps as `.hexcartographer` (no Markdown flash). A gear
         // button opens the Obsidian Sync settings so the user can enable syncing of
@@ -13557,14 +13597,12 @@ class HexCartographerSettingTab extends PluginSettingTab {
 
         // ── Hex options ───────────────────────────────────────────
         // Collapsible group: frame colour/transparency and numbering.
-        const hexSection = containerEl.createEl('details', { cls: 'hex-settings-section' });
         // Stay open only when the user adjusted an actual option here: border colour,
         // transparency, or the "Numbering" checkbox. Numbering sub-options don't count
         // (they hang off the checkbox), so a Reset really collapses the section again.
         const HEX_OPTION_KEYS = ['hexBorderColor', 'hexBorderOpacity', 'hexNumberingEnabled'];
-        hexSection.open = HEX_OPTION_KEYS.some(k => this.plugin.settings[k] !== DEFAULT_SETTINGS[k]);
-        hexSection.createEl('summary', { cls: 'hex-settings-summary', text: t('settings.hexSection') });
-        const hexBody = hexSection.createDiv({ cls: 'hex-settings-body' });
+        const hexBody = makeSettingsSection('settings.hexSection',
+            HEX_OPTION_KEYS.some(k => this.plugin.settings[k] !== DEFAULT_SETTINGS[k]));
 
         // Frame colour + transparency: a colour swatch (opens the palette) plus a
         // percent input (100 = fully visible). Shipped defaults are the code's values.
@@ -13610,10 +13648,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
         // Collapsible via native <details> — Obsidian has no official
         // API. Already configured -> open, otherwise collapsed ("on demand").
         const anyUserPath = USER_ASSET_CATEGORIES.some(c => this.plugin.settings[c.settingKey]);
-        const assetsSection = containerEl.createEl('details', { cls: 'hex-settings-section' });
-        assetsSection.open = anyUserPath;
-        assetsSection.createEl('summary', { cls: 'hex-settings-summary', text: t('settings.userAssets') });
-        const assetsBody = assetsSection.createDiv({ cls: 'hex-settings-body' });
+        const assetsBody = makeSettingsSection('settings.userAssets', anyUserPath);
         assetsBody.createEl('p', {
             text: t('settings.userAssetsDesc'),
             attr: { style: 'color: var(--text-muted); font-size: 13px; margin-top: 0; white-space: pre-line;' }
