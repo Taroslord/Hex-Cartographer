@@ -11308,12 +11308,13 @@ class HexCartographerView extends ItemView {
     // Single definition of the draw order — screen and export share it
     // so the two do not drift apart.
     drawMapLayers() {
-        // Projection layer position: "background" on -> behind everything (drawn first);
-        // off -> over all other graphics (drawn last). The hex grid is still drawn after
-        // this in render(), so hex borders always stay on top.
+        // Projection layer position: "background" on -> behind everything (drawn first,
+        // even under the hex fills); off -> over the hex fills but under all symbols. The
+        // hex grid is still drawn after this in render(), so hex borders always stay on top.
         const projBg = !!(this.data.projection && this.data.projection.background);
         if (projBg) this.drawProjection();
         Object.values(this.data.hexes).forEach(h => this.drawHexBase(h));
+        if (!projBg) this.drawProjection();
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_VEGETATION);
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_TERRAIN);
         this.buildOverlapMap();
@@ -11323,7 +11324,6 @@ class HexCartographerView extends ItemView {
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_BUILDINGS);
         this.drawSymbolLayerOnCtx(null); // User symbols on top, just before the borders
         this.drawBorders();
-        if (!projBg) this.drawProjection();
     }
 
     // Bounding box of a hex. Pointy top is narrower than tall,
