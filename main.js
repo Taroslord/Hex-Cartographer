@@ -4170,11 +4170,9 @@ class ChangelogModal extends Modal {
 
         const body = contentEl.createDiv({ attr: { style: 'max-height: 60vh; overflow: auto; padding-right: 6px;' } });
         for (const entry of CHANGELOG) {
-            body.createEl('h2', { text: '🎉 ' + (entry.title || ('Version ' + entry.version)), attr: { style: 'margin: 10px 0 2px;' } });
-            body.createEl('div', {
-                text: 'Version ' + entry.version + (entry.date ? ' · ' + entry.date : ''),
-                attr: { style: 'color: var(--text-muted); font-size: 12px; margin-bottom: 8px;' }
-            });
+            // Title already conveys the version (e.g. "2.0 is here!"), so no separate
+            // version line — it only falls back to "Version x" when an entry has no title.
+            body.createEl('h2', { text: '🎉 ' + (entry.title || ('Version ' + entry.version)), attr: { style: 'margin: 10px 0 8px;' } });
             for (const b of (entry.blocks || [])) {
                 if (b.h) body.createEl('h3', { text: b.h, attr: { style: 'margin: 14px 0 4px;' } });
                 if (b.p) body.createEl('p', { text: b.p, attr: { style: 'margin: 6px 0;' } });
