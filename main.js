@@ -39,6 +39,20 @@ const MAX_HISTORY = 50;            // default undo depth
 const UNDO_STEPS_MIN = 1;
 const UNDO_STEPS_MAX = 200;        // guardrail: each step is a full map snapshot in RAM
 const clampUndoSteps = (n) => Math.max(UNDO_STEPS_MIN, Math.min(UNDO_STEPS_MAX, Number.isFinite(n) ? Math.round(n) : MAX_HISTORY));
+// Stable per-device id, kept in localStorage so it never syncs. Written into each saved
+// map as `lastWrittenBy` — currently informational, a basis for later sync/merge features.
+let _hexDeviceId = null;
+const getDeviceId = () => {
+    if (_hexDeviceId) return _hexDeviceId;
+    try {
+        _hexDeviceId = window.localStorage.getItem('hexcarto:deviceId');
+        if (!_hexDeviceId) {
+            _hexDeviceId = 'dev-' + Math.random().toString(36).slice(2, 10) + '-' + Date.now().toString(36);
+            window.localStorage.setItem('hexcarto:deviceId', _hexDeviceId);
+        }
+    } catch (e) { _hexDeviceId = 'dev-unknown'; }
+    return _hexDeviceId;
+};
 const MIN_ZOOM = 0.01; // Minimum zoom (1% of a hex)
 const MAX_ZOOM = 4; // Maximum zoom (number x 100% of a hex. 4 = 400%)
 const PROJ_MIN_SCALE = 0.001; // Smallest projection scale (0.1% of original pixel size)
@@ -4485,7 +4499,8 @@ class HexCartographerPlugin extends Plugin {
         try {
             const now = new Date().toISOString().split('T')[0];
             const frontmatter = `---\ntype: hexcartographer\ncreated: ${now}\n---\n\n`;
-            const jsonData = JSON.stringify(initialData, null, 2);
+            const compact = fileName.endsWith(HEX_EXT_FAST); // style follows the extension (see saveData)
+            const jsonData = compact ? JSON.stringify(initialData) : JSON.stringify(initialData, null, 2);
             const mapTitle = fileName.replace(HEX_EXT_FULL, '').replace(HEX_EXT_FAST, '');
             const content = `${frontmatter}# ${mapTitle}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
 
@@ -12014,6 +12029,9 @@ class HexCartographerView extends ItemView {
                     this.writeViewport(cx, cy, this.data.zoom);
                 }
 
+                // Which device wrote this version last (device-local id, never synced).
+                this.data.lastWrittenBy = getDeviceId();
+
                 this.data.settings = {
                     colorPalette: this.colorPalette,
                     colorPalette2: this.colorPalette2,
@@ -12049,7 +12067,11 @@ class HexCartographerView extends ItemView {
 
                 const now = new Date().toISOString().split('T')[0];
                 const frontmatter = `---\ntype: hexcartographer\ncreated: ${now}\n---\n\n`;
-                const jsonData = JSON.stringify(this.data, null, 2);
+                // Serialisation style follows the extension: the fast format (.hexcartographer)
+                // is synced by Obsidian as a whole blob -> minify to shrink it; the .md variant
+                // is text-diffed -> keep it indented (one field per line) so edits stay small.
+                const compact = this.file.path.endsWith(HEX_EXT_FAST);
+                const jsonData = compact ? JSON.stringify(this.data) : JSON.stringify(this.data, null, 2);
                 const title = this.file.basename.replace('.hexcartographer', '');
                 const content = `${frontmatter}# ${title}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
 
@@ -13563,7 +13585,17 @@ class HexCartographerSettingTab extends PluginSettingTab {
                         // Migrate currently open maps right away; others lazily on open.
                         const leaves = this.app.workspace.getLeavesOfType('hex-cartographer');
                         for (const leaf of leaves) {
-                            if (leaf.view && leaf.view.file) await this.plugin.ensureHexExtension(leaf.view.file);
+                            if (!leaf.view || !leaf.view.file) continue;
+                            const before = leaf.view.file.path;
+                            await this.plugin.ensureHexExtension(leaf.view.file);
+                            // Extension changed -> rewrite the content in the new format's
+                            // style (compact vs indented). The data still belongs to this
+                            // file, so point the save guard at the new path and force a write.
+                            if (leaf.view.file.path !== before) {
+                                leaf.view._dataPath = leaf.view.file.path;
+                                leaf.view._lastSavedContent = null;
+                                leaf.view.requestSave();
+                            }
                         }
                     });
             });
