@@ -39,8 +39,8 @@ const MAX_HISTORY = 50;            // default undo depth
 const UNDO_STEPS_MIN = 1;
 const UNDO_STEPS_MAX = 200;        // guardrail: each step is a full map snapshot in RAM
 const clampUndoSteps = (n) => Math.max(UNDO_STEPS_MIN, Math.min(UNDO_STEPS_MAX, Number.isFinite(n) ? Math.round(n) : MAX_HISTORY));
-// Stable per-device id, kept in localStorage so it never syncs. Written into each saved
-// map as `lastWrittenBy` — currently informational, a basis for later sync/merge features.
+// Stable per-device id, kept in localStorage so it never syncs. Used as the anonymous
+// fallback for a map's author/editor when the user has not set an author name.
 let _hexDeviceId = null;
 const getDeviceId = () => {
     if (_hexDeviceId) return _hexDeviceId;
@@ -52,6 +52,31 @@ const getDeviceId = () => {
         }
     } catch (e) { _hexDeviceId = 'dev-unknown'; }
     return _hexDeviceId;
+};
+// The viewport (pan/zoom) is device-local and kept in localStorage, never written to the
+// synced map file. Stripping these keys before serialising means pure navigation produces
+// no file change -> no Obsidian Sync churn/conflict.
+const stripViewportKeys = (d) => {
+    const { zoom, offX, offY, viewports, centerWorldX, centerWorldY, ...rest } = d;
+    return rest;
+};
+// Order-independent stringify: object keys sorted (arrays keep their order, which is
+// meaningful for paths/z-order). Two maps built in a different draw order thus match.
+const stableStringify = (v) => {
+    if (Array.isArray(v)) return '[' + v.map(stableStringify).join(',') + ']';
+    if (v && typeof v === 'object') {
+        return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + stableStringify(v[k])).join(',') + '}';
+    }
+    return JSON.stringify(v);
+};
+// Canonical signature of a map's LOGICAL content: the JSON payload without the volatile
+// metadata (lastModified/author/editor) and device-local viewport, normalised order-free.
+// Two files with the same signature are truly identical maps (used to spot redundant copies).
+const mapContentSignature = (content) => {
+    const m = content.match(/```json\s*([\s\S]*?)\s*```/);
+    const d = JSON.parse(m ? m[1] : content);
+    for (const k of ['lastModified', 'author', 'editor', 'zoom', 'offX', 'offY', 'viewports', 'centerWorldX', 'centerWorldY']) delete d[k];
+    return stableStringify(d);
 };
 const MIN_ZOOM = 0.01; // Minimum zoom (1% of a hex)
 const MAX_ZOOM = 4; // Maximum zoom (number x 100% of a hex. 4 = 400%)
@@ -350,6 +375,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Standard-Breite für Bildexport in Pixeln.',
         'settings.fastLoad': 'Schnelles Laden',
         'settings.fastLoadDesc': 'Lädt Karten schneller. Achtung: In Hex Cartographer vor 2.0 öffnen diese Karten nicht. Obsidian Sync überträgt sie nur mit „Alle anderen Dateien synchronisieren" (Zahnrad öffnet die Sync-Einstellungen).',
+        'tooltip.fastLoad': 'Schnelles Laden (diese Karte)',
+        'conflict.banner': 'Diese Karte ist eine Konflikt-Kopie (Sync).',
+        'conflict.exists': 'Zu dieser Karte existiert eine Konflikt-Kopie.',
+        'conflict.identical': 'Konflikt-Kopie — inhaltlich identisch, gefahrlos löschbar.',
+        'conflict.older': 'Konflikt-Kopie — älter als die aktuelle Karte.',
+        'conflict.newer': 'Konflikt-Kopie — neuer als die aktuelle Karte! Erst vergleichen.',
+        'conflict.compare': 'Vergleichen',
+        'conflict.rename': 'Behalten',
+        'conflict.delete': 'Löschen',
+        'notice.fastLoadTwinExists': 'Es existiert bereits eine zweite Fassung dieser Karte im anderen Format. Bitte zuerst im Vergleich auflösen.',
+        'settings.authorSection': 'Autor',
+        'settings.authorName': 'Autor-Name',
+        'settings.authorNameDesc': 'Wird bei Neuerstellung als „author" und bei jeder Änderung als „editor" in die Karte geschrieben. Leer lassen → anonyme Geräte-ID.',
+        'settings.authorNamePlaceholder': 'z. B. Alex',
         'settings.perfSection': 'Performance',
         'settings.undoSteps': 'Undo-Schritte',
         'settings.undoStepsDesc': 'Wie viele Schritte rückgängig gemacht werden können. Jeder Schritt speichert die gesamte Karte — ein zu hoher Wert verbraucht viel Arbeitsspeicher (Standard 50, max. 200).',
@@ -686,6 +725,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Default width for image export in pixels.',
         'settings.fastLoad': 'Fast loading',
         'settings.fastLoadDesc': 'Loads maps faster. Warning: these maps won\'t open in Hex Cartographer versions before 2.0. Obsidian Sync transfers them only with ‘Sync all other files’ on (gear opens Sync settings).',
+        'tooltip.fastLoad': 'Fast loading (this map)',
+        'conflict.banner': 'This map is a conflict copy (Sync).',
+        'conflict.exists': 'A conflict copy of this map exists.',
+        'conflict.identical': 'Conflict copy — identical content, safe to delete.',
+        'conflict.older': 'Conflict copy — older than the current map.',
+        'conflict.newer': 'Conflict copy — newer than the current map! Compare first.',
+        'conflict.compare': 'Compare',
+        'conflict.rename': 'Keep',
+        'conflict.delete': 'Delete',
+        'notice.fastLoadTwinExists': 'A second version of this map already exists in the other format. Resolve it in the comparison first.',
+        'settings.authorSection': 'Author',
+        'settings.authorName': 'Author name',
+        'settings.authorNameDesc': 'Written into a map as “author” on creation and as “editor” on every edit. Leave empty → anonymous device id.',
+        'settings.authorNamePlaceholder': 'e.g. Alex',
         'settings.perfSection': 'Performance',
         'settings.undoSteps': 'Undo steps',
         'settings.undoStepsDesc': 'How many steps can be undone. Each step stores the entire map — too high a value uses a lot of memory (default 50, max. 200).',
@@ -1000,6 +1053,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': '图片导出的默认宽度（像素）。',
         'settings.fastLoad': '快速加载',
         'settings.fastLoadDesc': '更快地加载地图。注意：这些地图在 Hex Cartographer 2.0 之前的版本中无法打开。仅当启用“同步所有其他文件”时，Obsidian Sync 才会同步（齿轮打开同步设置）。',
+        'tooltip.fastLoad': '快速加载（此地图）',
+        'conflict.banner': '此地图是冲突副本（同步）。',
+        'conflict.exists': '此地图存在一个冲突副本。',
+        'conflict.identical': '冲突副本——内容相同，可安全删除。',
+        'conflict.older': '冲突副本——比当前地图旧。',
+        'conflict.newer': '冲突副本——比当前地图新！请先比较。',
+        'conflict.compare': '比较',
+        'conflict.rename': '保留',
+        'conflict.delete': '删除',
+        'notice.fastLoadTwinExists': '此地图已存在另一种格式的第二个版本。请先在对比中处理。',
+        'settings.authorSection': '作者',
+        'settings.authorName': '作者名称',
+        'settings.authorNameDesc': '创建时作为“author”、每次编辑时作为“editor”写入地图。留空 → 匿名设备 ID。',
+        'settings.authorNamePlaceholder': '例如 Alex',
         'settings.perfSection': '性能',
         'settings.undoSteps': '撤销步数',
         'settings.undoStepsDesc': '可撤销的步数。每一步都会保存整张地图——数值过大会占用大量内存（默认 50，最大 200）。',
@@ -1308,6 +1375,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Стандартная ширина для экспорта изображений в пикселях.',
         'settings.fastLoad': 'Быстрая загрузка',
         'settings.fastLoadDesc': 'Загружает карты быстрее. Внимание: эти карты не откроются в Hex Cartographer версий до 2.0. Obsidian Sync синхронизирует их только при включённой «Синхронизировать все прочие файлы» (шестерёнка открывает настройки Sync).',
+        'tooltip.fastLoad': 'Быстрая загрузка (эта карта)',
+        'conflict.banner': 'Эта карта — конфликтная копия (Sync).',
+        'conflict.exists': 'Для этой карты существует конфликтная копия.',
+        'conflict.identical': 'Конфликтная копия — содержимое идентично, можно безопасно удалить.',
+        'conflict.older': 'Конфликтная копия — старше текущей карты.',
+        'conflict.newer': 'Конфликтная копия — новее текущей карты! Сначала сравните.',
+        'conflict.compare': 'Сравнить',
+        'conflict.rename': 'Оставить',
+        'conflict.delete': 'Удалить',
+        'notice.fastLoadTwinExists': 'Вторая версия этой карты уже существует в другом формате. Сначала разрешите её в сравнении.',
+        'settings.authorSection': 'Автор',
+        'settings.authorName': 'Имя автора',
+        'settings.authorNameDesc': 'Записывается в карту как «author» при создании и как «editor» при каждом изменении. Пусто → анонимный ID устройства.',
+        'settings.authorNamePlaceholder': 'напр. Alex',
         'settings.perfSection': 'Производительность',
         'settings.undoSteps': 'Шаги отмены',
         'settings.undoStepsDesc': 'Сколько шагов можно отменить. Каждый шаг сохраняет всю карту — слишком большое значение расходует много памяти (по умолчанию 50, макс. 200).',
@@ -1616,6 +1697,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': '画像エクスポートのデフォルト幅（ピクセル）。',
         'settings.fastLoad': '高速読み込み',
         'settings.fastLoadDesc': 'マップをより速く読み込みます。注意：これらのマップは Hex Cartographer 2.0 より前のバージョンでは開けません。Obsidian Sync は「その他のすべてのファイルを同期」が有効な場合のみ同期します（歯車で同期設定を開く）。',
+        'tooltip.fastLoad': '高速読み込み（このマップ）',
+        'conflict.banner': 'このマップは競合コピー（Sync）です。',
+        'conflict.exists': 'このマップの競合コピーが存在します。',
+        'conflict.identical': '競合コピー — 内容は同一、安全に削除できます。',
+        'conflict.older': '競合コピー — 現在のマップより古いです。',
+        'conflict.newer': '競合コピー — 現在のマップより新しいです！先に比較してください。',
+        'conflict.compare': '比較',
+        'conflict.rename': '保持',
+        'conflict.delete': '削除',
+        'notice.fastLoadTwinExists': 'このマップの別形式の第2バージョンが既に存在します。先に比較で解決してください。',
+        'settings.authorSection': '作者',
+        'settings.authorName': '作者名',
+        'settings.authorNameDesc': '作成時に「author」、編集ごとに「editor」としてマップに書き込まれます。空欄 → 匿名のデバイスID。',
+        'settings.authorNamePlaceholder': '例：Alex',
         'settings.perfSection': 'パフォーマンス',
         'settings.undoSteps': '元に戻す回数',
         'settings.undoStepsDesc': '元に戻せる回数。各ステップはマップ全体を保存するため、値が大きすぎるとメモリを大量に消費します（既定 50、最大 200）。',
@@ -1924,6 +2019,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Largeur par défaut pour l\'export d\'image en pixels.',
         'settings.fastLoad': 'Chargement rapide',
         'settings.fastLoadDesc': 'Charge les cartes plus vite. Attention : ces cartes ne s’ouvrent pas dans les versions de Hex Cartographer antérieures à 2.0. Obsidian Sync ne les synchronise qu’avec « Synchroniser tous les autres fichiers » (l’engrenage ouvre les paramètres de synchro).',
+        'tooltip.fastLoad': 'Chargement rapide (cette carte)',
+        'conflict.banner': 'Cette carte est une copie de conflit (Sync).',
+        'conflict.exists': 'Une copie de conflit de cette carte existe.',
+        'conflict.identical': 'Copie de conflit — contenu identique, suppression sans risque.',
+        'conflict.older': 'Copie de conflit — plus ancienne que la carte actuelle.',
+        'conflict.newer': 'Copie de conflit — plus récente que la carte actuelle ! Comparez d’abord.',
+        'conflict.compare': 'Comparer',
+        'conflict.rename': 'Conserver',
+        'conflict.delete': 'Supprimer',
+        'notice.fastLoadTwinExists': 'Une deuxième version de cette carte existe déjà dans l’autre format. Résolvez-la d’abord dans la comparaison.',
+        'settings.authorSection': 'Auteur',
+        'settings.authorName': 'Nom de l’auteur',
+        'settings.authorNameDesc': 'Inscrit dans la carte comme « author » à la création et « editor » à chaque modification. Vide → identifiant d’appareil anonyme.',
+        'settings.authorNamePlaceholder': 'p. ex. Alex',
         'settings.perfSection': 'Performances',
         'settings.undoSteps': 'Étapes d’annulation',
         'settings.undoStepsDesc': 'Nombre d’étapes annulables. Chaque étape enregistre toute la carte — une valeur trop élevée consomme beaucoup de mémoire (par défaut 50, max. 200).',
@@ -2232,6 +2341,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Largura padrão para exportação de imagem em pixels.',
         'settings.fastLoad': 'Carregamento rápido',
         'settings.fastLoadDesc': 'Carrega os mapas mais depressa. Atenção: estes mapas não abrem no versões do Hex Cartographer anteriores à 2.0. O Obsidian Sync só os sincroniza com «Sincronizar todos os outros ficheiros» ativo (a engrenagem abre as definições de sincronização).',
+        'tooltip.fastLoad': 'Carregamento rápido (este mapa)',
+        'conflict.banner': 'Este mapa é uma cópia de conflito (Sync).',
+        'conflict.exists': 'Existe uma cópia de conflito deste mapa.',
+        'conflict.identical': 'Cópia de conflito — conteúdo idêntico, seguro apagar.',
+        'conflict.older': 'Cópia de conflito — mais antiga que o mapa atual.',
+        'conflict.newer': 'Cópia de conflito — mais recente que o mapa atual! Compare primeiro.',
+        'conflict.compare': 'Comparar',
+        'conflict.rename': 'Manter',
+        'conflict.delete': 'Eliminar',
+        'notice.fastLoadTwinExists': 'Já existe uma segunda versão deste mapa no outro formato. Resolva-a primeiro na comparação.',
+        'settings.authorSection': 'Autor',
+        'settings.authorName': 'Nome do autor',
+        'settings.authorNameDesc': 'Gravado no mapa como «author» na criação e «editor» em cada edição. Vazio → id de dispositivo anónimo.',
+        'settings.authorNamePlaceholder': 'ex. Alex',
         'settings.perfSection': 'Desempenho',
         'settings.undoSteps': 'Passos de desfazer',
         'settings.undoStepsDesc': 'Quantos passos podem ser desfeitos. Cada passo guarda o mapa inteiro — um valor demasiado alto usa muita memória (predefinição 50, máx. 200).',
@@ -2540,6 +2663,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': '이미지 내보내기의 기본 너비(픽셀).',
         'settings.fastLoad': '빠른 로딩',
         'settings.fastLoadDesc': '지도를 더 빠르게 불러옵니다. 주의: 이 지도는 2.0 이전의 Hex Cartographer 버전에서는 열리지 않습니다. Obsidian Sync는 ‘기타 모든 파일 동기화’가 켜져 있을 때만 동기화합니다(톱니바퀴로 동기화 설정 열기).',
+        'tooltip.fastLoad': '빠른 로딩(이 지도)',
+        'conflict.banner': '이 지도는 충돌 사본(Sync)입니다.',
+        'conflict.exists': '이 지도의 충돌 사본이 있습니다.',
+        'conflict.identical': '충돌 사본 — 내용이 동일하여 안전하게 삭제 가능.',
+        'conflict.older': '충돌 사본 — 현재 지도보다 오래됨.',
+        'conflict.newer': '충돌 사본 — 현재 지도보다 최신! 먼저 비교하세요.',
+        'conflict.compare': '비교',
+        'conflict.rename': '유지',
+        'conflict.delete': '삭제',
+        'notice.fastLoadTwinExists': '이 지도의 다른 형식 두 번째 버전이 이미 있습니다. 먼저 비교에서 해결하세요.',
+        'settings.authorSection': '작성자',
+        'settings.authorName': '작성자 이름',
+        'settings.authorNameDesc': '생성 시 "author", 편집 시마다 "editor"로 지도에 기록됩니다. 비워 두면 → 익명 기기 ID.',
+        'settings.authorNamePlaceholder': '예: Alex',
         'settings.perfSection': '성능',
         'settings.undoSteps': '실행 취소 단계',
         'settings.undoStepsDesc': '되돌릴 수 있는 단계 수. 각 단계는 지도 전체를 저장하므로 값이 너무 크면 메모리를 많이 사용합니다(기본 50, 최대 200).',
@@ -2848,6 +2985,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Ancho predeterminado para exportación de imagen en píxeles.',
         'settings.fastLoad': 'Carga rápida',
         'settings.fastLoadDesc': 'Carga los mapas más rápido. Atención: estos mapas no se abren en versiones de Hex Cartographer anteriores a 2.0. Obsidian Sync solo los sincroniza con «Sincronizar todos los demás archivos» activado (el engranaje abre los ajustes de sincronización).',
+        'tooltip.fastLoad': 'Carga rápida (este mapa)',
+        'conflict.banner': 'Este mapa es una copia de conflicto (Sync).',
+        'conflict.exists': 'Existe una copia de conflicto de este mapa.',
+        'conflict.identical': 'Copia de conflicto — contenido idéntico, seguro de borrar.',
+        'conflict.older': 'Copia de conflicto — más antigua que el mapa actual.',
+        'conflict.newer': 'Copia de conflicto — más reciente que el mapa actual. Compara primero.',
+        'conflict.compare': 'Comparar',
+        'conflict.rename': 'Conservar',
+        'conflict.delete': 'Eliminar',
+        'notice.fastLoadTwinExists': 'Ya existe una segunda versión de este mapa en el otro formato. Resuélvela primero en la comparación.',
+        'settings.authorSection': 'Autor',
+        'settings.authorName': 'Nombre del autor',
+        'settings.authorNameDesc': 'Se escribe en el mapa como «author» al crear y como «editor» en cada edición. Vacío → id de dispositivo anónimo.',
+        'settings.authorNamePlaceholder': 'p. ej. Alex',
         'settings.perfSection': 'Rendimiento',
         'settings.undoSteps': 'Pasos de deshacer',
         'settings.undoStepsDesc': 'Cuántos pasos se pueden deshacer. Cada paso guarda todo el mapa: un valor demasiado alto consume mucha memoria (predeterminado 50, máx. 200).',
@@ -3156,6 +3307,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Domyślna szerokość eksportu obrazu w pikselach.',
         'settings.fastLoad': 'Szybkie ładowanie',
         'settings.fastLoadDesc': 'Wczytuje mapy szybciej. Uwaga: tych map nie otworzysz w wersjach Hex Cartographer starszych niż 2.0. Obsidian Sync synchronizuje je tylko przy włączonym „Synchronizuj wszystkie inne pliki" (koło zębate otwiera ustawienia synchronizacji).',
+        'tooltip.fastLoad': 'Szybkie ładowanie (ta mapa)',
+        'conflict.banner': 'Ta mapa to kopia konfliktu (Sync).',
+        'conflict.exists': 'Istnieje kopia konfliktu tej mapy.',
+        'conflict.identical': 'Kopia konfliktu — identyczna treść, można bezpiecznie usunąć.',
+        'conflict.older': 'Kopia konfliktu — starsza niż bieżąca mapa.',
+        'conflict.newer': 'Kopia konfliktu — nowsza niż bieżąca mapa! Najpierw porównaj.',
+        'conflict.compare': 'Porównaj',
+        'conflict.rename': 'Zachowaj',
+        'conflict.delete': 'Usuń',
+        'notice.fastLoadTwinExists': 'Druga wersja tej mapy już istnieje w innym formacie. Najpierw rozwiąż to w porównaniu.',
+        'settings.authorSection': 'Autor',
+        'settings.authorName': 'Imię autora',
+        'settings.authorNameDesc': 'Zapisywane w mapie jako „author" przy tworzeniu i „editor" przy każdej zmianie. Puste → anonimowy identyfikator urządzenia.',
+        'settings.authorNamePlaceholder': 'np. Alex',
         'settings.perfSection': 'Wydajność',
         'settings.undoSteps': 'Kroki cofania',
         'settings.undoStepsDesc': 'Ile kroków można cofnąć. Każdy krok zapisuje całą mapę — zbyt duża wartość zużywa dużo pamięci (domyślnie 50, maks. 200).',
@@ -3464,6 +3629,20 @@ const TRANSLATIONS = {
         'settings.exportWidth': 'Larghezza predefinita per l\'esportazione di immagini in pixel.',
         'settings.fastLoad': 'Caricamento rapido',
         'settings.fastLoadDesc': 'Carica le mappe più velocemente. Attenzione: queste mappe non si aprono in versioni di Hex Cartographer precedenti alla 2.0. Obsidian Sync le sincronizza solo con «Sincronizza tutti gli altri file» attivo (l’ingranaggio apre le impostazioni di sincronizzazione).',
+        'tooltip.fastLoad': 'Caricamento rapido (questa mappa)',
+        'conflict.banner': 'Questa mappa è una copia di conflitto (Sync).',
+        'conflict.exists': 'Esiste una copia di conflitto di questa mappa.',
+        'conflict.identical': 'Copia di conflitto — contenuto identico, eliminazione sicura.',
+        'conflict.older': 'Copia di conflitto — più vecchia della mappa attuale.',
+        'conflict.newer': 'Copia di conflitto — più recente della mappa attuale! Confronta prima.',
+        'conflict.compare': 'Confronta',
+        'conflict.rename': 'Mantieni',
+        'conflict.delete': 'Elimina',
+        'notice.fastLoadTwinExists': 'Esiste già una seconda versione di questa mappa nell’altro formato. Risolvila prima nel confronto.',
+        'settings.authorSection': 'Autore',
+        'settings.authorName': 'Nome autore',
+        'settings.authorNameDesc': 'Scritto nella mappa come «author» alla creazione e «editor» a ogni modifica. Vuoto → id dispositivo anonimo.',
+        'settings.authorNamePlaceholder': 'es. Alex',
         'settings.perfSection': 'Prestazioni',
         'settings.undoSteps': 'Passi di annullamento',
         'settings.undoStepsDesc': 'Quanti passi si possono annullare. Ogni passo salva l’intera mappa — un valore troppo alto usa molta memoria (predefinito 50, max 200).',
@@ -4064,8 +4243,9 @@ const HEX_EXT_FAST = '.hexcartographer';
 
 const DEFAULT_SETTINGS = {
     userAssetPreview: false,
-    fastLoad: false, // save/rename maps as .hexcartographer (no Markdown flash)
     undoSteps: MAX_HISTORY, // undo depth; each step is a full map snapshot (RAM cost)
+    authorName: '', // written into a map's author/editor; empty -> anonymous device id
+    fastLoadWarningSeen: false, // one-time Sync caveat shown when first enabling fast loading
     userTexturePath: '',
     userExtrasPath: '',
     userVegetationPath: '',
@@ -4259,10 +4439,10 @@ class HexCartographerPlugin extends Plugin {
 
         this.registerEvent(this.app.vault.on('rename', async (file, oldPath) => {
             // Keep maps a hex file if the user renames them away from either extension.
-            // Renames BETWEEN the two hex extensions (our own ensureHexExtension) end on
-            // a hex path, so they fall through to the explorer refresh — no fight.
+            // Preserve the map's own format (fast vs full) rather than forcing a default.
             if (this.isHexMapPath(oldPath) && !this.isHexMapPath(file.path)) {
-                const newName = file.name.replace(/\.md$/, '') + this.targetHexExt();
+                const keepExt = oldPath.endsWith(HEX_EXT_FAST) ? HEX_EXT_FAST : HEX_EXT_FULL;
+                const newName = file.name.replace(/\.md$/, '') + keepExt;
                 const newPath = file.parent ? `${file.parent.path}/${newName}` : newName;
                 await this.app.fileManager.renameFile(file, newPath);
             } else if (this.isHexMapPath(file.path)) {
@@ -4333,6 +4513,13 @@ class HexCartographerPlugin extends Plugin {
                     const twin = this.findConflictTwin(deletedPath);
                     if (twin) {
                         leaf.setViewState({ type: 'hex-cartographer', state: { file: twin.path } });
+                        return;
+                    }
+                    // Renamed to its fast<->full twin (a fast-loading toggle on another device):
+                    // same map, different extension -> follow it instead of closing the tab.
+                    const extTwin = this.hexTwinPath(deletedPath);
+                    if (extTwin && this.app.vault.getAbstractFileByPath(extTwin)) {
+                        leaf.setViewState({ type: 'hex-cartographer', state: { file: extTwin } });
                         return;
                     }
                     leaf.detach(); // genuinely deleted -> close as before
@@ -4462,12 +4649,16 @@ class HexCartographerPlugin extends Plugin {
         const filePath = this.uniqueNewMapPath(folderPath);
         const fileName = filePath.split('/').pop();
 
+        const creator = (this.settings.authorName || '').trim() || getDeviceId();
         const initialData = {
             hexes: {},
             rivers: [],
             roads: [],
             texts: [],
             borders: [],
+            author: creator, // creator, never changed later
+            editor: creator, // whoever last edited (starts as the creator)
+            lastModified: Date.now(),
             gridSize: 30,
             zoom: 1,
             offX: 400,
@@ -4552,12 +4743,12 @@ class HexCartographerPlugin extends Plugin {
         return typeof path === 'string' && (path.endsWith(HEX_EXT_FULL) || path.endsWith(HEX_EXT_FAST));
     }
 
-    // The extension new/renamed maps should use for the current fast-load setting.
+    // Default extension for newly created maps. Fast loading is now a per-file choice
+    // (toolbar toggle), so new maps start as the sync-safe, diff-friendly `.md` variant.
     targetHexExt() {
-        return this.settings.fastLoad ? HEX_EXT_FAST : HEX_EXT_FULL;
+        return HEX_EXT_FULL;
     }
 
-    // The path this map should have for the current fast-load setting.
     // Path without the hex extension — the identity both variants of a map share.
     hexMapBase(path) {
         if (!this.isHexMapPath(path)) return null;
@@ -4565,15 +4756,55 @@ class HexCartographerPlugin extends Plugin {
                                            : path.slice(0, -HEX_EXT_FAST.length);
     }
 
-    desiredHexPath(path) {
+    // The same map under the OTHER hex extension (fast <-> full), or null if not a hex map.
+    // Used to follow a map that was renamed by a fast-loading toggle on another device.
+    hexTwinPath(path) {
         const base = this.hexMapBase(path);
-        return base === null ? path : base + this.targetHexExt();
+        if (base === null) return null;
+        return path.endsWith(HEX_EXT_FULL) ? base + HEX_EXT_FAST : base + HEX_EXT_FULL;
+    }
+
+    // The original map a conflict copy belongs to, or null if `path` is not a conflict copy.
+    // Obsidian inserts " [conflicted N]" BEFORE the final extension, giving two shapes:
+    //   fast:  "<base> [conflicted 3].hexcartographer"      -> "<base>.hexcartographer"
+    //   full:  "<base>.hexcartographer [conflicted 3].md"   -> "<base>.hexcartographer.md"
+    // (Note: the full shape doesn't end in .hexcartographer.md, so isHexMapPath misses it —
+    // this is exactly why such copies otherwise slip through.)
+    conflictOriginalPath(path) {
+        if (typeof path !== 'string') return null;
+        let m = /^(.*) \[conflicted[^\]]*\]\.hexcartographer$/i.exec(path);
+        if (m) return m[1] + '.hexcartographer';
+        m = /^(.*\.hexcartographer) \[conflicted[^\]]*\]\.md$/i.exec(path);
+        if (m) return m[1] + '.md';
+        return null;
+    }
+
+    isConflictedHexPath(path) {
+        return this.conflictOriginalPath(path) !== null;
+    }
+
+    // All conflict copies in the vault that belong to `originalPath` (so an open ORIGINAL can
+    // point the user to its conflict copy, which they may otherwise never notice).
+    findConflictCopies(originalPath) {
+        return this.app.vault.getFiles().filter(f => this.conflictOriginalPath(f.path) === originalPath);
+    }
+
+    // A clean, collision-free path to KEEP a conflict copy as its own map: the original's
+    // base name (marker stripped) + a timestamp, keeping the copy's own extension.
+    conflictKeepPath(file) {
+        const orig = this.conflictOriginalPath(file.path) || file.path;
+        const ext = orig.endsWith(HEX_EXT_FULL) ? HEX_EXT_FULL : HEX_EXT_FAST;
+        const base = orig.slice(0, orig.length - ext.length);
+        const stamp = this.hexStamp(new Date(file.stat && file.stat.mtime ? file.stat.mtime : Date.now()));
+        let candidate = `${base}_${stamp}${ext}`;
+        for (let i = 2; this.app.vault.getAbstractFileByPath(candidate); i++) candidate = `${base}_${stamp}-${i}${ext}`;
+        return candidate;
     }
 
     // Maps present under BOTH extensions. Sync treats those as two unrelated files and
-    // never merges them, and ensureHexExtension refuses to rename onto an existing
-    // file — so such a pair stays until the user resolves it. Both entries also look
-    // identical in the explorer, hence the warnings built on top of this.
+    // never merges them, and the toolbar toggle refuses to rename onto an existing file —
+    // so such a pair stays until the user resolves it. Both entries also look identical
+    // in the explorer, hence the warnings built on top of this.
     findDuplicateHexMaps() {
         const byBase = new Map();
         for (const f of this.app.vault.getFiles()) {
@@ -4634,9 +4865,6 @@ class HexCartographerPlugin extends Plugin {
         return join(name) + this.targetHexExt();
     }
 
-    // Renames a map to match the fast-load setting (.hexcartographer vs
-    // .hexcartographer.md). Lazy — called when a map opens or the setting changes, so
-    // no bulk migration is needed (the reader loads both). renameFile keeps [[links]].
     // Hides a Markdown leaf's content the moment we detect a map file, so the raw
     // JSON code is not shown during the brief swap to the map view (the "flash").
     // Only relevant for `.hexcartographer.md`; `.hexcartographer` opens directly.
@@ -4655,7 +4883,9 @@ class HexCartographerPlugin extends Plugin {
     async swapMarkdownToHex(leaf) {
         if (!leaf || !leaf.view || leaf.view.getViewType() !== 'markdown') return;
         const file = leaf.view.file;
-        if (!file || !file.path.endsWith('.hexcartographer.md')) return;
+        // Normal full maps AND `.md` conflict copies (…hexcartographer [conflicted N].md) —
+        // both are Markdown leaves holding a map; open them in the hex view, not as raw JSON.
+        if (!file || !(file.path.endsWith('.hexcartographer.md') || this.isConflictedHexPath(file.path))) return;
         if (!this._swappingLeaves) this._swappingLeaves = new Set();
         if (this._swappingLeaves.has(leaf)) return;
         this._swappingLeaves.add(leaf);
@@ -4700,18 +4930,6 @@ class HexCartographerPlugin extends Plugin {
         }
     }
 
-    async ensureHexExtension(file) {
-        if (!file || !this.isHexMapPath(file.path)) return;
-        const desired = this.desiredHexPath(file.path);
-        if (desired === file.path) return;
-        if (this.app.vault.getAbstractFileByPath(desired)) return; // target exists -> leave as is
-        try {
-            await this.app.fileManager.renameFile(file, desired);
-        } catch (e) {
-            console.error('Hex-Cartographer: could not switch extension to', desired, e);
-        }
-    }
-
     // Obsidian Sync writes the losing side of a conflict as "<base> [conflicted]<ext>" in
     // the same folder. Finds such a twin for a just-deleted map so its tab can follow the
     // surviving copy instead of closing. Most recently modified twin wins.
@@ -4722,7 +4940,9 @@ class HexCartographerPlugin extends Plugin {
         const ext = name.endsWith(HEX_EXT_FULL) ? HEX_EXT_FULL : (name.endsWith(HEX_EXT_FAST) ? HEX_EXT_FAST : '');
         const base = ext ? name.slice(0, name.length - ext.length) : name;
         const twins = this.app.vault.getFiles().filter(f => {
-            if (!this.isHexMapPath(f.path)) return false;
+            // A conflict copy of a full (.md) map ends in "[conflicted N].md" (not
+            // .hexcartographer.md), so accept both real hex paths and conflict copies.
+            if (!this.isHexMapPath(f.path) && !this.isConflictedHexPath(f.path)) return false;
             const fdir = f.parent ? f.parent.path : '';
             return fdir === dir && f.name.startsWith(base) && /\[conflicted/i.test(f.name);
         });
@@ -4758,6 +4978,7 @@ class HexCartographerPlugin extends Plugin {
             view.file = file;
             view._dataPath = file.path;
             view._lastSavedContent = null;
+            view._lastSavedBody = null;
             view._lastSavedPath = null;
             await view.saveData();
             view._dirty = false;
@@ -5551,15 +5772,13 @@ class HexCartographerView extends ItemView {
                     this.history = [];
                     this.redoStack = [];
                     this._lastSavedContent = null;
+                    this._lastSavedBody = null;
                     this._lastSavedPath = null;
                     // Data still belongs to the old map until reloadFile() replaces it.
                     this._dataPath = null;
                 }
                 this.file = file;
                 await this.reloadFile();
-                // Lazy migration: rename this map to match the fast-load setting once it
-                // is open. No bulk migration needed — the reader handles both extensions.
-                this.plugin.ensureHexExtension(this.file);
 
                 // Persist the tab's new file. Replacing one hex map with another keeps the
                 // view type, so Obsidian reuses this view and does NOT flag the layout as
@@ -5587,11 +5806,19 @@ class HexCartographerView extends ItemView {
         const tick = () => {
             if (this._pendingLoadPath !== path) return;                 // superseded
             if (this.file && this.file.path === path) { this._pendingLoadPath = null; return; }
-            const f = this.app.vault.getAbstractFileByPath(path);
+            let f = this.app.vault.getAbstractFileByPath(path);
+            if (!(f instanceof TFile)) {
+                // The map may have been renamed to its fast<->full twin on another device (a
+                // fast-loading toggle). Same content, just a different extension -> follow it
+                // instead of leaving the tab blank.
+                const twin = this.plugin.hexTwinPath(path);
+                if (twin) { const tf = this.app.vault.getAbstractFileByPath(twin); if (tf instanceof TFile) f = tf; }
+            }
             if (f instanceof TFile) {
                 this._pendingLoadPath = null;
                 this.file = f;
                 this._lastSavedContent = null;
+                this._lastSavedBody = null;
                 this._lastSavedPath = null;
                 this._dataPath = null;
                 this.reloadFile();
@@ -5913,7 +6140,9 @@ class HexCartographerView extends ItemView {
             this._dataPath = this.file.path;
             this._dirty = false; // a freshly loaded map has no unsaved changes
 
-            if (JSON.stringify(this.data) !== JSON.stringify(newData)) {
+            // Compare without the viewport keys: those are device-local now, so a differing
+            // pan/zoom must NOT count as a content change (it would force needless reloads).
+            if (JSON.stringify(stripViewportKeys(this.data)) !== JSON.stringify(stripViewportKeys(newData))) {
                 this.data = Object.assign({}, newData);
 
                 // Anchor texts to their hex (older maps carry only x/y), then place
@@ -5944,6 +6173,10 @@ class HexCartographerView extends ItemView {
                     }
                 }
             }
+
+            // Baseline for the no-op-save skip: the body exactly as just loaded from disk, so an
+            // immediate save with no real change writes nothing and bumps no timestamp.
+            this._lastSavedBody = this.serializedBody();
 
             // Load the projection reference image (if this map has one) from its vault path.
             this.loadProjectionImage();
@@ -6233,6 +6466,11 @@ class HexCartographerView extends ItemView {
         this.assetWarningBar.style.cssText = 'display: none; background: var(--text-error); color: #fff; padding: 4px 10px; font-size: 13px; font-weight: 500; line-height: 1.4; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);';
         this._assetWarnSig = null; // fresh bar -> force a re-evaluation on next render
 
+        // Shown when the open map is an Obsidian Sync conflict copy: a resolve bar with
+        // compare/rename/delete and a timestamp-based recommendation (see updateConflictBar).
+        this.conflictBar = createDiv({ cls: 'hex-conflict-bar' });
+        this.conflictBar.style.cssText = 'display: none; background: var(--interactive-accent); color: var(--text-on-accent); padding: 5px 10px; font-size: 13px; font-weight: 500; line-height: 1.4; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);';
+
         const canvasContainer = container.createDiv();
         canvasContainer.style.position = 'relative';
         canvasContainer.style.flexGrow = '1';
@@ -6257,6 +6495,7 @@ class HexCartographerView extends ItemView {
         const topOverlay = canvasContainer.createDiv({ cls: 'hex-map-top-overlay' });
         topOverlay.appendChild(this.toolbarOptionsEl);
         topOverlay.appendChild(this.assetWarningBar);
+        topOverlay.appendChild(this.conflictBar);
 
         this.resizeObserver = new ResizeObserver(() => this.resizeCanvas());
         this.resizeObserver.observe(canvasContainer);
@@ -6441,6 +6680,13 @@ class HexCartographerView extends ItemView {
             this.requestSave();
         };
 
+        // Fast loading is a PER-FILE choice: the toggle reflects/sets the open map's format
+        // (.hexcartographer = fast, no Markdown flash; .hexcartographer.md = full, diff-synced).
+        const fastLoadBtn = this.createToolButton(toolbar, { icon: 'zap', title: t('tooltip.fastLoad') });
+        this.fastLoadBtn = fastLoadBtn;
+        fastLoadBtn.onclick = () => this.toggleFastLoad();
+        this.updateFastLoadButton();
+
         const settingsBtn = this.createToolButton(toolbar, { icon: 'settings', title: t('tooltip.settings') });
         settingsBtn.onclick = () => {
             this.app.setting.open();
@@ -6448,6 +6694,148 @@ class HexCartographerView extends ItemView {
         };
 
         this.updateToolbarState(toolbar);
+    }
+
+    // Reflects whether the open map uses fast loading (blue when active).
+    updateFastLoadButton() {
+        const btn = this.fastLoadBtn;
+        if (!btn) return;
+        const isFast = !!(this.file && this.file.path.endsWith(HEX_EXT_FAST));
+        btn.style.background = isFast ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
+        btn.style.color = isFast ? 'var(--text-on-accent)' : '';
+        btn.setAttribute('title', t('tooltip.fastLoad'));
+    }
+
+    // Switch the open map between full (.md) and fast (.hexcartographer) by renaming it. The
+    // first time fast loading is ever enabled, a one-time Sync caveat is shown first.
+    toggleFastLoad() {
+        if (!this.file || !this.plugin.isHexMapPath(this.file.path)) return;
+        const isFast = this.file.path.endsWith(HEX_EXT_FAST);
+        const twin = this.plugin.hexTwinPath(this.file.path);
+        if (!twin) return;
+        if (!isFast && !this.plugin.settings.fastLoadWarningSeen) {
+            new FastLoadWarningModal(this.app, this.plugin, () => this.applyFastLoadRename(twin)).open();
+            return;
+        }
+        this.applyFastLoadRename(twin);
+    }
+
+    async applyFastLoadRename(twin) {
+        // Renaming onto an existing twin would create a duplicate -> surface it instead.
+        if (this.app.vault.getAbstractFileByPath(twin)) {
+            new Notice(t('notice.fastLoadTwinExists'));
+            new DuplicateMapsModal(this.app, this.plugin).open();
+            return;
+        }
+        try {
+            await this.app.fileManager.renameFile(this.file, twin);
+            // Rewrite the content in the new format's style (compact <-> indented). Data still
+            // belongs to this file, so point the save guard at the new path and force a write.
+            this._dataPath = this.file.path;
+            this._lastSavedContent = null;
+            this._lastSavedBody = null;
+            this.requestSave();
+            this.updateFastLoadButton();
+        } catch (e) {
+            console.error('Hex-Cartographer: could not toggle fast loading', e);
+        }
+    }
+
+    // Resolve bar for an open Obsidian Sync conflict copy. Hidden otherwise. Recommends an
+    // action from the embedded lastModified + an order-independent identical-content check:
+    // identical -> one-click delete; older -> delete (with confirm); newer -> compare first.
+    async updateConflictBar() {
+        const bar = this.conflictBar;
+        if (!bar) return;
+        const file = this.file;
+        if (!file) { bar.style.display = 'none'; bar.empty(); return; }
+
+        // Mode B: an open ORIGINAL map that HAS conflict copies. The user usually opens the
+        // original (Obsidian reopens the last map), so without this they'd never notice the
+        // copy sitting in the explorer. Offer compare + delete (with "open it first", since the
+        // copy is NOT open here) — one copy at a time; the next shows once this one is resolved.
+        if (!this.plugin.isConflictedHexPath(file.path)) {
+            const copies = this.plugin.findConflictCopies(file.path);
+            if (copies.length === 0) { bar.style.display = 'none'; bar.empty(); return; }
+            const copy = copies[0];
+            bar.empty();
+            bar.style.display = 'block';
+            const row = bar.createDiv({ attr: { style: 'display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;' } });
+            row.createSpan({ text: t('conflict.exists') });
+            const cmp = row.createEl('button', { text: t('conflict.compare') });
+            cmp.onclick = () => new InspectDuplicateModal(this.app, this.plugin, { fast: copy, full: file }, copy).open();
+            const del = row.createEl('button', { text: t('conflict.delete'), cls: 'mod-warning' });
+            del.onclick = () => {
+                // The copy is NOT open here -> keep "open it first" so the user can inspect it.
+                new ConfirmDeleteDuplicateModal(this.app, copy.name, async (choice) => {
+                    if (choice === 'delete') {
+                        try { await this.app.fileManager.trashFile(copy); } catch (e) { console.error('Hex-Cartographer: could not delete conflict copy', e); }
+                        this.updateConflictBar();
+                    } else if (choice === 'open' && this.leaf) {
+                        await this.leaf.setViewState({ type: 'hex-cartographer', state: { file: copy.path } });
+                    }
+                }).open();
+            };
+            return;
+        }
+
+        // Mode A: the open file IS a conflict copy -> resolve it.
+        const originalPath = this.plugin.conflictOriginalPath(file.path);
+        const original = originalPath ? this.app.vault.getAbstractFileByPath(originalPath) : null;
+
+        // Read both versions to decide the recommendation (only when an original exists).
+        let rec = 'neutral'; // 'identical' | 'older' | 'newer' | 'neutral'
+        if (original instanceof TFile) {
+            try {
+                const [cText, oText] = await Promise.all([this.app.vault.read(file), this.app.vault.read(original)]);
+                if (this.file !== file) return; // superseded during await
+                const lm = (txt) => { try { const m = txt.match(/```json\s*([\s\S]*?)\s*```/); const d = JSON.parse(m ? m[1] : txt); return Number.isFinite(d.lastModified) ? d.lastModified : null; } catch (e) { return null; } };
+                let same = false;
+                try { same = mapContentSignature(cText) === mapContentSignature(oText); } catch (e) { same = false; }
+                if (same) rec = 'identical';
+                else {
+                    const c = lm(cText), o = lm(oText);
+                    if (c != null && o != null && c !== o) rec = c > o ? 'newer' : 'older';
+                }
+            } catch (e) { /* keep neutral */ }
+        }
+        if (this.file !== file) return;
+
+        bar.empty();
+        bar.style.display = 'block';
+        const row = bar.createDiv({ attr: { style: 'display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;' } });
+        const msgKey = rec === 'identical' ? 'conflict.identical' : rec === 'older' ? 'conflict.older' : rec === 'newer' ? 'conflict.newer' : 'conflict.banner';
+        row.createSpan({ text: t(msgKey) });
+
+        if (original instanceof TFile) {
+            const cmp = row.createEl('button', { text: t('conflict.compare') });
+            cmp.onclick = () => new InspectDuplicateModal(this.app, this.plugin, { fast: file, full: original }, file).open();
+        }
+        const keep = row.createEl('button', { text: t('conflict.rename') });
+        keep.onclick = async () => {
+            try { await this.app.fileManager.renameFile(file, this.plugin.conflictKeepPath(file)); } catch (e) { console.error('Hex-Cartographer: could not rename conflict copy', e); }
+        };
+        const del = row.createEl('button', { text: t('conflict.delete'), cls: 'mod-warning' });
+        del.onclick = () => {
+            if (rec === 'identical') { this.resolveConflictDelete(file, original); return; } // safe: identical content
+            // The conflict copy is already open here -> no "open it first" option.
+            new ConfirmDeleteDuplicateModal(this.app, file.name, async (choice) => {
+                if (choice === 'delete') await this.resolveConflictDelete(file, original);
+            }, { hideOpen: true }).open();
+        };
+    }
+
+    // Move the tab to the original (if any) first, so deleting the open conflict copy does not
+    // leave a blank/closing tab; then trash the copy (recoverable, never a hard delete).
+    async resolveConflictDelete(conflicted, original) {
+        try {
+            if (original instanceof TFile && this.leaf) {
+                await this.leaf.setViewState({ type: 'hex-cartographer', state: { file: original.path } });
+            }
+            await this.app.fileManager.trashFile(conflicted);
+        } catch (e) {
+            console.error('Hex-Cartographer: could not delete conflict copy', e);
+        }
     }
 
     createDrawModeButton(toolbar, mode, icon, title) {
@@ -7656,6 +8044,8 @@ class HexCartographerView extends ItemView {
         }
         this.syncHexOrientationButton();
         this.updateHexColorButtonIcon(this.hexColorBtn);
+        this.updateFastLoadButton();
+        this.updateConflictBar();
         if (this.editContent) this.editContent.style.display = this.editMode ? 'contents' : 'none';
 
         if (this.borderVisBtn) {
@@ -12003,6 +12393,16 @@ class HexCartographerView extends ItemView {
         if (dashCount > 1) { this.ctx.setLineDash([]); this.ctx.lineDashOffset = 0; }
     }
 
+    // The saved payload WITHOUT the fields that must not, on their own, count as a content
+    // change: the device-local viewport and the lastModified/author/editor metadata. Used to
+    // decide whether a save is a real change (and thus whether to re-stamp and write).
+    serializedBody() {
+        if (!this.file) return '';
+        const compact = this.file.path.endsWith(HEX_EXT_FAST);
+        const { lastModified, author, editor, ...rest } = stripViewportKeys(this.data);
+        return compact ? JSON.stringify(rest) : JSON.stringify(rest, null, 2);
+    }
+
     async saveData() {
         // Refuse to write data that belongs to a different map. A debounced save can
         // fire after the user switched files, and in fast-load mode the view (and its
@@ -12028,9 +12428,6 @@ class HexCartographerView extends ItemView {
                     const cy = (this.canvas.height / 2 - this.data.offY) / this.data.zoom;
                     this.writeViewport(cx, cy, this.data.zoom);
                 }
-
-                // Which device wrote this version last (device-local id, never synced).
-                this.data.lastWrittenBy = getDeviceId();
 
                 this.data.settings = {
                     colorPalette: this.colorPalette,
@@ -12071,21 +12468,33 @@ class HexCartographerView extends ItemView {
                 // is synced by Obsidian as a whole blob -> minify to shrink it; the .md variant
                 // is text-diffed -> keep it indented (one field per line) so edits stay small.
                 const compact = this.file.path.endsWith(HEX_EXT_FAST);
-                const jsonData = compact ? JSON.stringify(this.data) : JSON.stringify(this.data, null, 2);
                 const title = this.file.basename.replace('.hexcartographer', '');
-                const content = `${frontmatter}# ${title}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
 
-                // Nothing changed since the last save -> skip the write entirely. Writing
-                // identical bytes still produces a file change that Obsidian Sync can turn
-                // into a conflict (e.g. closing a map you only looked at).
-                if (content === this._lastSavedContent && this.file.path === this._lastSavedPath) {
+                // Change detection compares the BODY only — the payload WITHOUT the device-local
+                // viewport and WITHOUT the lastModified/author/editor metadata. So a fresh stamp or
+                // a different editor alone never counts as a change: no write (no Sync churn) and
+                // no timestamp bump on a map that was only looked at / navigated.
+                const body = this.serializedBody();
+                if (body === this._lastSavedBody && this.file.path === this._lastSavedPath) {
                     this._dirty = false;
                     return;
                 }
 
-                // Remember what we write — so a delayed modify event of the
-                // own save does not trigger a reload (see reloadFile). The path is
-                // kept too: the view survives map switches in fast-load mode.
+                // Real content change -> stamp when, and who edited. lastModified lives IN the
+                // file, so "which version is newer" is reliable across devices (filesystem mtime
+                // is not). `author` (the creator) is set once and preserved; `editor` is whoever
+                // last edited. Empty author name -> the anonymous device id.
+                const me = (this.plugin.settings.authorName || '').trim() || getDeviceId();
+                if (!this.data.author) this.data.author = me;
+                this.data.editor = me;
+                this.data.lastModified = Date.now();
+                const toSave = stripViewportKeys(this.data); // viewport is device-local (localStorage)
+                const jsonData = compact ? JSON.stringify(toSave) : JSON.stringify(toSave, null, 2);
+                const content = `${frontmatter}# ${title}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
+
+                // Remember body + full content: the body skips no-op saves; the full content lets
+                // reloadFile ignore the delayed modify event of our own write.
+                this._lastSavedBody = body;
                 this._lastSavedContent = content;
                 this._lastSavedPath = this.file.path;
                 await this.app.vault.modify(this.file, content);
@@ -12131,29 +12540,48 @@ class HexCartographerView extends ItemView {
     // fits fresh to this screen — borrowing another class's viewport would bring back
     // the very desktop/mobile mismatch this feature fixes. Legacy maps (no per-device
     // store) fall back to the single top-level viewport, migrated as-is.
-    readViewport() {
-        const store = this.data.viewports;
-        if (store) {
-            const vp = store[this.deviceViewportClass()];
+    // localStorage key for this map's viewport on THIS device class. Path-scoped so each
+    // map keeps its own view; device-class-scoped so desktop/tablet/phone stay independent.
+    viewportKey() {
+        return 'hexcarto:viewport:' + (this.file ? this.file.path : '') + ':' + this.deviceViewportClass();
+    }
+
+    readLocalViewport() {
+        try {
+            const raw = window.localStorage.getItem(this.viewportKey());
+            if (!raw) return null;
+            const vp = JSON.parse(raw);
             return this.isValidViewport(vp) ? vp : null;
-        }
-        if (this.data.settings && this.data.settings.viewportSaved &&
+        } catch (e) { return null; }
+    }
+
+    readViewport() {
+        // Device-local store (never synced) wins.
+        const local = this.readLocalViewport();
+        if (this.isValidViewport(local)) return local;
+        // Migration/legacy: a viewport still stored IN the map file (older maps, or the first
+        // load on this device before it moved to localStorage). Adopt it once, then persist
+        // it locally so it survives the file dropping the viewport on the next save.
+        let vp = null;
+        const store = this.data.viewports;
+        if (store) vp = store[this.deviceViewportClass()];
+        if (!this.isValidViewport(vp) && this.data.settings && this.data.settings.viewportSaved &&
             Number.isFinite(this.data.centerWorldX) && Number.isFinite(this.data.centerWorldY) && this.data.zoom > 0) {
-            return { cx: this.data.centerWorldX, cy: this.data.centerWorldY, zoom: this.data.zoom };
+            vp = { cx: this.data.centerWorldX, cy: this.data.centerWorldY, zoom: this.data.zoom };
+        }
+        if (this.isValidViewport(vp)) {
+            this.writeViewport(vp.cx, vp.cy, vp.zoom);
+            return vp;
         }
         return null;
     }
 
-    // Store the current viewport under this device's class AND mirror it into the legacy
-    // top-level fields, so an older plugin version still restores a (last-device) view.
+    // Store the current viewport in localStorage only — never in the synced map file.
     writeViewport(cx, cy, zoom) {
         if (!Number.isFinite(cx) || !Number.isFinite(cy) || !(zoom > 0)) return;
-        if (!this.data.viewports) this.data.viewports = {};
-        this.data.viewports[this.deviceViewportClass()] = { cx, cy, zoom };
-        // Legacy mirror: keep the full triple coherent (older versions read all three).
-        this.data.centerWorldX = cx;
-        this.data.centerWorldY = cy;
-        this.data.zoom = zoom;
+        try {
+            window.localStorage.setItem(this.viewportKey(), JSON.stringify({ cx, cy, zoom }));
+        } catch (e) {}
     }
 
     // Places the canvas at this device's stored viewport. Needs canvas dimensions, so it
@@ -13222,6 +13650,14 @@ class InspectDuplicateModal extends Modal {
 
         const divider = wrap.createDiv();
         divider.style.cssText = 'position: absolute; top: 0; bottom: 0; width: 2px; background: var(--interactive-accent); pointer-events: none;';
+        // Grab handle ON the divider: a wide, invisible hit area with a small knob, so the line
+        // can be dragged directly over the images — no need to scroll down to the range input
+        // on a very tall map. pointer-events:auto re-enables events on this child of the (none) line.
+        const handle = divider.createDiv();
+        handle.style.cssText = 'position: absolute; top: 0; bottom: 0; left: -9px; width: 20px; cursor: ew-resize; pointer-events: auto;';
+        const knob = handle.createDiv();
+        knob.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 18px; height: 18px; border-radius: 50%; background: var(--interactive-accent); box-shadow: 0 0 0 2px #fff;';
+
         const badge = (text, side, color) => {
             const b = wrap.createDiv({ text });
             b.style.cssText = `position: absolute; top: 6px; ${side}: 6px; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #fff; background: ${color}; pointer-events: none;`;
@@ -13238,14 +13674,29 @@ class InspectDuplicateModal extends Modal {
         };
         setPos(50);
 
-        // Click opens the lightbox on the side that was clicked (left = old, right = new).
-        // stopPropagation keeps Obsidian's own image-zoom preview from also opening.
+        const pctFromX = (clientX) => {
+            const rect = wrap.getBoundingClientRect();
+            return rect.width ? Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)) : sliderVal;
+        };
+        // Drag the divider directly. `moved` tells the click handler below not to open the
+        // lightbox when the gesture was a drag (a plain click still opens it).
+        let dragging = false, moved = false;
+        const onMove = (e) => { if (!dragging) return; moved = true; const v = pctFromX(e.clientX); setPos(v); range.value = String(Math.round(v)); };
+        const endDrag = () => { dragging = false; document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', endDrag); };
+        handle.addEventListener('pointerdown', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            dragging = true; moved = false;
+            document.addEventListener('pointermove', onMove);
+            document.addEventListener('pointerup', endDrag);
+        });
+
+        // Click opens the lightbox on the side that was clicked (left = old, right = new) — but
+        // not right after a drag. stopPropagation keeps Obsidian's own image-zoom from opening.
         wrap.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const rect = wrap.getBoundingClientRect();
-            const pct = rect.width ? ((e.clientX - rect.left) / rect.width) * 100 : 50;
-            this.openLightbox(oldUrl, newUrl, pct <= sliderVal);
+            if (moved) { moved = false; return; }
+            this.openLightbox(oldUrl, newUrl, pctFromX(e.clientX) <= sliderVal);
         };
 
         const range = container.createEl('input', { type: 'range', attr: { min: '0', max: '100', value: '50' } });
@@ -13310,10 +13761,11 @@ class InspectDuplicateModal extends Modal {
 // it first (to inspect before deciding), or cancel. The choice is reported once via
 // the callback; Escape or backdrop counts as 'cancel'.
 class ConfirmDeleteDuplicateModal extends Modal {
-    constructor(app, fileName, onChoice) {
+    constructor(app, fileName, onChoice, options = {}) {
         super(app);
         this.fileName = fileName;
         this.onChoice = onChoice;
+        this.hideOpen = !!options.hideOpen; // suppress "open it first" when it is already open
     }
 
     onOpen() {
@@ -13326,8 +13778,10 @@ class ConfirmDeleteDuplicateModal extends Modal {
         row.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;';
         const del = row.createEl('button', { text: t('duplicate.confirmYes'), cls: 'mod-warning' });
         del.onclick = () => this.choose('delete');
-        const open = row.createEl('button', { text: t('duplicate.confirmOpen') });
-        open.onclick = () => this.choose('open');
+        if (!this.hideOpen) {
+            const open = row.createEl('button', { text: t('duplicate.confirmOpen') });
+            open.onclick = () => this.choose('open');
+        }
         const cancel = row.createEl('button', { text: t('duplicate.confirmCancel') });
         cancel.onclick = () => this.choose('cancel');
     }
@@ -13343,6 +13797,37 @@ class ConfirmDeleteDuplicateModal extends Modal {
     }
 }
 
+// One-time caveat shown the first time fast loading is enabled for any map: fast maps
+// (.hexcartographer) only sync with Obsidian's "Sync all other files" option on. A gear
+// button jumps to the Sync settings; OK proceeds with the switch.
+class FastLoadWarningModal extends Modal {
+    constructor(app, plugin, onConfirm) {
+        super(app);
+        this.plugin = plugin;
+        this.onConfirm = onConfirm;
+    }
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        this.titleEl.setText(t('settings.fastLoad'));
+        contentEl.createEl('p', { text: t('settings.fastLoadDesc') });
+        const row = contentEl.createDiv({ attr: { style: 'display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 16px;' } });
+        const gear = row.createEl('button', { attr: { title: t('settings.openSyncSettings') } });
+        setIcon(gear, 'settings');
+        gear.onclick = () => {
+            if (this.app.setting && this.app.setting.open) { this.app.setting.open(); this.app.setting.openTabById('sync'); }
+        };
+        const ok = row.createEl('button', { text: 'OK', cls: 'mod-cta' });
+        ok.onclick = async () => {
+            this.plugin.settings.fastLoadWarningSeen = true;
+            await this.plugin.saveSettings();
+            this.close();
+            if (this.onConfirm) this.onConfirm();
+        };
+    }
+    onClose() { this.contentEl.empty(); }
+}
+
 // Lists maps that exist under both extensions and offers two fixes for the outdated
 // variant: rename it (non-destructive, appends a timestamp) or delete it. Delete is
 // guarded by a confirmation with an "open it first" escape hatch, since the twin may
@@ -13356,6 +13841,28 @@ class DuplicateMapsModal extends Modal {
     onOpen() {
         this.titleEl.setText(t('duplicate.title'));
         this.render();
+    }
+
+    // Reads the map's embedded content timestamp (set only on real content changes).
+    async fileLastModified(file) {
+        try {
+            const content = await this.app.vault.read(file);
+            const m = content.match(/```json\s*([\s\S]*?)\s*```/);
+            const d = JSON.parse(m ? m[1] : content);
+            return Number.isFinite(d.lastModified) ? d.lastModified : null;
+        } catch (e) { return null; }
+    }
+
+    // Which of the two duplicate files is outdated. The embedded lastModified wins (consistent
+    // on every device); on a tie / missing stamp fall back to filesystem mtime, then — as a
+    // last resort — mark the fast variant outdated (the sync-safe `.md` is the safer keep).
+    async pickOutdated(pair) {
+        const [lmFast, lmFull] = await Promise.all([this.fileLastModified(pair.fast), this.fileLastModified(pair.full)]);
+        if (lmFast != null && lmFull != null && lmFast !== lmFull) {
+            return lmFast < lmFull ? pair.fast : pair.full;
+        }
+        const dt = pair.fast.stat.mtime - pair.full.stat.mtime;
+        return dt === 0 ? pair.fast : (dt < 0 ? pair.fast : pair.full);
     }
 
     async render() {
@@ -13381,13 +13888,10 @@ class DuplicateMapsModal extends Modal {
             name.setText(pair.base.split('/').pop());
             name.style.cssText = 'font-weight: 600; margin-bottom: 4px;';
 
-            // The outdated variant is the one edited longer ago — that is what the
-            // "Outdated" tag marks and what rename/delete act on. Equal timestamps fall
-            // back to the variant that does not match the current fast-load setting.
-            const dtMtime = pair.fast.stat.mtime - pair.full.stat.mtime;
-            const outdated = dtMtime === 0
-                ? (this.plugin.settings.fastLoad ? pair.full : pair.fast)
-                : (dtMtime < 0 ? pair.fast : pair.full);
+            // The outdated variant is the one written longer ago. Prefer the embedded
+            // lastModified (consistent across devices — filesystem mtime is not, as it changes
+            // when a device merely re-touches its own copy).
+            const outdated = await this.pickOutdated(pair);
             const when = (f) => new Date(f.stat.mtime).toLocaleString();
             for (const [label, f] of [[HEX_EXT_FAST, pair.fast], [HEX_EXT_FULL, pair.full]]) {
                 const row = box.createDiv();
@@ -13450,19 +13954,20 @@ class DuplicateMapsModal extends Modal {
 
     // Compares the map payload, not the raw file: frontmatter dates may differ
     // without the maps differing.
+    // Identical = same LOGICAL content, ignoring the volatile metadata (lastModified /
+    // author / editor) and device-local viewport — otherwise two identical maps would look
+    // "different" purely because of their timestamps/editor. Any error -> treat as different.
     async compare(pair) {
         try {
-            const [a, b] = await Promise.all([this.payload(pair.fast), this.payload(pair.full)]);
-            return a === b;
+            const [a, b] = await Promise.all([this.signature(pair.fast), this.signature(pair.full)]);
+            return a !== null && a === b;
         } catch (e) {
             return false;
         }
     }
 
-    async payload(file) {
-        const content = await this.app.vault.read(file);
-        const m = content.match(/```json\s*([\s\S]*?)\s*```/);
-        return (m ? m[1] : content).trim();
+    async signature(file) {
+        return mapContentSignature(await this.app.vault.read(file));
     }
 
     onClose() {
@@ -13555,50 +14060,9 @@ class HexCartographerSettingTab extends PluginSettingTab {
         };
 
         // ── Performance ───────────────────────────────────────────
-        // Collapsible group: fast loading + undo depth. Stays open when either differs
-        // from its default (the user turned something on / changed the value).
+        // Collapsible group: undo depth. Stays open when it differs from the default.
         const perfBody = makeSettingsSection('settings.perfSection',
-            this.plugin.settings.fastLoad !== DEFAULT_SETTINGS.fastLoad
-            || clampUndoSteps(this.plugin.settings.undoSteps) !== DEFAULT_SETTINGS.undoSteps);
-
-        // Fast loading: save maps as `.hexcartographer` (no Markdown flash). A gear
-        // button opens the Obsidian Sync settings so the user can enable syncing of
-        // these files. Open maps are migrated immediately; the rest lazily on open.
-        new Setting(perfBody)
-            .setName(t('settings.fastLoad'))
-            .setDesc(t('settings.fastLoadDesc'))
-            .addExtraButton(btn => {
-                btn.setIcon('settings')
-                    .setTooltip(t('settings.openSyncSettings'))
-                    .onClick(() => {
-                        if (this.app.setting && this.app.setting.open) {
-                            this.app.setting.open();
-                            this.app.setting.openTabById('sync');
-                        }
-                    });
-            })
-            .addToggle(toggle => {
-                toggle.setValue(this.plugin.settings.fastLoad)
-                    .onChange(async (value) => {
-                        this.plugin.settings.fastLoad = value;
-                        await this.plugin.saveSettings();
-                        // Migrate currently open maps right away; others lazily on open.
-                        const leaves = this.app.workspace.getLeavesOfType('hex-cartographer');
-                        for (const leaf of leaves) {
-                            if (!leaf.view || !leaf.view.file) continue;
-                            const before = leaf.view.file.path;
-                            await this.plugin.ensureHexExtension(leaf.view.file);
-                            // Extension changed -> rewrite the content in the new format's
-                            // style (compact vs indented). The data still belongs to this
-                            // file, so point the save guard at the new path and force a write.
-                            if (leaf.view.file.path !== before) {
-                                leaf.view._dataPath = leaf.view.file.path;
-                                leaf.view._lastSavedContent = null;
-                                leaf.view.requestSave();
-                            }
-                        }
-                    });
-            });
+            clampUndoSteps(this.plugin.settings.undoSteps) !== DEFAULT_SETTINGS.undoSteps);
 
         // Undo steps: how many undo snapshots to keep. Each snapshot is a full copy of the
         // whole map, so a large value can use a lot of memory (warned in the description).
@@ -13626,6 +14090,23 @@ class HexCartographerSettingTab extends PluginSettingTab {
         const undoResetBtn = undoSetting.controlEl.createEl('button', { cls: 'clickable-icon', attr: { title: t('settings.undoStepsReset') } });
         setIcon(undoResetBtn, 'rotate-ccw');
         undoResetBtn.addEventListener('click', () => applyUndoSteps(DEFAULT_SETTINGS.undoSteps));
+
+        // ── Author ────────────────────────────────────────────────
+        // The name written into a map as author (on creation) and editor (on every edit).
+        // Empty -> the anonymous per-device id is used instead. Groundwork for team features.
+        const authorBody = makeSettingsSection('settings.authorSection',
+            (this.plugin.settings.authorName || '') !== DEFAULT_SETTINGS.authorName);
+        new Setting(authorBody)
+            .setName(t('settings.authorName'))
+            .setDesc(t('settings.authorNameDesc'))
+            .addText(text => {
+                text.setPlaceholder(t('settings.authorNamePlaceholder'))
+                    .setValue(this.plugin.settings.authorName || '')
+                    .onChange(async (value) => {
+                        this.plugin.settings.authorName = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
 
         // ── Hex options ───────────────────────────────────────────
         // Collapsible group: frame colour/transparency and numbering.
