@@ -4157,14 +4157,16 @@ const CHANGELOG = [
         version: '2.0.0',
         title: '2.0 is here!',
         blocks: [
-            { p: `The most-requested feature has arrived: your own graphics – plus a brand-new projection tool for tracing. On top of that, lots of improvements and some important fixes. Here are the highlights since 1.1:` },
-            { h: `✨ Custom graphics – the big highlight` },
+            { p: `The most-requested feature has arrived: your own graphics – use your own artwork as hex textures and symbols. On top of that, a projection tool for tracing, a handy tool history, and a lot more. Here are the highlights since 1.1:` },
+            { h: `✨ Your own graphics – the big highlight` },
             { ul: [
-                `Bring in your own symbols and textures directly from folders in your vault – for vegetation, mountains, buildings, extras, and hex textures.`,
+                `Use your own symbols and hex textures straight from folders in your vault – for vegetation, mountains, buildings, extras, and hex backgrounds.`,
+                `Your graphics scale to fill the hex, and a new "clip to hex shape" option lets symbols either stay neatly inside the hex or overhang for a more organic look (textures always stay inside).`,
                 `Thumbnail previews right in the selection menu, instead of just names.`,
-                `Recolor SVG symbols (for SVGs saved as a "compound path").`,
-                `A graphic missing? No problem – the map keeps working, and a placeholder marks exactly where something's missing. These markers show only while editing – never in your exported images – and you can hide them completely with a toggle.`,
-                `A notice bar flags any missing graphics at a glance and names the affected categories – shown as a tidy overlay above the map.`,
+                `Recolor custom SVG symbols (for SVGs saved as a "compound path").`,
+                `Textures automatically get a matching base color (water → blues, mountains → grey/brown) – so hexes look great even before a texture loads, or when one is missing.`,
+                `Missing your graphics? No problem – the map keeps working, and a placeholder marks exactly where. These markers show only while editing – never in your exported images – and you can hide them with a toggle. A notice bar names any missing categories at a glance.`,
+                `If your graphics change on disk, the map updates them live.`,
             ] },
             { h: `🖼️ Projection – trace over a reference image` },
             { ul: [
@@ -4176,38 +4178,33 @@ const CHANGELOG = [
             { h: `🎨 Get started fast – and help keep Hex Cartographer free` },
             { p: `Hex Cartographer is free, and it'll stay that way. Keeping it running and adding new features takes a lot of time, though – so I've built something I'm genuinely proud of: my very first Hex Cartographer graphics pack.` },
             { p: `The art is ready to use, carefully prepared, and covers most of what you need for vibrant, colorful maps right out of the box – perfect if you just can't wait to dive in and start mapping with graphics. And if you love making your own, it's a great template and reference to build your own symbols and textures from.` },
-            { p: `Picking up the pack is a simple, rewarding way to support my work – and it directly helps keep the plugin free and the updates coming for everyone. Think of it as buying me a coffee – and getting a full art pack in return.` },
-            { h: `🧩 New symbols & tools` },
+            { p: `Picking up the pack is a simple, rewarding way to support my work – and it directly helps keep the plugin free and the updates coming for everyone. Think of it as buying me a coffee – and getting a full art pack in return. To buy me a coffee, click the button at the bottom of this window.` },
+            { h: `⚡ Tool history – your recent picks, one click away` },
+            { ul: [
+                `Every drawing tool now keeps your recently used settings – variant and colors, or color and texture – as a little row of quick-pick buttons under the toolbar. Re-apply a look with a single click, no menu needed. Remembered per map.`,
+            ] },
+            { h: `🧩 More tools & symbols` },
             { ul: [
                 `New symbols: cactus, deciduous forest, coniferous forest, volcano, crossed swords.`,
-                `Textures automatically get a matching base color (water → blues, mountains → grey/brown) – so hexes still look great even before a texture loads – or when one is missing entirely.`,
-                `Change a graphic on disk and the map updates live.`,
+                `Borders now have an adjustable width, and the fill tool handles even very large enclosed areas – the old size limit is gone.`,
+                `A dedicated options row for the river/road/border tools with clear labels (width, dashes) and +/– buttons – finger-friendly on tablet and phone, with a pop-up to type exact values on mobile.`,
                 `When a symbol's color is very light, it gets a subtly darker backdrop so it always stays visible.`,
-                `A new options row for the river/road/border tools with clear labels (width, dashes) and +/– buttons – finger-friendly on tablet and phone, too.`,
-                `Borders now have an adjustable width.`,
-                `The fill tool now handles even very large enclosed areas – the old size limit is gone.`,
             ] },
             { h: `📝 Text & handling` },
             { ul: [
-                `Undo and redo on touch – no buttons needed: two-finger tap to undo, three-finger tap to redo.`,
-                `Using Fast loading on some synced devices but not others can leave the same map stored twice. A new dialog compares the two versions – a before/after slider on desktop and tablet, a tap-to-switch view on phone – so you can confidently keep the right one, rename it, or delete the old one.`,
-                `Delete text with a click: turn on the Text tool + Eraser → click a text, gone.`,
-                `New texts start in black, and your last-used text settings are remembered.`,
-                `Three-dot menu: "Show in system explorer" and "Reveal file in navigation".`,
-                `Faster loading of large maps.`,
+                `Undo and redo on touch devices – no buttons needed: two-finger tap to undo, three-finger tap to redo.`,
+                `Delete text with a click: turn on the Text tool + Eraser → click a text, gone. New texts start in black, and your last-used text settings are remembered.`,
                 `Zoom & view are remembered per device (desktop, tablet, phone).`,
+                `Faster loading of large maps.`,
             ] },
             { h: `🛡️ Safer than ever` },
             { ul: [
-                `Your work is protected: saving has been hardened so a map can't be lost while you're drawing – even when Obsidian Sync moves files between devices mid-edit.`,
-                `Your last-opened map is restored after a restart.`,
-                `Back and forward navigation now works reliably across all map types.`,
+                `Your work is protected: saving has been hardened so a map can't be lost – or corrupted by Obsidian Sync merging files between devices while you're editing.`,
+                `In the rare event Sync creates a conflicting copy of a map, it's detected automatically – so you can compare both versions and confidently keep the right one.`,
             ] },
-            { h: `🔧 More polish` },
+            { h: `🔧 And more` },
             { ul: [
-                `New default border color: a subtle black at 10%.`,
-                `A new Performance settings section lets you set how many undo steps are kept and enable fast loading – handy on memory-limited devices.`,
-                `Plenty of smaller refinements across settings, previews, and mobile.`,
+                `Plus plenty of smaller improvements, optimizations, and bug fixes across the whole plugin.`,
             ] },
             { p: `Thanks to everyone for your feedback and requests – happy map-making! 🗺️` },
         ],
@@ -6423,6 +6420,7 @@ class HexCartographerView extends ItemView {
                 this.masterColor = this.hexToolColor();
                 if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
             }
+            this.recordToolSetting('hexcolor'); // activating the tool records its current setting
             this.updateToolbarState(toolbar);
             if (needsRender) this.render();
             this.requestSave();
@@ -6637,7 +6635,10 @@ class HexCartographerView extends ItemView {
             this.masterColor = config.symbolColor;
             if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
 
-            this.updateToolbarState(toolbar);
+            this.recordToolSetting(groupId); // activating the tool records its current setting
+            // Update the FULL toolbar, not just the cluster row this button lives in — otherwise
+            // buttons outside the cluster (e.g. the text tool) keep their old active state.
+            this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
 
             if (needsRender) {
                 this.render();
@@ -7784,6 +7785,12 @@ class HexCartographerView extends ItemView {
     }
 
     updateToolbarState(toolbar) {
+        // Always refresh the FULL toolbar. Several callers pass a sub-container (the tool cluster
+        // row, editContent, a path/border sub-toolbar); without this, buttons OUTSIDE that
+        // container keep a stale active state (e.g. the text tool staying lit after switching to a
+        // symbol tool). Fall back to the passed element only before the toolbar exists.
+        toolbar = (this.containerEl && this.containerEl.querySelector('.hex-toolbar')) || toolbar;
+        if (!toolbar) return;
         if (this.editModeBtn) {
             this.editModeBtn.classList.toggle('active', this.editMode);
             this.editModeBtn.style.background = this.editMode ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
@@ -7923,7 +7930,11 @@ class HexCartographerView extends ItemView {
         if (!this.toolHistory[group]) return;
         const entry = this.historyEntryFor(group);
         if (!entry) return;
-        this.toolHistory[group] = historyMruPush(this.toolHistory[group], entry, HISTORY_MAX_SLOTS);
+        const list = this.toolHistory[group];
+        // Already the front entry -> nothing changes. Makes this safe to call on every draw
+        // stroke (cheap no-op after the first).
+        if (list.length && historyEntrySame(list[0], entry)) return;
+        this.toolHistory[group] = historyMruPush(list, entry, HISTORY_MAX_SLOTS);
         this.renderToolHistory();
         this.requestSave();
     }
@@ -9371,6 +9382,11 @@ class HexCartographerView extends ItemView {
         if (!this.editMode || this.drawMode === 'none') {
             return;
         }
+
+        // Remember the active drawing tool's current setting the moment it's actually used —
+        // covers the default tool on a fresh map, where the user draws without picking anything.
+        // Idempotent (no-op if already the front history entry); erasing doesn't count.
+        if (isInitial && this.drawMode !== 'eraser') this.recordToolSetting(this.currentToolGroup);
 
         if (this.drawMode === 'eraser') {
             this.handleEraser(hex, world.x, world.y);
