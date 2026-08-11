@@ -119,20 +119,7 @@
     border-left: 2px solid var(--background-modifier-border);
 }
 
-/* A map that exists under both extensions. Both rows show the same name, so they are
-   indistinguishable without this hint. Colour only — no layout change, to stay
-   compatible with third-party themes. */
-.nav-file-title.hex-cartographer-duplicate .nav-file-title-content {
-    color: var(--text-error);
-}
-
-.nav-file-title.hex-cartographer-duplicate .nav-file-tag {
-    color: var(--text-error);
-    border: 1px solid var(--text-error);
-}
-
-/* File type tag in the file explorer.
-   `.hexcartographer` files get Obsidian's own `.nav-file-tag`; for
-   `.hexcartographer.md` (which Obsidian treats as Markdown) the plugin inserts the
-   very same element, so both look alike and inherit the active theme. No styling
-   of our own on purpose — overriding it here would break third-party themes. */
+/* File type tag in the file explorer. `.hexcg.md` files are Markdown to Obsidian (no
+   extension tag), so the plugin inserts the same `.nav-file-tag` element Obsidian uses
+   elsewhere, inheriting the active theme. No styling of our own on purpose — overriding
+   it here would break third-party themes. */
