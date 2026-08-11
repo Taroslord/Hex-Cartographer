@@ -385,6 +385,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': 'Keine Dateien gefunden',
         'modal.removeLink': 'Link entfernen',
         'modal.cancel': 'Abbrechen',
+        'modal.ok': 'OK',
 
         // Modal — Textformatierung
         'modal.formatText': 'Text formatieren',
@@ -713,6 +714,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': 'No files found',
         'modal.removeLink': 'Remove link',
         'modal.cancel': 'Cancel',
+        'modal.ok': 'OK',
 
         // Modal — Text formatting
         'modal.formatText': 'Format Text',
@@ -1023,6 +1025,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': '未找到文件',
         'modal.removeLink': '移除链接',
         'modal.cancel': '取消',
+        'modal.ok': '确定',
         'modal.formatText': '格式化文本',
         'modal.anchorSection': '锚点',
         'modal.displayText': '显示文本：',
@@ -1323,6 +1326,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': 'Файлы не найдены',
         'modal.removeLink': 'Удалить ссылку',
         'modal.cancel': 'Отмена',
+        'modal.ok': 'ОК',
         'modal.formatText': 'Форматирование текста',
         'modal.anchorSection': 'Точка привязки',
         'modal.displayText': 'Отображаемый текст:',
@@ -1623,6 +1627,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': 'ファイルが見つかりません',
         'modal.removeLink': 'リンクを削除',
         'modal.cancel': 'キャンセル',
+        'modal.ok': 'OK',
         'modal.formatText': 'テキストの書式設定',
         'modal.anchorSection': 'アンカーポイント',
         'modal.displayText': '表示テキスト：',
@@ -1923,6 +1928,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': 'Aucun fichier trouvé',
         'modal.removeLink': 'Supprimer le lien',
         'modal.cancel': 'Annuler',
+        'modal.ok': 'OK',
         'modal.formatText': 'Formater le texte',
         'modal.anchorSection': 'Point d\'ancrage',
         'modal.displayText': 'Texte affiché :',
@@ -2223,6 +2229,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': 'Nenhum arquivo encontrado',
         'modal.removeLink': 'Remover link',
         'modal.cancel': 'Cancelar',
+        'modal.ok': 'OK',
         'modal.formatText': 'Formatar texto',
         'modal.anchorSection': 'Ponto de ancoragem',
         'modal.displayText': 'Texto exibido:',
@@ -2523,6 +2530,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': '파일을 찾을 수 없습니다',
         'modal.removeLink': '링크 제거',
         'modal.cancel': '취소',
+        'modal.ok': '확인',
         'modal.formatText': '텍스트 서식',
         'modal.anchorSection': '앵커 포인트',
         'modal.displayText': '표시 텍스트:',
@@ -2823,6 +2831,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': 'No se encontraron archivos',
         'modal.removeLink': 'Eliminar enlace',
         'modal.cancel': 'Cancelar',
+        'modal.ok': 'Aceptar',
         'modal.formatText': 'Formatear texto',
         'modal.anchorSection': 'Punto de anclaje',
         'modal.displayText': 'Texto a mostrar:',
@@ -3123,6 +3132,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': 'Nie znaleziono plików',
         'modal.removeLink': 'Usuń link',
         'modal.cancel': 'Anuluj',
+        'modal.ok': 'OK',
         'modal.formatText': 'Formatuj tekst',
         'modal.anchorSection': 'Punkt zakotwiczenia',
         'modal.displayText': 'Wyświetlany tekst:',
@@ -3423,6 +3433,7 @@ const TRANSLATIONS = {
         'modal.noFilesFound': 'Nessun file trovato',
         'modal.removeLink': 'Rimuovi link',
         'modal.cancel': 'Annulla',
+        'modal.ok': 'OK',
         'modal.formatText': 'Formatta testo',
         'modal.anchorSection': 'Punto di ancoraggio',
         'modal.displayText': 'Testo visualizzato:',
@@ -7591,8 +7602,11 @@ class HexCartographerView extends ItemView {
         return unit;
     }
 
-    // Number field for an option unit, flanked by −/+ steppers. On phones the field
-    // is read-only so tapping it never opens the soft keyboard (which would hide the map).
+    // Number field for an option unit, flanked by −/+ steppers. Desktop: edit inline. Phone:
+    // the field is read-only and tapping it opens a small dialog (with its own number field)
+    // — the native keyboard would otherwise hide the toolbar row, so the user could not see
+    // what they type. Either way the value applies through the same 'input' event; the steppers
+    // stay for quick nudges.
     createOptionInput(unit, { value, title, max, min = '1', decimals = 0, stepBy = 1 }) {
         const maxN = parseFloat(max), minN = parseFloat(min);
         const round = (v) => { const f = Math.pow(10, decimals); return Math.round(v * f) / f; };
@@ -7608,8 +7622,18 @@ class HexCartographerView extends ItemView {
             type: 'number', value, cls: 'hex-option-input',
             attr: { title, min, max, step: decimals > 0 ? '0.1' : '1', inputmode: decimals > 0 ? 'decimal' : 'numeric', style: `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px; box-sizing: border-box;` }
         });
-        if (this.deviceViewportClass() === 'phone') input.readOnly = true;
         this.makeInputInteractive(input);
+        if (this.deviceViewportClass() === 'phone') {
+            input.readOnly = true; // no soft keyboard over the toolbar
+            const openDialog = () => new NumberInputModal(this.app, {
+                title, value: input.value, min: minN, max: maxN, decimals,
+                onSubmit: (v) => {
+                    input.value = round(Math.min(maxN, Math.max(minN, v)));
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                },
+            }).open();
+            input.addEventListener('click', openDialog);
+        }
         this.createStepperButton(controls, '+', () => step(1));
         return input;
     }
@@ -7782,6 +7806,15 @@ class HexCartographerView extends ItemView {
 
         this.updateToolbarOptions();
         this._updateProjectionVisButton(); // toolbar toggle, independent of the active tool
+
+        // Switching to/from the projection tool must re-render once so its move/scale/rotate
+        // handles appear or clear immediately — they are drawn only while that tool is active,
+        // and otherwise linger on screen until the next render (a map tap).
+        if (this._lastToolGroupForHandles !== this.currentToolGroup) {
+            const involvesProjection = this._lastToolGroupForHandles === 'projection' || this.currentToolGroup === 'projection';
+            this._lastToolGroupForHandles = this.currentToolGroup;
+            if (involvesProjection && this.ctx) this.render();
+        }
     }
 
 
@@ -12391,6 +12424,52 @@ class FileSelectorModal extends Modal {
 
         filter.focus();
     }
+}
+
+// Small numeric-entry dialog used on phones, where the native keyboard would cover the
+// toolbar's option field. The value shows in its OWN input (kept visible), and the parsed
+// number is reported via onSubmit. Enter confirms, Escape/Cancel discards. Accepts a comma
+// as the decimal separator too.
+class NumberInputModal extends Modal {
+    constructor(app, { title, value, min, max, decimals, onSubmit }) {
+        super(app);
+        this.titleText = title;
+        this.startValue = value;
+        this.min = min; this.max = max; this.decimals = decimals || 0;
+        this.onSubmit = onSubmit;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        // Classic centred modal (reliable across devices). Kept compact; the numeric keyboard's
+        // Enter/"Go" key also submits, so the user need not reach the OK button when the
+        // keyboard overlaps the bottom.
+        this.titleEl.setText(this.titleText);
+        const input = contentEl.createEl('input', {
+            type: 'number', value: String(this.startValue),
+            attr: {
+                inputmode: this.decimals > 0 ? 'decimal' : 'numeric',
+                step: this.decimals > 0 ? '0.1' : '1',
+                ...(Number.isFinite(this.min) ? { min: String(this.min) } : {}),
+                ...(Number.isFinite(this.max) ? { max: String(this.max) } : {}),
+                style: 'width: 100%; font-size: 20px; text-align: center; padding: 8px; box-sizing: border-box;',
+            },
+        });
+        const row = contentEl.createDiv({ attr: { style: 'display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;' } });
+        const cancel = row.createEl('button', { text: t('modal.cancel') });
+        cancel.onclick = () => this.close();
+        const ok = row.createEl('button', { text: t('modal.ok'), cls: 'mod-cta' });
+        const submit = () => {
+            const v = parseFloat(String(input.value).replace(',', '.'));
+            this.close();
+            if (Number.isFinite(v) && this.onSubmit) this.onSubmit(v);
+        };
+        ok.onclick = submit;
+        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+        setTimeout(() => { input.focus(); input.select(); }, 0);
+    }
+
+    onClose() { this.contentEl.empty(); }
 }
 
 // Picks an existing image from anywhere in the vault for the projection overlay. Nothing
