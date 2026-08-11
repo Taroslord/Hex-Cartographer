@@ -197,8 +197,6 @@ const USER_ASSET_EXPORT_MAX_SHORT_SIDE = 2048;
 const USER_ASSET_MAX_FILES = 500;
 // Wait time after the last file change before a folder is rescanned.
 const ASSET_WATCH_DEBOUNCE = 400;
-// Fraction of the hex bounding box a user symbol may occupy at most.
-const USER_SYMBOL_FIT = 0.8;
 // Overhang of the texture over the color background, in SCREEN pixels (divided by
 // zoom at draw time). Needed because the color fill has an antialiased (soft) edge
 // but texture clip() cuts hard — without it a 1px color border peeks out when
@@ -444,7 +442,6 @@ const TRANSLATIONS = {
         'settings.authorName': 'Autor-Name',
         'settings.authorNameDesc': 'Wird bei Neuerstellung als „author" und bei jeder Änderung als „editor" in die Karte geschrieben. Leer lassen → anonyme Geräte-ID.',
         'settings.authorNamePlaceholder': 'z. B. Alex',
-        'settings.perfSection': 'Performance',
         'settings.undoSteps': 'Undo-Schritte',
         'settings.undoStepsDesc': 'Wie viele Schritte rückgängig gemacht werden können. Jeder Schritt speichert die gesamte Karte — ein zu hoher Wert verbraucht viel Arbeitsspeicher (Standard 50, max. 200).',
         'settings.undoStepsReset': 'Auf Standard zurücksetzen (50)',
@@ -471,7 +468,7 @@ const TRANSLATIONS = {
         'settings.showLess': 'weniger',
         'settings.hexBorderVisibility': 'Waben-Rahmen anzeigen',
         'settings.clipUserGraphics': 'Beschnitt auf Wabenform',
-        'settings.clipUserGraphicsDesc': 'User-Grafiken (Texturen/Symbole) auf die Wabenform beschneiden. Aus: Grafiken dürfen über den Rand hinausragen.',
+        'settings.clipUserGraphicsDesc': 'Beschneidet Benutzer-Symbole auf die Wabenform. Aus: Symbole dürfen über den Wabenrand hinausragen. Wabentexturen werden immer beschnitten.',
         'settings.hexBorderVisibilityDesc': 'Rahmen um jede Wabe anzeigen.',
         'settings.hexBorderStyle': 'Farbe & Transparenz',
         'settings.hexBorderStyleDesc': 'Farbe und Sichtbarkeit der Rahmen. 100 % = voll sichtbar.',
@@ -777,7 +774,6 @@ const TRANSLATIONS = {
         'settings.authorName': 'Author name',
         'settings.authorNameDesc': 'Written into a map as “author” on creation and as “editor” on every edit. Leave empty → anonymous device id.',
         'settings.authorNamePlaceholder': 'e.g. Alex',
-        'settings.perfSection': 'Performance',
         'settings.undoSteps': 'Undo steps',
         'settings.undoStepsDesc': 'How many steps can be undone. Each step stores the entire map — too high a value uses a lot of memory (default 50, max. 200).',
         'settings.undoStepsReset': 'Reset to default (50)',
@@ -804,7 +800,7 @@ const TRANSLATIONS = {
         'settings.showLess': 'less',
         'settings.hexBorderVisibility': 'Show hex border',
         'settings.clipUserGraphics': 'Clip to hex shape',
-        'settings.clipUserGraphicsDesc': 'Clip user graphics (textures/symbols) to the hex shape. Off: graphics may overhang the hex border.',
+        'settings.clipUserGraphicsDesc': 'Clips user symbols to the hex shape. Off: symbols may overhang the hex border. Hex textures are always clipped.',
         'settings.hexBorderVisibilityDesc': 'Show the border around each hex.',
         'settings.hexBorderStyle': 'Color & transparency',
         'settings.hexBorderStyleDesc': 'Border color and visibility. 100% = fully visible.',
@@ -1088,7 +1084,6 @@ const TRANSLATIONS = {
         'settings.authorName': '作者名称',
         'settings.authorNameDesc': '创建时作为“author”、每次编辑时作为“editor”写入地图。留空 → 匿名设备 ID。',
         'settings.authorNamePlaceholder': '例如 Alex',
-        'settings.perfSection': '性能',
         'settings.undoSteps': '撤销步数',
         'settings.undoStepsDesc': '可撤销的步数。每一步都会保存整张地图——数值过大会占用大量内存（默认 50，最大 200）。',
         'settings.undoStepsReset': '重置为默认值（50）',
@@ -1115,7 +1110,7 @@ const TRANSLATIONS = {
         'settings.showLess': '收起',
         'settings.hexBorderVisibility': '显示六边形边框',
         'settings.clipUserGraphics': '裁剪为六边形',
-        'settings.clipUserGraphicsDesc': '将用户图形（纹理/符号）裁剪为六边形。关闭时：图形可超出六边形边界。',
+        'settings.clipUserGraphicsDesc': '将用户符号裁剪为六边形。关闭时：符号可超出六边形边界。六边形纹理始终被裁剪。',
         'settings.hexBorderVisibilityDesc': '显示每个六边形的边框。',
         'settings.hexBorderStyle': '颜色和透明度',
         'settings.hexBorderStyleDesc': '边框颜色和可见度。100% = 完全可见。',
@@ -1393,7 +1388,6 @@ const TRANSLATIONS = {
         'settings.authorName': 'Имя автора',
         'settings.authorNameDesc': 'Записывается в карту как «author» при создании и как «editor» при каждом изменении. Пусто → анонимный ID устройства.',
         'settings.authorNamePlaceholder': 'напр. Alex',
-        'settings.perfSection': 'Производительность',
         'settings.undoSteps': 'Шаги отмены',
         'settings.undoStepsDesc': 'Сколько шагов можно отменить. Каждый шаг сохраняет всю карту — слишком большое значение расходует много памяти (по умолчанию 50, макс. 200).',
         'settings.undoStepsReset': 'Сбросить к значению по умолчанию (50)',
@@ -1420,7 +1414,7 @@ const TRANSLATIONS = {
         'settings.showLess': 'свернуть',
         'settings.hexBorderVisibility': 'Показывать рамку шестиугольников',
         'settings.clipUserGraphics': 'Обрезать по форме соты',
-        'settings.clipUserGraphicsDesc': 'Обрезать пользовательскую графику (текстуры/символы) по форме соты. Выкл.: графика может выходить за границу.',
+        'settings.clipUserGraphicsDesc': 'Обрезает пользовательские символы по форме соты. Выкл.: символы могут выходить за границу. Текстуры соты всегда обрезаются.',
         'settings.hexBorderVisibilityDesc': 'Показывать рамку вокруг каждого шестиугольника.',
         'settings.hexBorderStyle': 'Цвет и прозрачность',
         'settings.hexBorderStyleDesc': 'Цвет и видимость рамки. 100 % = полностью видно.',
@@ -1698,7 +1692,6 @@ const TRANSLATIONS = {
         'settings.authorName': '作者名',
         'settings.authorNameDesc': '作成時に「author」、編集ごとに「editor」としてマップに書き込まれます。空欄 → 匿名のデバイスID。',
         'settings.authorNamePlaceholder': '例：Alex',
-        'settings.perfSection': 'パフォーマンス',
         'settings.undoSteps': '元に戻す回数',
         'settings.undoStepsDesc': '元に戻せる回数。各ステップはマップ全体を保存するため、値が大きすぎるとメモリを大量に消費します（既定 50、最大 200）。',
         'settings.undoStepsReset': '既定値に戻す（50）',
@@ -1725,7 +1718,7 @@ const TRANSLATIONS = {
         'settings.showLess': '折りたたむ',
         'settings.hexBorderVisibility': 'ヘクスの枠線を表示',
         'settings.clipUserGraphics': 'ヘクス形状で切り抜き',
-        'settings.clipUserGraphicsDesc': 'ユーザーグラフィック（テクスチャ/シンボル）をヘクス形状で切り抜きます。オフ：境界からはみ出せます。',
+        'settings.clipUserGraphicsDesc': 'ユーザーシンボルをヘクス形状で切り抜きます。オフ：シンボルは境界からはみ出せます。ヘクスのテクスチャは常に切り抜かれます。',
         'settings.hexBorderVisibilityDesc': '各ヘクスの枠線を表示します。',
         'settings.hexBorderStyle': '色と透明度',
         'settings.hexBorderStyleDesc': '枠線の色と表示度。100% = 完全に表示。',
@@ -2003,7 +1996,6 @@ const TRANSLATIONS = {
         'settings.authorName': 'Nom de l’auteur',
         'settings.authorNameDesc': 'Inscrit dans la carte comme « author » à la création et « editor » à chaque modification. Vide → identifiant d’appareil anonyme.',
         'settings.authorNamePlaceholder': 'p. ex. Alex',
-        'settings.perfSection': 'Performances',
         'settings.undoSteps': 'Étapes d’annulation',
         'settings.undoStepsDesc': 'Nombre d’étapes annulables. Chaque étape enregistre toute la carte — une valeur trop élevée consomme beaucoup de mémoire (par défaut 50, max. 200).',
         'settings.undoStepsReset': 'Réinitialiser par défaut (50)',
@@ -2030,7 +2022,7 @@ const TRANSLATIONS = {
         'settings.showLess': 'moins',
         'settings.hexBorderVisibility': 'Afficher la bordure des hexagones',
         'settings.clipUserGraphics': 'Rogner à la forme de l’hexagone',
-        'settings.clipUserGraphicsDesc': 'Rogner les graphismes utilisateur (textures/symboles) à la forme de l’hexagone. Désactivé : ils peuvent déborder.',
+        'settings.clipUserGraphicsDesc': 'Rogne les symboles utilisateur à la forme de l’hexagone. Désactivé : ils peuvent déborder. Les textures d’hexagone sont toujours rognées.',
         'settings.hexBorderVisibilityDesc': 'Afficher la bordure autour de chaque hexagone.',
         'settings.hexBorderStyle': 'Couleur et transparence',
         'settings.hexBorderStyleDesc': 'Couleur et visibilité de la bordure. 100 % = entièrement visible.',
@@ -2308,7 +2300,6 @@ const TRANSLATIONS = {
         'settings.authorName': 'Nome do autor',
         'settings.authorNameDesc': 'Gravado no mapa como «author» na criação e «editor» em cada edição. Vazio → id de dispositivo anónimo.',
         'settings.authorNamePlaceholder': 'ex. Alex',
-        'settings.perfSection': 'Desempenho',
         'settings.undoSteps': 'Passos de desfazer',
         'settings.undoStepsDesc': 'Quantos passos podem ser desfeitos. Cada passo guarda o mapa inteiro — um valor demasiado alto usa muita memória (predefinição 50, máx. 200).',
         'settings.undoStepsReset': 'Repor a predefinição (50)',
@@ -2335,7 +2326,7 @@ const TRANSLATIONS = {
         'settings.showLess': 'menos',
         'settings.hexBorderVisibility': 'Mostrar borda dos hexágonos',
         'settings.clipUserGraphics': 'Recortar à forma do hexágono',
-        'settings.clipUserGraphicsDesc': 'Recorta gráficos do utilizador (texturas/símbolos) à forma do hexágono. Desligado: podem ultrapassar a borda.',
+        'settings.clipUserGraphicsDesc': 'Recorta símbolos do utilizador à forma do hexágono. Desligado: podem ultrapassar a borda. As texturas do hexágono são sempre recortadas.',
         'settings.hexBorderVisibilityDesc': 'Mostra a borda à volta de cada hexágono.',
         'settings.hexBorderStyle': 'Cor e transparência',
         'settings.hexBorderStyleDesc': 'Cor e visibilidade da borda. 100% = totalmente visível.',
@@ -2613,7 +2604,6 @@ const TRANSLATIONS = {
         'settings.authorName': '작성자 이름',
         'settings.authorNameDesc': '생성 시 "author", 편집 시마다 "editor"로 지도에 기록됩니다. 비워 두면 → 익명 기기 ID.',
         'settings.authorNamePlaceholder': '예: Alex',
-        'settings.perfSection': '성능',
         'settings.undoSteps': '실행 취소 단계',
         'settings.undoStepsDesc': '되돌릴 수 있는 단계 수. 각 단계는 지도 전체를 저장하므로 값이 너무 크면 메모리를 많이 사용합니다(기본 50, 최대 200).',
         'settings.undoStepsReset': '기본값으로 재설정 (50)',
@@ -2640,7 +2630,7 @@ const TRANSLATIONS = {
         'settings.showLess': '접기',
         'settings.hexBorderVisibility': '헥스 테두리 표시',
         'settings.clipUserGraphics': '헥스 모양으로 자르기',
-        'settings.clipUserGraphicsDesc': '사용자 그래픽(텍스처/기호)을 헥스 모양으로 자릅니다. 끄면 경계를 넘어갈 수 있습니다.',
+        'settings.clipUserGraphicsDesc': '사용자 기호를 헥스 모양으로 자릅니다. 끄면 경계를 넘어갈 수 있습니다. 헥스 텍스처는 항상 잘립니다.',
         'settings.hexBorderVisibilityDesc': '각 헥스의 테두리를 표시합니다.',
         'settings.hexBorderStyle': '색상 및 투명도',
         'settings.hexBorderStyleDesc': '테두리 색상과 표시 정도. 100% = 완전히 보임.',
@@ -2918,7 +2908,6 @@ const TRANSLATIONS = {
         'settings.authorName': 'Nombre del autor',
         'settings.authorNameDesc': 'Se escribe en el mapa como «author» al crear y como «editor» en cada edición. Vacío → id de dispositivo anónimo.',
         'settings.authorNamePlaceholder': 'p. ej. Alex',
-        'settings.perfSection': 'Rendimiento',
         'settings.undoSteps': 'Pasos de deshacer',
         'settings.undoStepsDesc': 'Cuántos pasos se pueden deshacer. Cada paso guarda todo el mapa: un valor demasiado alto consume mucha memoria (predeterminado 50, máx. 200).',
         'settings.undoStepsReset': 'Restablecer al valor predeterminado (50)',
@@ -2945,7 +2934,7 @@ const TRANSLATIONS = {
         'settings.showLess': 'menos',
         'settings.hexBorderVisibility': 'Mostrar borde de hexágonos',
         'settings.clipUserGraphics': 'Recortar a la forma del hexágono',
-        'settings.clipUserGraphicsDesc': 'Recorta los gráficos de usuario (texturas/símbolos) a la forma del hexágono. Desactivado: pueden sobresalir.',
+        'settings.clipUserGraphicsDesc': 'Recorta los símbolos de usuario a la forma del hexágono. Desactivado: pueden sobresalir. Las texturas del hexágono siempre se recortan.',
         'settings.hexBorderVisibilityDesc': 'Muestra el borde alrededor de cada hexágono.',
         'settings.hexBorderStyle': 'Color y transparencia',
         'settings.hexBorderStyleDesc': 'Color y visibilidad del borde. 100 % = totalmente visible.',
@@ -3223,7 +3212,6 @@ const TRANSLATIONS = {
         'settings.authorName': 'Imię autora',
         'settings.authorNameDesc': 'Zapisywane w mapie jako „author" przy tworzeniu i „editor" przy każdej zmianie. Puste → anonimowy identyfikator urządzenia.',
         'settings.authorNamePlaceholder': 'np. Alex',
-        'settings.perfSection': 'Wydajność',
         'settings.undoSteps': 'Kroki cofania',
         'settings.undoStepsDesc': 'Ile kroków można cofnąć. Każdy krok zapisuje całą mapę — zbyt duża wartość zużywa dużo pamięci (domyślnie 50, maks. 200).',
         'settings.undoStepsReset': 'Przywróć domyślne (50)',
@@ -3250,7 +3238,7 @@ const TRANSLATIONS = {
         'settings.showLess': 'mniej',
         'settings.hexBorderVisibility': 'Pokaż obramowanie sześciokątów',
         'settings.clipUserGraphics': 'Przytnij do kształtu heksa',
-        'settings.clipUserGraphicsDesc': 'Przycina grafiki użytkownika (tekstury/symbole) do kształtu heksa. Wył.: mogą wystawać poza krawędź.',
+        'settings.clipUserGraphicsDesc': 'Przycina symbole użytkownika do kształtu heksa. Wył.: mogą wystawać poza krawędź. Tekstury heksa są zawsze przycinane.',
         'settings.hexBorderVisibilityDesc': 'Pokazuje obramowanie wokół każdego sześciokąta.',
         'settings.hexBorderStyle': 'Kolor i przezroczystość',
         'settings.hexBorderStyleDesc': 'Kolor i widoczność obramowania. 100% = w pełni widoczne.',
@@ -3528,7 +3516,6 @@ const TRANSLATIONS = {
         'settings.authorName': 'Nome autore',
         'settings.authorNameDesc': 'Scritto nella mappa come «author» alla creazione e «editor» a ogni modifica. Vuoto → id dispositivo anonimo.',
         'settings.authorNamePlaceholder': 'es. Alex',
-        'settings.perfSection': 'Prestazioni',
         'settings.undoSteps': 'Passi di annullamento',
         'settings.undoStepsDesc': 'Quanti passi si possono annullare. Ogni passo salva l’intera mappa — un valore troppo alto usa molta memoria (predefinito 50, max 200).',
         'settings.undoStepsReset': 'Ripristina predefinito (50)',
@@ -3555,7 +3542,7 @@ const TRANSLATIONS = {
         'settings.showLess': 'meno',
         'settings.hexBorderVisibility': 'Mostra bordo esagoni',
         'settings.clipUserGraphics': 'Ritaglia alla forma dell’esagono',
-        'settings.clipUserGraphicsDesc': 'Ritaglia le grafiche utente (texture/simboli) alla forma dell’esagono. Off: possono sporgere oltre il bordo.',
+        'settings.clipUserGraphicsDesc': 'Ritaglia i simboli utente alla forma dell’esagono. Off: possono sporgere oltre il bordo. Le texture dell’esagono vengono sempre ritagliate.',
         'settings.hexBorderVisibilityDesc': 'Mostra il bordo attorno a ogni esagono.',
         'settings.hexBorderStyle': 'Colore e trasparenza',
         'settings.hexBorderStyleDesc': 'Colore e visibilità del bordo. 100% = completamente visibile.',
@@ -11467,10 +11454,9 @@ class HexCartographerView extends ItemView {
             this.ctx.fill();
         }
 
-        // When clipping is ON, the texture is drawn here (clipped to this hex). When OFF it is
-        // drawn later in drawUserTexturePass — unclipped and in overlap order — so its overhang
-        // is not covered by a neighbouring hex's colour fill.
-        if (h.texture && this.plugin.settings.clipUserGraphics !== false) {
+        // Hex textures are ALWAYS clipped to their hex (a texture never extends past the border),
+        // independent of the "clip user graphics" setting — which only governs user symbols.
+        if (h.texture) {
             // Slightly larger than the color fill so the texture covers its AA edge.
             // The AA edge is ~1 screen pixel at any zoom, so convert the bleed from
             // screen to world units — a fixed world value would grow with the zoom
@@ -11505,13 +11491,13 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    // User symbols are fitted into the hex (contain) so nothing is clipped
-    // — unlike textures, which must fill the hex.
+    // User symbols follow the same rule as textures: the graphic's SHORTEST side spans the hex
+    // corner-to-corner (2 * radius), clipped to the hex shape unless clipping is turned off (then
+    // they may overhang). System symbols are unaffected (drawn elsewhere).
     drawUserSymbolOnCanvas(symbol, pos, color) {
         const asset = this.plugin.getUserAsset(symbol);
-        const box = this.hexBounds(this.data.gridSize);
-        const maxW = box.w * USER_SYMBOL_FIT;
-        const maxH = box.h * USER_SYMBOL_FIT;
+        const radius = this.data.gridSize;
+        const box = this.hexBounds(radius);
 
         if (this.isAssetPending(asset)) return; // loaded on demand, then redrawn
 
@@ -11519,15 +11505,19 @@ class HexCartographerView extends ItemView {
             // Any unresolvable user graphic (missing folder path OR missing file):
             // a small folder icon. The red status bar names what is missing. Hidden
             // on export and when the per-map "hide hints" toggle is on.
-            if (this.errorIconsVisible()) this.drawFolderIcon(pos, Math.min(maxW, maxH) * 0.35);
+            if (this.errorIconsVisible()) this.drawFolderIcon(pos, Math.min(box.w, box.h) * 0.35);
             return;
         }
+
+        const clip = this.plugin.settings.clipUserGraphics !== false;
+        const angleOffset = this.hexOrientation ? 0 : -30;
+        this.ctx.save();
+        if (clip) { this.tracehexPath(pos, radius, angleOffset); this.ctx.clip(); }
 
         if (asset.colorable) {
             const vw = asset.viewBoxWidth;
             const vh = asset.viewBoxHeight || asset.viewBoxWidth;
-            const scale = Math.min(maxW / vw, maxH / vh);
-            this.ctx.save();
+            const scale = (2 * radius) / Math.min(vw, vh);
             this.ctx.translate(pos.x - (vw * scale) / 2, pos.y - (vh * scale) / 2);
             this.ctx.scale(scale, scale);
             this.ctx.fillStyle = color || DEFAULT_MASTER_COLOR;
@@ -11537,15 +11527,17 @@ class HexCartographerView extends ItemView {
         }
 
         const img = asset.image;
-        if (!img) return;
-        const iw = img.naturalWidth || img.width;
-        const ih = img.naturalHeight || img.height;
-        if (!iw || !ih) return;
-
-        const scale = Math.min(maxW / iw, maxH / ih);
-        const dw = iw * scale;
-        const dh = ih * scale;
-        this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
+        if (img) {
+            const iw = img.naturalWidth || img.width;
+            const ih = img.naturalHeight || img.height;
+            if (iw && ih) {
+                const scale = (2 * radius) / Math.min(iw, ih);
+                const dw = iw * scale;
+                const dh = ih * scale;
+                this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
+            }
+        }
+        this.ctx.restore();
     }
 
     // Placeholder icons for missing graphics are shown while editing, but never on
@@ -11608,12 +11600,22 @@ class HexCartographerView extends ItemView {
 
     // symbols === null draws the user symbols (everything with the user: prefix).
     drawSymbolLayerOnCtx(symbols) {
-        Object.values(this.data.hexes).forEach(h => {
-            if (!h.symbol) return;
-            const inLayer = symbols ? symbols.includes(h.symbol) : isUserAssetKey(h.symbol);
-            if (!inLayer) return;
-            this.drawSymbolAt(h.symbol, this.hexToPixel(h), h.symbolColor);
-        });
+        let hexes = Object.values(this.data.hexes).filter(h =>
+            h.symbol && (symbols ? symbols.includes(h.symbol) : isUserAssetKey(h.symbol)));
+        // User symbols that may overhang (clip off) need a stable overlap order (back-to-front,
+        // left-to-right) so neighbouring graphics layer consistently instead of z-fighting.
+        if (symbols === null && this.plugin.settings.clipUserGraphics === false) hexes = this.sortForOverlap(hexes);
+        for (const h of hexes) this.drawSymbolAt(h.symbol, this.hexToPixel(h), h.symbolColor);
+    }
+
+    // Order for overlapping user graphics: top-to-bottom then left-to-right (by screen position;
+    // world coords order the same under the pan/zoom transform), so lower/right ones draw last
+    // and sit on top. Returns a new array.
+    sortForOverlap(hexes) {
+        return hexes
+            .map(h => ({ h, p: this.hexToPixel(h) }))
+            .sort((a, b) => a.p.y - b.p.y || a.p.x - b.p.x)
+            .map(o => o.h);
     }
 
     // Single definition of the draw order — screen and export share it
@@ -11625,9 +11627,6 @@ class HexCartographerView extends ItemView {
         const projBg = !!(this.data.projection && this.data.projection.background);
         if (projBg) this.drawProjection();
         Object.values(this.data.hexes).forEach(h => this.drawHexBase(h));
-        // Clip off: draw the (unclipped) user textures once ALL colour fills are down, in overlap
-        // order, so their overhang sits above neighbouring hexes instead of being covered.
-        if (this.plugin.settings.clipUserGraphics === false) this.drawUserTexturePass();
         if (!projBg) this.drawProjection();
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_VEGETATION);
         this.drawSymbolLayerOnCtx(SYMBOL_LAYER_TERRAIN);
@@ -11683,17 +11682,17 @@ class HexCartographerView extends ItemView {
         // After reloading it is redrawn anyway.
         if (this.isAssetPending(asset)) return;
 
-        const clip = this.plugin.settings.clipUserGraphics !== false;
         this.ctx.save();
-        if (clip) { this.tracehexPath(pos, radius, angleOffset); this.ctx.clip(); }
+        this.tracehexPath(pos, radius, angleOffset);
+        this.ctx.clip();
 
         if (asset && asset.image) {
             const img = asset.image;
             const iw = img.naturalWidth || img.width;
             const ih = img.naturalHeight || img.height;
             if (iw && ih) {
-                // The graphic's SHORTEST side spans the hex corner-to-corner (2 * radius). With
-                // clipping on, the overhang is cut to the hex; off, it shows past the border.
+                // The graphic's SHORTEST side spans the hex corner-to-corner (2 * radius); the
+                // overhang is always cut to the hex shape.
                 const scale = (2 * radius) / Math.min(iw, ih);
                 const dw = iw * scale;
                 const dh = ih * scale;
@@ -13729,6 +13728,32 @@ class HexCartographerSettingTab extends PluginSettingTab {
             }
         });
 
+        // Undo steps: how many undo snapshots to keep. Each snapshot is a full copy of the whole
+        // map, so a large value can use a lot of memory (warned in the description).
+        const undoSetting = new Setting(containerEl)
+            .setName(t('settings.undoSteps'))
+            .setDesc(t('settings.undoStepsDesc'));
+        const undoInput = makeNumberInput(undoSetting.controlEl, clampUndoSteps(this.plugin.settings.undoSteps), { min: UNDO_STEPS_MIN, max: UNDO_STEPS_MAX, step: 1 });
+        undoInput.setAttribute('title', t('settings.undoSteps'));
+        const applyUndoSteps = async (v) => {
+            v = clampUndoSteps(v);
+            undoInput.value = String(v);
+            this.plugin.settings.undoSteps = v;
+            await this.plugin.saveSettings();
+            // Apply to open maps and trim any history beyond the new limit.
+            this.app.workspace.iterateAllLeaves(leaf => {
+                if (leaf.view instanceof HexCartographerView) {
+                    leaf.view.maxHistory = v;
+                    while (leaf.view.history.length > v) leaf.view.history.shift();
+                    while (leaf.view.redoStack.length > v) leaf.view.redoStack.shift();
+                }
+            });
+        };
+        undoInput.addEventListener('change', () => applyUndoSteps(parseInt(undoInput.value)));
+        const undoResetBtn = undoSetting.controlEl.createEl('button', { cls: 'clickable-icon', attr: { title: t('settings.undoStepsReset') } });
+        setIcon(undoResetBtn, 'rotate-ccw');
+        undoResetBtn.addEventListener('click', () => applyUndoSteps(DEFAULT_SETTINGS.undoSteps));
+
         // Re-render every open map (used by settings that change how maps look).
         const renderOpenMaps = () => this.app.workspace.iterateAllLeaves(leaf => {
             if (leaf.view instanceof HexCartographerView) leaf.view.render();
@@ -13741,19 +13766,6 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 toggle.setValue(this.plugin.settings.showCrosshair)
                     .onChange(async (value) => {
                         this.plugin.settings.showCrosshair = value;
-                        await this.plugin.saveSettings();
-                        renderOpenMaps();
-                    });
-            });
-
-        // Clip user graphics (textures/symbols) to the hex shape, or let them overhang.
-        new Setting(containerEl)
-            .setName(t('settings.clipUserGraphics'))
-            .setDesc(t('settings.clipUserGraphicsDesc'))
-            .addToggle(toggle => {
-                toggle.setValue(this.plugin.settings.clipUserGraphics !== false)
-                    .onChange(async (value) => {
-                        this.plugin.settings.clipUserGraphics = value;
                         await this.plugin.saveSettings();
                         renderOpenMaps();
                     });
@@ -13792,38 +13804,6 @@ class HexCartographerSettingTab extends PluginSettingTab {
             section.createEl('summary', { cls: 'hex-settings-summary', text: t(titleKey) });
             return section.createDiv({ cls: 'hex-settings-body' });
         };
-
-        // ── Performance ───────────────────────────────────────────
-        // Collapsible group: undo depth. Stays open when it differs from the default.
-        const perfBody = makeSettingsSection('settings.perfSection',
-            clampUndoSteps(this.plugin.settings.undoSteps) !== DEFAULT_SETTINGS.undoSteps);
-
-        // Undo steps: how many undo snapshots to keep. Each snapshot is a full copy of the
-        // whole map, so a large value can use a lot of memory (warned in the description).
-        const undoSetting = new Setting(perfBody)
-            .setName(t('settings.undoSteps'))
-            .setDesc(t('settings.undoStepsDesc'));
-        const undoInput = makeNumberInput(undoSetting.controlEl, clampUndoSteps(this.plugin.settings.undoSteps), { min: UNDO_STEPS_MIN, max: UNDO_STEPS_MAX, step: 1 });
-        undoInput.setAttribute('title', t('settings.undoSteps'));
-        const applyUndoSteps = async (v) => {
-            v = clampUndoSteps(v);
-            undoInput.value = String(v);
-            this.plugin.settings.undoSteps = v;
-            await this.plugin.saveSettings();
-            // Apply to open maps and trim any history beyond the new limit.
-            this.app.workspace.iterateAllLeaves(leaf => {
-                if (leaf.view instanceof HexCartographerView) {
-                    leaf.view.maxHistory = v;
-                    while (leaf.view.history.length > v) leaf.view.history.shift();
-                    while (leaf.view.redoStack.length > v) leaf.view.redoStack.shift();
-                }
-            });
-        };
-        undoInput.addEventListener('change', () => applyUndoSteps(parseInt(undoInput.value)));
-
-        const undoResetBtn = undoSetting.controlEl.createEl('button', { cls: 'clickable-icon', attr: { title: t('settings.undoStepsReset') } });
-        setIcon(undoResetBtn, 'rotate-ccw');
-        undoResetBtn.addEventListener('click', () => applyUndoSteps(DEFAULT_SETTINGS.undoSteps));
 
         // ── Author ────────────────────────────────────────────────
         // The name written into a map as author (on creation) and editor (on every edit).
@@ -13904,6 +13884,19 @@ class HexCartographerSettingTab extends PluginSettingTab {
             text: t('settings.userAssetsPlaceholderHint'),
             attr: { style: 'color: var(--text-muted); font-size: 13px; margin-top: 0;' }
         });
+
+        // Clip user graphics to the hex shape (symbols; hex textures are always clipped).
+        new Setting(assetsBody)
+            .setName(t('settings.clipUserGraphics'))
+            .setDesc(t('settings.clipUserGraphicsDesc'))
+            .addToggle(toggle => {
+                toggle.setValue(this.plugin.settings.clipUserGraphics !== false)
+                    .onChange(async (value) => {
+                        this.plugin.settings.clipUserGraphics = value;
+                        await this.plugin.saveSettings();
+                        renderOpenMaps();
+                    });
+            });
 
         const addFolderSetting = (name, desc, settingKey, registry, categoryId) => {
             const setting = new Setting(assetsBody).setName(name).setDesc(desc);
