@@ -69,6 +69,20 @@ const stableStringify = (v) => {
     }
     return JSON.stringify(v);
 };
+
+// Per-tool quick-select history: the drawing tools that get one, and the max slots each keeps.
+const HISTORY_TOOL_GROUPS = ['hexcolor', 'grass', 'tree', 'mountain', 'building'];
+const HISTORY_MAX_SLOTS = 6;
+// Two history entries are the same setting when their values match (order-free).
+const historyEntrySame = (a, b) => stableStringify(a) === stableStringify(b);
+// Most-recently-used insert: an identical entry moves to the front (no duplicate); otherwise
+// the entry is prepended and the list is capped. Returns a new array (never mutates).
+const historyMruPush = (list, entry, max) => {
+    const next = (list || []).filter(e => !historyEntrySame(e, entry));
+    next.unshift(entry);
+    if (next.length > max) next.length = max;
+    return next;
+};
 // Canonical signature of a map's LOGICAL content: the JSON payload without the volatile
 // metadata (lastModified/author/editor) and device-local viewport, normalised order-free.
 // Two files with the same signature are truly identical maps (used to spot redundant copies).
@@ -240,7 +254,7 @@ const SVG_SYMBOL_CONFIG = {
     'forest-deciduous': { size: 0.55, align: 'center', marginX: 0, marginY: 0 },
     'forest-coniferous': { size: 0.55, align: 'center', marginX: 0, marginY: 0 },
     'hill':        { size: 0.50,  align: 'center', marginX: 0, marginY: 0 },
-    'mountain':    { size: 0.60,  align: 'center', marginX: 0, marginY: 0 },
+    'mountain':    { size: 0.6,  align: 'center', marginX: 0, marginY: -5 },
     'volcano':     { size: 0.6,  align: 'center', marginX: 0, marginY: -2 },
     'tent':        { size: 0.325,  align: 'center', marginX: 0, marginY: 0 },
     'house':       { size: 0.30, align: 'center', marginX: 0, marginY: -2 },
@@ -331,6 +345,8 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Wiederholen\nStrg+Y: Rückgängig gemachte Aktion wiederholen',
         'tooltip.fit': 'Karte einpassen\nKlick: Fenster mit gesamter Karte ausfüllen',
         'tooltip.settings': 'Einstellungen',
+        'tooltip.historySlot': 'Zuletzt verwendet',
+        'tooltip.color': 'Farbe',
         'tooltip.palette': 'Farbpalette\nKlick: Farbe als aktuelle Farbe übernehmen\nRechtsklick: Palettenfarbe ändern',
         'tooltip.toolGroup': '{name}\nKlick: Zeichnen\nRechtsklick: Variante wählen\nRechtsklick in Karte: Löschen',
         'tooltip.toolGroupVariant': '{label}\nKlick: Zeichnen\nRechtsklick: Variante wählen\nRechtsklick in Karte: Löschen',
@@ -660,6 +676,8 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Redo\nCtrl+Y: Redo undone action',
         'tooltip.fit': 'Fit Map\nClick: Fit entire map to window',
         'tooltip.settings': 'Settings',
+        'tooltip.historySlot': 'Recently used',
+        'tooltip.color': 'Color',
         'tooltip.palette': 'Color Palette\nClick: Use as current color\nRight-click: Change palette color',
         'tooltip.toolGroup': '{name}\nClick: Draw\nRight-click: Choose variant\nRight-click on map: Delete',
         'tooltip.toolGroupVariant': '{label}\nClick: Draw\nRight-click: Choose variant\nRight-click on map: Delete',
@@ -981,6 +999,8 @@ const TRANSLATIONS = {
         'tooltip.redo': '重做\nCtrl+Y：重做已撤销的操作',
         'tooltip.fit': '适应地图\n点击：在窗口中显示整个地图',
         'tooltip.settings': '设置',
+        'tooltip.historySlot': '最近使用',
+        'tooltip.color': '颜色',
         'tooltip.palette': '调色板\n点击：设为当前颜色\n右键点击：更改调色板颜色',
         'tooltip.toolGroup': '{name}\n点击：绘制\n右键点击：选择变体\n右键地图：删除',
         'tooltip.toolGroupVariant': '{label}\n点击：绘制\n右键点击：选择变体\n右键地图：删除',
@@ -1282,6 +1302,8 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Повторить\nCtrl+Y: Повторить отменённое действие',
         'tooltip.fit': 'Вписать карту\nКлик: Показать всю карту в окне',
         'tooltip.settings': 'Настройки',
+        'tooltip.historySlot': 'Недавно использованные',
+        'tooltip.color': 'Цвет',
         'tooltip.palette': 'Палитра цветов\nКлик: Использовать как текущий цвет\nПравый клик: Изменить цвет палитры',
         'tooltip.toolGroup': '{name}\nКлик: Рисовать\nПравый клик: Выбрать вариант\nПравый клик на карте: Удалить',
         'tooltip.toolGroupVariant': '{label}\nКлик: Рисовать\nПравый клик: Выбрать вариант\nПравый клик на карте: Удалить',
@@ -1583,6 +1605,8 @@ const TRANSLATIONS = {
         'tooltip.redo': 'やり直し\nCtrl+Y：元に戻した操作をやり直す',
         'tooltip.fit': 'マップを合わせる\nクリック：ウィンドウにマップ全体を表示',
         'tooltip.settings': '設定',
+        'tooltip.historySlot': '最近使用した設定',
+        'tooltip.color': '色',
         'tooltip.palette': 'カラーパレット\nクリック：現在の色として使用\n右クリック：パレットの色を変更',
         'tooltip.toolGroup': '{name}\nクリック：描画\n右クリック：バリエーションを選択\nマップ上で右クリック：削除',
         'tooltip.toolGroupVariant': '{label}\nクリック：描画\n右クリック：バリエーションを選択\nマップ上で右クリック：削除',
@@ -1884,6 +1908,8 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Rétablir\nCtrl+Y : Rétablir l\'action annulée',
         'tooltip.fit': 'Ajuster la carte\nClic : Afficher toute la carte dans la fenêtre',
         'tooltip.settings': 'Paramètres',
+        'tooltip.historySlot': 'Récemment utilisé',
+        'tooltip.color': 'Couleur',
         'tooltip.palette': 'Palette de couleurs\nClic : Utiliser comme couleur actuelle\nClic droit : Modifier la couleur de la palette',
         'tooltip.toolGroup': '{name}\nClic : Dessiner\nClic droit : Choisir une variante\nClic droit sur la carte : Supprimer',
         'tooltip.toolGroupVariant': '{label}\nClic : Dessiner\nClic droit : Choisir une variante\nClic droit sur la carte : Supprimer',
@@ -2185,6 +2211,8 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Refazer\nCtrl+Y: Refazer ação desfeita',
         'tooltip.fit': 'Ajustar mapa\nClique: Exibir o mapa inteiro na janela',
         'tooltip.settings': 'Configurações',
+        'tooltip.historySlot': 'Usado recentemente',
+        'tooltip.color': 'Cor',
         'tooltip.palette': 'Paleta de cores\nClique: Usar como cor atual\nClique direito: Alterar cor da paleta',
         'tooltip.toolGroup': '{name}\nClique: Desenhar\nClique direito: Escolher variante\nClique direito no mapa: Excluir',
         'tooltip.toolGroupVariant': '{label}\nClique: Desenhar\nClique direito: Escolher variante\nClique direito no mapa: Excluir',
@@ -2486,6 +2514,8 @@ const TRANSLATIONS = {
         'tooltip.redo': '다시 실행\nCtrl+Y: 취소한 작업 다시 실행',
         'tooltip.fit': '지도 맞추기\n클릭: 창에 전체 지도 표시',
         'tooltip.settings': '설정',
+        'tooltip.historySlot': '최근 사용',
+        'tooltip.color': '색상',
         'tooltip.palette': '색상 팔레트\n클릭: 현재 색상으로 사용\n우클릭: 팔레트 색상 변경',
         'tooltip.toolGroup': '{name}\n클릭: 그리기\n우클릭: 변형 선택\n지도에서 우클릭: 삭제',
         'tooltip.toolGroupVariant': '{label}\n클릭: 그리기\n우클릭: 변형 선택\n지도에서 우클릭: 삭제',
@@ -2787,6 +2817,8 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Rehacer\nCtrl+Y: Rehacer acción deshecha',
         'tooltip.fit': 'Ajustar mapa\nClic: Ajustar ventana al mapa completo',
         'tooltip.settings': 'Configuración',
+        'tooltip.historySlot': 'Usado recientemente',
+        'tooltip.color': 'Color',
         'tooltip.palette': 'Paleta de colores\nClic: Usar como color actual\nClic derecho: Cambiar color de paleta',
         'tooltip.toolGroup': '{name}\nClic: Dibujar\nClic derecho: Elegir variante\nClic derecho en mapa: Eliminar',
         'tooltip.toolGroupVariant': '{label}\nClic: Dibujar\nClic derecho: Elegir variante\nClic derecho en mapa: Eliminar',
@@ -3088,6 +3120,8 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Ponów\nCtrl+Y: Ponów cofniętą akcję',
         'tooltip.fit': 'Dopasuj mapę\nKliknij: Dopasuj okno do całej mapy',
         'tooltip.settings': 'Ustawienia',
+        'tooltip.historySlot': 'Ostatnio używane',
+        'tooltip.color': 'Kolor',
         'tooltip.palette': 'Paleta kolorów\nKliknij: Użyj jako aktualny kolor\nPrawy przycisk: Zmień kolor palety',
         'tooltip.toolGroup': '{name}\nKliknij: Rysuj\nPrawy przycisk: Wybierz wariant\nPrawy klik na mapie: Usuń',
         'tooltip.toolGroupVariant': '{label}\nKliknij: Rysuj\nPrawy przycisk: Wybierz wariant\nPrawy klik na mapie: Usuń',
@@ -3389,6 +3423,8 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Ripeti\nCtrl+Y: Ripeti azione annullata',
         'tooltip.fit': 'Adatta mappa\nClic: Adatta finestra all\'intera mappa',
         'tooltip.settings': 'Impostazioni',
+        'tooltip.historySlot': 'Usato di recente',
+        'tooltip.color': 'Colore',
         'tooltip.palette': 'Tavolozza colori\nClic: Usa come colore attuale\nClic destro: Cambia colore tavolozza',
         'tooltip.toolGroup': '{name}\nClic: Disegna\nClic destro: Scegli variante\nClic destro sulla mappa: Elimina',
         'tooltip.toolGroupVariant': '{label}\nClic: Disegna\nClic destro: Scegli variante\nClic destro sulla mappa: Elimina',
@@ -5109,6 +5145,12 @@ class HexCartographerView extends ItemView {
         this.drawMode = 'pen'; // pen, fill, eraser
         this.currentToolGroup = null; // grass, tree, mountain, building, or null for the color palette
 
+        // Per-tool quick-select history (desktop only). Each drawing tool keeps its recent
+        // full settings (variant + colours, or hex colour + texture) so the user can re-pick
+        // one with a single click. Persisted per map under settings.toolHistory.
+        this.toolHistory = {};
+        for (const g of HISTORY_TOOL_GROUPS) this.toolHistory[g] = [];
+
         this.patternData = null;
         this.patternPickMode = false;
         this.patternSourceHex = null; // Stores q/r of the pattern hex
@@ -5708,6 +5750,12 @@ class HexCartographerView extends ItemView {
                 if (newData.settings.hexTexture !== undefined) {
                     this.hexTexture = newData.settings.hexTexture;
                 }
+                // Restore the per-tool quick-select history (only the known drawing tools).
+                const savedHistory = newData.settings.toolHistory;
+                if (!this.toolHistory) this.toolHistory = {};
+                for (const g of HISTORY_TOOL_GROUPS) {
+                    this.toolHistory[g] = (savedHistory && Array.isArray(savedHistory[g])) ? savedHistory[g].slice(0, HISTORY_MAX_SLOTS) : [];
+                }
                 if (newData.settings.lastUsedTextSize !== undefined) this.lastUsedTextSize = newData.settings.lastUsedTextSize;
                 if (newData.settings.lastUsedTextColor !== undefined) this.lastUsedTextColor = newData.settings.lastUsedTextColor;
                 if (newData.settings.lastUsedTextOutline !== undefined) this.lastUsedTextOutline = newData.settings.lastUsedTextOutline;
@@ -6086,6 +6134,22 @@ class HexCartographerView extends ItemView {
                 border: none !important;
                 display: block !important;
             }
+            /* Drawing-tool cluster: tool buttons on top, per-tool history row below.
+               The separators (align-self: stretch) span both rows automatically. */
+            .hex-tool-cluster { display: inline-flex; flex-direction: column; gap: 3px; }
+            .hex-tool-cluster-row { display: inline-flex; align-items: center; gap: 3px; }
+            /* Full tool-row width; the six slots are spread edge-to-edge (space-between).
+               renderToolHistory pads the row to six with INVISIBLE placeholder slots, so with
+               fewer real slots they stay LEFT-aligned at the same fixed gap (the placeholders
+               hold the right-hand positions). */
+            .hex-history-row { display: flex; width: 100%; align-items: center; justify-content: space-between; }
+            .hex-history-slot {
+                width: 28px; height: 28px; min-width: 28px; padding: 0;
+                display: inline-flex; align-items: center; justify-content: center;
+                background: #fff; border: 1px solid var(--background-modifier-border);
+                border-radius: 4px; cursor: pointer; box-sizing: border-box;
+            }
+            .hex-history-slot:hover { border-color: var(--interactive-accent); }
             /* Top overlay stacks the warning bar and the options row above the map
                without resizing the canvas. Height = its visible children only. */
             .hex-map-top-overlay {
@@ -6307,6 +6371,7 @@ class HexCartographerView extends ItemView {
             this.updateActivePathColor();
         };
         masterColorInput.addEventListener('change', () => {
+            this.recordToolSetting(this.currentToolGroup); // colour committed -> remember it
             this.requestSave();
         });
 
@@ -6328,7 +6393,15 @@ class HexCartographerView extends ItemView {
         
         editContent.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
 
-        const hexColorBtn = this.createToolButton(editContent, { icon: 'hexagon', title: t('tooltip.hexColor'), dataset: { toolGroup: 'hexcolor' } });
+        // The drawing tools (hex + symbol groups) form a 2-row column: the tool buttons on top
+        // and, directly below, the per-tool quick-select history. The rest of the toolbar stays
+        // a single row (the separators span both rows). The history row is filled/hidden by
+        // renderToolHistory (desktop only).
+        const toolCluster = editContent.createDiv({ cls: 'hex-tool-cluster' });
+        const clusterTools = toolCluster.createDiv({ cls: 'hex-tool-cluster-row' });
+        this.toolHistoryRow = toolCluster.createDiv({ cls: 'hex-history-row' });
+
+        const hexColorBtn = this.createToolButton(clusterTools, { icon: 'hexagon', title: t('tooltip.hexColor'), dataset: { toolGroup: 'hexcolor' } });
         hexColorBtn.onclick = () => {
             const needsRender = this.currentToolGroup === 'pattern' || this.borderSettings.pickedHex;
             this.exitPathEditMode();
@@ -6354,10 +6427,10 @@ class HexCartographerView extends ItemView {
         };
         this.addLongPress(hexColorBtn, () => this.showHexTextureMenu(hexColorBtn));
 
-        this.createToolGroupButton(editContent, 'grass');
-        this.createToolGroupButton(editContent, 'tree');
-        this.createToolGroupButton(editContent, 'mountain');
-        this.createToolGroupButton(editContent, 'building');
+        this.createToolGroupButton(clusterTools, 'grass');
+        this.createToolGroupButton(clusterTools, 'tree');
+        this.createToolGroupButton(clusterTools, 'mountain');
+        this.createToolGroupButton(clusterTools, 'building');
 
         editContent.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
 
@@ -6960,6 +7033,7 @@ class HexCartographerView extends ItemView {
                 this.masterColorInput.value = this.masterColor;
                 if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
             }
+            this.recordToolSetting(groupId); // remember this variant + colours for quick re-pick
             this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
             this.requestSave();
         };
@@ -7033,6 +7107,7 @@ class HexCartographerView extends ItemView {
                 if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
             }
             this.updateHexColorButtonIcon(btn);
+            this.recordToolSetting('hexcolor'); // remember this colour/texture for quick re-pick
             this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
             this.requestSave();
         };
@@ -7114,6 +7189,7 @@ class HexCartographerView extends ItemView {
                 if (this.currentToolGroup === 'hexcolor') this.hexColorColor = this.masterColor;
                 if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
                 this.updateActivePathColor();
+                this.recordToolSetting(this.currentToolGroup); // colour committed -> remember it
                 const toolbar = this.containerEl.querySelector('.hex-toolbar');
                 if (toolbar) this.updateToolbarState(toolbar);
             };
@@ -7806,6 +7882,7 @@ class HexCartographerView extends ItemView {
 
         this.updateToolbarOptions();
         this._updateProjectionVisButton(); // toolbar toggle, independent of the active tool
+        this.renderToolHistory(); // show the active drawing tool's quick-select history
 
         // Switching to/from the projection tool must re-render once so its move/scale/rotate
         // handles appear or clear immediately — they are drawn only while that tool is active,
@@ -7815,6 +7892,111 @@ class HexCartographerView extends ItemView {
             this._lastToolGroupForHandles = this.currentToolGroup;
             if (involvesProjection && this.ctx) this.render();
         }
+    }
+
+    // ===== Per-tool quick-select history =====
+
+    // The active drawing tool's current full setting (what a history slot stores), or null
+    // for tools that have no history. Symbols keep variant + colours; the hex tool keeps its
+    // colour + texture.
+    historyEntryFor(group) {
+        if (group === 'hexcolor') return { color: this.hexColorColor, texture: this.hexTexture || null };
+        const c = this.toolConfigs[group];
+        if (!c) return null;
+        return { variant: c.currentVariant, symbolColor: c.symbolColor, backgroundColor: c.backgroundColor, backgroundEnabled: !!c.backgroundEnabled };
+    }
+
+    // Record the active drawing tool's current setting into its history (deduped, most-recent
+    // first, capped). Recorded on every device so the list stays in the map; only the display
+    // is desktop-only.
+    recordToolSetting(group) {
+        if (!this.toolHistory[group]) return;
+        const entry = this.historyEntryFor(group);
+        if (!entry) return;
+        this.toolHistory[group] = historyMruPush(this.toolHistory[group], entry, HISTORY_MAX_SLOTS);
+        this.renderToolHistory();
+        this.requestSave();
+    }
+
+    // Re-apply a stored setting (from a history button): make it the active tool's current
+    // setting, switch to that tool, and move it to the front of the history.
+    applyHistoryEntry(group, entry) {
+        if (group === 'hexcolor') {
+            this.hexColorColor = entry.color;
+            this.hexTexture = entry.texture || null;
+            this.currentToolGroup = 'hexcolor';
+            this.drawMode = 'pen';
+            this.masterColor = this.hexToolColor();
+            if (this.hexTexture && isUserAssetKey(this.hexTexture)) this.plugin.ensureUserAssets([this.hexTexture]);
+        } else {
+            const c = this.toolConfigs[group];
+            if (!c) return;
+            c.currentVariant = entry.variant;
+            c.symbolColor = entry.symbolColor;
+            c.backgroundColor = entry.backgroundColor;
+            c.backgroundEnabled = !!entry.backgroundEnabled;
+            this.currentToolGroup = group;
+            this.drawMode = 'pen';
+            this.masterColor = c.symbolColor;
+            if (isUserAssetKey(c.currentVariant)) this.plugin.ensureUserAssets([c.currentVariant]);
+            const btn = this.containerEl && this.containerEl.querySelector(`[data-tool-group="${group}"]`);
+            if (btn) this.renderSymbolButtonIcon(btn, c.currentVariant, this.variantIconFor(c, c.currentVariant));
+        }
+        if (this.masterColorInput) {
+            this.masterColorInput.value = this.masterColor;
+            if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
+        }
+        this.toolHistory[group] = historyMruPush(this.toolHistory[group], entry, HISTORY_MAX_SLOTS);
+        this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
+        this.render();
+        this.requestSave();
+    }
+
+    // Build the quick-select history row for the ACTIVE drawing tool: one button per stored
+    // setting (newest first). Symbol slots show the variant icon on its colours; hex slots show
+    // a colour/texture hex. Desktop only — phones have no room for a second toolbar row. Hidden
+    // when the active tool has no history (or is not a drawing tool).
+    renderToolHistory() {
+        const row = this.toolHistoryRow;
+        if (!row) return;
+        if (this.deviceViewportClass() === 'phone') { row.empty(); row.style.display = 'none'; return; }
+        const group = HISTORY_TOOL_GROUPS.includes(this.currentToolGroup) ? this.currentToolGroup : null;
+        const list = group ? (this.toolHistory[group] || []) : [];
+        row.empty();
+        if (!list.length) { row.style.display = 'none'; return; }
+        row.style.display = 'flex';
+        for (const entry of list) {
+            const b = row.createEl('button', { cls: 'hex-history-slot' });
+            let tip;
+            if (group === 'hexcolor') {
+                const asset = entry.texture ? this.plugin.getUserAsset(entry.texture) : null;
+                if (entry.texture) tip = this.assetLabelForKey(entry.texture); // texture name
+                else tip = t('tooltip.color'); // plain colour hex
+                if (asset) b.appendChild(this.makeHexImageSvg(this.app.vault.adapter.getResourcePath(asset.filePath), 16));
+                else b.appendChild(this.makeHexPreviewSvg(16, entry.color || DEFAULT_MASTER_COLOR, false));
+            } else {
+                const cfg = this.toolConfigs[group];
+                b.style.background = symbolPreviewBg(entry.symbolColor, entry.backgroundEnabled ? entry.backgroundColor : BUTTON_BG_DEFAULT);
+                b.style.color = entry.symbolColor;
+                tip = this.variantLabelFor(cfg, entry.variant) || t('tooltip.historySlot'); // symbol name
+                this.renderSymbolButtonIcon(b, entry.variant, this.variantIconFor(cfg, entry.variant));
+            }
+            b.setAttribute('title', tip || t('tooltip.historySlot'));
+            b.onclick = () => this.applyHistoryEntry(group, entry);
+        }
+        // Pad to the max with invisible placeholders so the real slots stay left-aligned at the
+        // same fixed gap (space-between then only spreads the full six edge-to-edge).
+        for (let i = list.length; i < HISTORY_MAX_SLOTS; i++) {
+            row.createDiv({ cls: 'hex-history-slot', attr: { style: 'visibility: hidden; pointer-events: none;' } });
+        }
+    }
+
+    // Display name of a user-asset key (texture/symbol): the registry label if loaded, else the
+    // name derived from the key. Mirrors variantLabelFor's user-asset fallback.
+    assetLabelForKey(key) {
+        const asset = this.plugin.getUserAsset(key);
+        if (asset && asset.label) return asset.label;
+        return key.slice(key.indexOf(':', USER_ASSET_PREFIX.length) + 1);
     }
 
 
@@ -12093,6 +12275,7 @@ class HexCartographerView extends ItemView {
                     drawMode: !this.editMode && this._savedDrawMode ? this._savedDrawMode : this.drawMode,
                     currentToolGroup: !this.editMode && this._savedToolGroup !== undefined ? this._savedToolGroup : this.currentToolGroup,
                     toolConfigs: toolConfigsToSave,
+                    toolHistory: this.toolHistory,
                     patternData: this.patternData,
                     patternSourceHex: this.patternSourceHex,
                     borderSettings: this.borderSettings,
