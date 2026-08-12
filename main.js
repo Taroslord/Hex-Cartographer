@@ -343,6 +343,13 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Wiederholen\nStrg+Y: Rückgängig gemachte Aktion wiederholen',
         'tooltip.fit': 'Karte einpassen\nKlick: Fenster mit gesamter Karte ausfüllen',
         'tooltip.settings': 'Einstellungen',
+        'tooltip.info': 'Karteninformationen',
+        'info.title': 'Karteninformationen',
+        'info.createdBy': 'Karte erstellt von:',
+        'info.lastEditedBy': 'Zuletzt bearbeitet von:',
+        'info.on': 'am',
+        'info.exportSize': 'Aktuelle Bildgröße für Export:',
+        'info.anonymous': 'Anonym',
         'tooltip.historySlot': 'Zuletzt verwendet',
         'tooltip.color': 'Farbe',
         'tooltip.palette': 'Farbpalette\nKlick: Farbe als aktuelle Farbe übernehmen\nRechtsklick: Palettenfarbe ändern',
@@ -440,7 +447,7 @@ const TRANSLATIONS = {
         'conflict.compare': 'Vergleichen',
         'settings.authorSection': 'Autor',
         'settings.authorName': 'Autor-Name',
-        'settings.authorNameDesc': 'Wird bei Neuerstellung als „author" und bei jeder Änderung als „editor" in die Karte geschrieben. Leer lassen → anonyme Geräte-ID.',
+        'settings.authorNameDesc': 'Trage hier Deinen Namen ein. Erstellst Du neue Karten, wirst Du als Autor vermerkt. Bei Änderungen wird Dein Name ebenfalls in der Karte vermerkt. Über das Info-Symbol in der Werkzeugleiste siehst Du, wer die Karte erstellt hat und wer sie zuletzt bearbeitet hat.',
         'settings.authorNamePlaceholder': 'z. B. Alex',
         'settings.undoSteps': 'Undo-Schritte',
         'settings.undoStepsDesc': 'Wie viele Schritte rückgängig gemacht werden können. Jeder Schritt speichert die gesamte Karte — ein zu hoher Wert verbraucht viel Arbeitsspeicher (Standard 50, max. 200).',
@@ -675,6 +682,13 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Redo\nCtrl+Y: Redo undone action',
         'tooltip.fit': 'Fit Map\nClick: Fit entire map to window',
         'tooltip.settings': 'Settings',
+        'tooltip.info': 'Map info',
+        'info.title': 'Map info',
+        'info.createdBy': 'Map created by:',
+        'info.lastEditedBy': 'Last edited by:',
+        'info.on': 'on',
+        'info.exportSize': 'Current export image size:',
+        'info.anonymous': 'Anonymous',
         'tooltip.historySlot': 'Recently used',
         'tooltip.color': 'Color',
         'tooltip.palette': 'Color Palette\nClick: Use as current color\nRight-click: Change palette color',
@@ -772,7 +786,7 @@ const TRANSLATIONS = {
         'conflict.compare': 'Compare',
         'settings.authorSection': 'Author',
         'settings.authorName': 'Author name',
-        'settings.authorNameDesc': 'Written into a map as “author” on creation and as “editor” on every edit. Leave empty → anonymous device id.',
+        'settings.authorNameDesc': 'Enter your name here. When you create new maps, you are recorded as the author. When you make changes, your name is also recorded in the map. Use the info icon in the toolbar to see who created a map and who last edited it.',
         'settings.authorNamePlaceholder': 'e.g. Alex',
         'settings.undoSteps': 'Undo steps',
         'settings.undoStepsDesc': 'How many steps can be undone. Each step stores the entire map — too high a value uses a lot of memory (default 50, max. 200).',
@@ -999,6 +1013,13 @@ const TRANSLATIONS = {
         'tooltip.redo': '重做\nCtrl+Y：重做已撤销的操作',
         'tooltip.fit': '适应地图\n点击：在窗口中显示整个地图',
         'tooltip.settings': '设置',
+        'tooltip.info': '地图信息',
+        'info.title': '地图信息',
+        'info.createdBy': '地图创建者：',
+        'info.lastEditedBy': '最后编辑者：',
+        'info.on': '·',
+        'info.exportSize': '当前导出图像尺寸：',
+        'info.anonymous': '匿名',
         'tooltip.historySlot': '最近使用',
         'tooltip.color': '颜色',
         'tooltip.palette': '调色板\n点击：设为当前颜色\n右键点击：更改调色板颜色',
@@ -1082,7 +1103,7 @@ const TRANSLATIONS = {
         'conflict.compare': '比较',
         'settings.authorSection': '作者',
         'settings.authorName': '作者名称',
-        'settings.authorNameDesc': '创建时作为“author”、每次编辑时作为“editor”写入地图。留空 → 匿名设备 ID。',
+        'settings.authorNameDesc': '在此输入你的名字。创建新地图时，你会被记录为作者。进行修改时，你的名字也会记录在地图中。使用工具栏中的信息图标可查看地图的创建者和最后编辑者。',
         'settings.authorNamePlaceholder': '例如 Alex',
         'settings.undoSteps': '撤销步数',
         'settings.undoStepsDesc': '可撤销的步数。每一步都会保存整张地图——数值过大会占用大量内存（默认 50，最大 200）。',
@@ -1303,6 +1324,13 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Повторить\nCtrl+Y: Повторить отменённое действие',
         'tooltip.fit': 'Вписать карту\nКлик: Показать всю карту в окне',
         'tooltip.settings': 'Настройки',
+        'tooltip.info': 'Информация о карте',
+        'info.title': 'Информация о карте',
+        'info.createdBy': 'Карта создана:',
+        'info.lastEditedBy': 'Последнее изменение:',
+        'info.on': '·',
+        'info.exportSize': 'Текущий размер изображения для экспорта:',
+        'info.anonymous': 'Аноним',
         'tooltip.historySlot': 'Недавно использованные',
         'tooltip.color': 'Цвет',
         'tooltip.palette': 'Палитра цветов\nКлик: Использовать как текущий цвет\nПравый клик: Изменить цвет палитры',
@@ -1386,7 +1414,7 @@ const TRANSLATIONS = {
         'conflict.compare': 'Сравнить',
         'settings.authorSection': 'Автор',
         'settings.authorName': 'Имя автора',
-        'settings.authorNameDesc': 'Записывается в карту как «author» при создании и как «editor» при каждом изменении. Пусто → анонимный ID устройства.',
+        'settings.authorNameDesc': 'Введите здесь своё имя. При создании новых карт вы указываетесь как автор. При изменениях ваше имя также записывается в карту. Значок информации на панели инструментов показывает, кто создал карту и кто редактировал её последним.',
         'settings.authorNamePlaceholder': 'напр. Alex',
         'settings.undoSteps': 'Шаги отмены',
         'settings.undoStepsDesc': 'Сколько шагов можно отменить. Каждый шаг сохраняет всю карту — слишком большое значение расходует много памяти (по умолчанию 50, макс. 200).',
@@ -1607,6 +1635,13 @@ const TRANSLATIONS = {
         'tooltip.redo': 'やり直し\nCtrl+Y：元に戻した操作をやり直す',
         'tooltip.fit': 'マップを合わせる\nクリック：ウィンドウにマップ全体を表示',
         'tooltip.settings': '設定',
+        'tooltip.info': 'マップ情報',
+        'info.title': 'マップ情報',
+        'info.createdBy': 'マップ作成者：',
+        'info.lastEditedBy': '最終編集者：',
+        'info.on': '·',
+        'info.exportSize': '現在のエクスポート画像サイズ：',
+        'info.anonymous': '匿名',
         'tooltip.historySlot': '最近使用した設定',
         'tooltip.color': '色',
         'tooltip.palette': 'カラーパレット\nクリック：現在の色として使用\n右クリック：パレットの色を変更',
@@ -1690,7 +1725,7 @@ const TRANSLATIONS = {
         'conflict.compare': '比較',
         'settings.authorSection': '作者',
         'settings.authorName': '作者名',
-        'settings.authorNameDesc': '作成時に「author」、編集ごとに「editor」としてマップに書き込まれます。空欄 → 匿名のデバイスID。',
+        'settings.authorNameDesc': 'ここに名前を入力します。新しいマップを作成すると、作成者として記録されます。変更を加えると、あなたの名前もマップに記録されます。ツールバーの情報アイコンで、マップの作成者と最終編集者を確認できます。',
         'settings.authorNamePlaceholder': '例：Alex',
         'settings.undoSteps': '元に戻す回数',
         'settings.undoStepsDesc': '元に戻せる回数。各ステップはマップ全体を保存するため、値が大きすぎるとメモリを大量に消費します（既定 50、最大 200）。',
@@ -1911,6 +1946,13 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Rétablir\nCtrl+Y : Rétablir l\'action annulée',
         'tooltip.fit': 'Ajuster la carte\nClic : Afficher toute la carte dans la fenêtre',
         'tooltip.settings': 'Paramètres',
+        'tooltip.info': 'Infos de la carte',
+        'info.title': 'Infos de la carte',
+        'info.createdBy': 'Carte créée par :',
+        'info.lastEditedBy': 'Dernière modification par :',
+        'info.on': 'le',
+        'info.exportSize': 'Taille d’image d’export actuelle :',
+        'info.anonymous': 'Anonyme',
         'tooltip.historySlot': 'Récemment utilisé',
         'tooltip.color': 'Couleur',
         'tooltip.palette': 'Palette de couleurs\nClic : Utiliser comme couleur actuelle\nClic droit : Modifier la couleur de la palette',
@@ -1994,7 +2036,7 @@ const TRANSLATIONS = {
         'conflict.compare': 'Comparer',
         'settings.authorSection': 'Auteur',
         'settings.authorName': 'Nom de l’auteur',
-        'settings.authorNameDesc': 'Inscrit dans la carte comme « author » à la création et « editor » à chaque modification. Vide → identifiant d’appareil anonyme.',
+        'settings.authorNameDesc': 'Saisissez votre nom ici. Lorsque vous créez de nouvelles cartes, vous êtes enregistré comme auteur. Lors de modifications, votre nom est aussi inscrit dans la carte. L’icône d’information dans la barre d’outils indique qui a créé la carte et qui l’a modifiée en dernier.',
         'settings.authorNamePlaceholder': 'p. ex. Alex',
         'settings.undoSteps': 'Étapes d’annulation',
         'settings.undoStepsDesc': 'Nombre d’étapes annulables. Chaque étape enregistre toute la carte — une valeur trop élevée consomme beaucoup de mémoire (par défaut 50, max. 200).',
@@ -2215,6 +2257,13 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Refazer\nCtrl+Y: Refazer ação desfeita',
         'tooltip.fit': 'Ajustar mapa\nClique: Exibir o mapa inteiro na janela',
         'tooltip.settings': 'Configurações',
+        'tooltip.info': 'Informações do mapa',
+        'info.title': 'Informações do mapa',
+        'info.createdBy': 'Mapa criado por:',
+        'info.lastEditedBy': 'Última edição por:',
+        'info.on': 'em',
+        'info.exportSize': 'Tamanho de imagem de exportação atual:',
+        'info.anonymous': 'Anónimo',
         'tooltip.historySlot': 'Usado recentemente',
         'tooltip.color': 'Cor',
         'tooltip.palette': 'Paleta de cores\nClique: Usar como cor atual\nClique direito: Alterar cor da paleta',
@@ -2298,7 +2347,7 @@ const TRANSLATIONS = {
         'conflict.compare': 'Comparar',
         'settings.authorSection': 'Autor',
         'settings.authorName': 'Nome do autor',
-        'settings.authorNameDesc': 'Gravado no mapa como «author» na criação e «editor» em cada edição. Vazio → id de dispositivo anónimo.',
+        'settings.authorNameDesc': 'Introduza aqui o seu nome. Ao criar novos mapas, é registado como autor. Ao fazer alterações, o seu nome também é registado no mapa. Use o ícone de informação na barra de ferramentas para ver quem criou o mapa e quem o editou pela última vez.',
         'settings.authorNamePlaceholder': 'ex. Alex',
         'settings.undoSteps': 'Passos de desfazer',
         'settings.undoStepsDesc': 'Quantos passos podem ser desfeitos. Cada passo guarda o mapa inteiro — um valor demasiado alto usa muita memória (predefinição 50, máx. 200).',
@@ -2519,6 +2568,13 @@ const TRANSLATIONS = {
         'tooltip.redo': '다시 실행\nCtrl+Y: 취소한 작업 다시 실행',
         'tooltip.fit': '지도 맞추기\n클릭: 창에 전체 지도 표시',
         'tooltip.settings': '설정',
+        'tooltip.info': '지도 정보',
+        'info.title': '지도 정보',
+        'info.createdBy': '지도 작성자:',
+        'info.lastEditedBy': '마지막 편집자:',
+        'info.on': '·',
+        'info.exportSize': '현재 내보내기 이미지 크기:',
+        'info.anonymous': '익명',
         'tooltip.historySlot': '최근 사용',
         'tooltip.color': '색상',
         'tooltip.palette': '색상 팔레트\n클릭: 현재 색상으로 사용\n우클릭: 팔레트 색상 변경',
@@ -2602,7 +2658,7 @@ const TRANSLATIONS = {
         'conflict.compare': '비교',
         'settings.authorSection': '작성자',
         'settings.authorName': '작성자 이름',
-        'settings.authorNameDesc': '생성 시 "author", 편집 시마다 "editor"로 지도에 기록됩니다. 비워 두면 → 익명 기기 ID.',
+        'settings.authorNameDesc': '여기에 이름을 입력하세요. 새 지도를 만들면 작성자로 기록됩니다. 변경하면 이름이 지도에도 기록됩니다. 도구 모음의 정보 아이콘으로 지도를 만든 사람과 마지막으로 편집한 사람을 확인할 수 있습니다.',
         'settings.authorNamePlaceholder': '예: Alex',
         'settings.undoSteps': '실행 취소 단계',
         'settings.undoStepsDesc': '되돌릴 수 있는 단계 수. 각 단계는 지도 전체를 저장하므로 값이 너무 크면 메모리를 많이 사용합니다(기본 50, 최대 200).',
@@ -2823,6 +2879,13 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Rehacer\nCtrl+Y: Rehacer acción deshecha',
         'tooltip.fit': 'Ajustar mapa\nClic: Ajustar ventana al mapa completo',
         'tooltip.settings': 'Configuración',
+        'tooltip.info': 'Información del mapa',
+        'info.title': 'Información del mapa',
+        'info.createdBy': 'Mapa creado por:',
+        'info.lastEditedBy': 'Última edición por:',
+        'info.on': 'el',
+        'info.exportSize': 'Tamaño de imagen de exportación actual:',
+        'info.anonymous': 'Anónimo',
         'tooltip.historySlot': 'Usado recientemente',
         'tooltip.color': 'Color',
         'tooltip.palette': 'Paleta de colores\nClic: Usar como color actual\nClic derecho: Cambiar color de paleta',
@@ -2906,7 +2969,7 @@ const TRANSLATIONS = {
         'conflict.compare': 'Comparar',
         'settings.authorSection': 'Autor',
         'settings.authorName': 'Nombre del autor',
-        'settings.authorNameDesc': 'Se escribe en el mapa como «author» al crear y como «editor» en cada edición. Vacío → id de dispositivo anónimo.',
+        'settings.authorNameDesc': 'Escribe aquí tu nombre. Al crear nuevos mapas, quedarás registrado como autor. Al hacer cambios, tu nombre también se registra en el mapa. Usa el icono de información de la barra de herramientas para ver quién creó el mapa y quién lo editó por última vez.',
         'settings.authorNamePlaceholder': 'p. ej. Alex',
         'settings.undoSteps': 'Pasos de deshacer',
         'settings.undoStepsDesc': 'Cuántos pasos se pueden deshacer. Cada paso guarda todo el mapa: un valor demasiado alto consume mucha memoria (predeterminado 50, máx. 200).',
@@ -3127,6 +3190,13 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Ponów\nCtrl+Y: Ponów cofniętą akcję',
         'tooltip.fit': 'Dopasuj mapę\nKliknij: Dopasuj okno do całej mapy',
         'tooltip.settings': 'Ustawienia',
+        'tooltip.info': 'Informacje o mapie',
+        'info.title': 'Informacje o mapie',
+        'info.createdBy': 'Mapa utworzona przez:',
+        'info.lastEditedBy': 'Ostatnio edytowane przez:',
+        'info.on': '·',
+        'info.exportSize': 'Aktualny rozmiar obrazu eksportu:',
+        'info.anonymous': 'Anonim',
         'tooltip.historySlot': 'Ostatnio używane',
         'tooltip.color': 'Kolor',
         'tooltip.palette': 'Paleta kolorów\nKliknij: Użyj jako aktualny kolor\nPrawy przycisk: Zmień kolor palety',
@@ -3210,7 +3280,7 @@ const TRANSLATIONS = {
         'conflict.compare': 'Porównaj',
         'settings.authorSection': 'Autor',
         'settings.authorName': 'Imię autora',
-        'settings.authorNameDesc': 'Zapisywane w mapie jako „author" przy tworzeniu i „editor" przy każdej zmianie. Puste → anonimowy identyfikator urządzenia.',
+        'settings.authorNameDesc': 'Wpisz tutaj swoje imię. Podczas tworzenia nowych map zostaniesz zapisany jako autor. Przy zmianach Twoje imię również zapisywane jest w mapie. Ikona informacji na pasku narzędzi pokazuje, kto utworzył mapę i kto ostatnio ją edytował.',
         'settings.authorNamePlaceholder': 'np. Alex',
         'settings.undoSteps': 'Kroki cofania',
         'settings.undoStepsDesc': 'Ile kroków można cofnąć. Każdy krok zapisuje całą mapę — zbyt duża wartość zużywa dużo pamięci (domyślnie 50, maks. 200).',
@@ -3431,6 +3501,13 @@ const TRANSLATIONS = {
         'tooltip.redo': 'Ripeti\nCtrl+Y: Ripeti azione annullata',
         'tooltip.fit': 'Adatta mappa\nClic: Adatta finestra all\'intera mappa',
         'tooltip.settings': 'Impostazioni',
+        'tooltip.info': 'Informazioni mappa',
+        'info.title': 'Informazioni mappa',
+        'info.createdBy': 'Mappa creata da:',
+        'info.lastEditedBy': 'Ultima modifica di:',
+        'info.on': 'il',
+        'info.exportSize': 'Dimensione immagine di esportazione attuale:',
+        'info.anonymous': 'Anonimo',
         'tooltip.historySlot': 'Usato di recente',
         'tooltip.color': 'Colore',
         'tooltip.palette': 'Tavolozza colori\nClic: Usa come colore attuale\nClic destro: Cambia colore tavolozza',
@@ -3514,7 +3591,7 @@ const TRANSLATIONS = {
         'conflict.compare': 'Confronta',
         'settings.authorSection': 'Autore',
         'settings.authorName': 'Nome autore',
-        'settings.authorNameDesc': 'Scritto nella mappa come «author» alla creazione e «editor» a ogni modifica. Vuoto → id dispositivo anonimo.',
+        'settings.authorNameDesc': 'Inserisci qui il tuo nome. Quando crei nuove mappe, verrai registrato come autore. Quando apporti modifiche, il tuo nome viene registrato anche nella mappa. Usa l’icona informazioni nella barra degli strumenti per vedere chi ha creato la mappa e chi l’ha modificata per ultimo.',
         'settings.authorNamePlaceholder': 'es. Alex',
         'settings.undoSteps': 'Passi di annullamento',
         'settings.undoStepsDesc': 'Quanti passi si possono annullare. Ogni passo salva l’intera mappa — un valore troppo alto usa molta memoria (predefinito 50, max 200).',
@@ -6479,7 +6556,8 @@ class HexCartographerView extends ItemView {
         const fitBtn = this.createToolButton(toolbar, { icon: 'maximize-2', title: t('tooltip.fit') });
         fitBtn.onclick = () => this.fitMapToView();
 
-        const hexOrientationBtn = this.createToolButton(toolbar, { icon: 'rotate-cw', title: t('tooltip.hexOrientation') });
+        // Hex orientation is an edit action -> lives in editContent (hidden when edit mode is off).
+        const hexOrientationBtn = this.createToolButton(this.editContent, { icon: 'rotate-cw', title: t('tooltip.hexOrientation') });
         this.hexOrientationBtn = hexOrientationBtn;
         this.syncHexOrientationButton();
         hexOrientationBtn.onclick = () => {
@@ -6495,6 +6573,10 @@ class HexCartographerView extends ItemView {
             this.render();
             this.requestSave();
         };
+
+        // Info: who created / last edited this map. Always visible (also outside edit mode).
+        const infoBtn = this.createToolButton(toolbar, { icon: 'info', title: t('tooltip.info') });
+        infoBtn.onclick = () => new MapInfoModal(this.app, this).open();
 
         const settingsBtn = this.createToolButton(toolbar, { icon: 'settings', title: t('tooltip.settings') });
         settingsBtn.onclick = () => {
@@ -12736,6 +12818,62 @@ class NumberInputModal extends Modal {
         ok.onclick = submit;
         input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
         setTimeout(() => { input.focus(); input.select(); }, 0);
+    }
+
+    onClose() { this.contentEl.empty(); }
+}
+
+// Small popup from the toolbar's info button: who created the map and who last edited it.
+// A stored value that is an anonymous device id (no author name set, i.e. "dev-…") is shown
+// as "Anonymous" instead of the raw id.
+class MapInfoModal extends Modal {
+    constructor(app, view) {
+        super(app);
+        this.view = view;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        this.titleEl.setText(t('info.title'));
+        const display = (v) => {
+            const s = (v || '').trim();
+            return (!s || s.startsWith('dev-')) ? t('info.anonymous') : s;
+        };
+        const data = this.view.data || {};
+        const row = (label, value) => {
+            const p = contentEl.createEl('p', { attr: { style: 'margin: 6px 0;' } });
+            p.createSpan({ text: label + ' ', attr: { style: 'color: var(--text-muted);' } });
+            p.createSpan({ text: value });
+        };
+        // Both lines get a "when": the file's creation time (stat.ctime) and the last-edit time
+        // (data.lastModified — content-based, so it is stable across devices). Date + time are
+        // formatted for the active UI language via Intl, i.e. culture-correct 24h / AM-PM
+        // (DE "01.01.1970 - 11:25", US "01/01/1970 - 11:25 AM"). Time is hh:mm only.
+        const fmtDate = (d) => new Intl.DateTimeFormat(currentLanguage, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
+        const fmtTime = (d) => new Intl.DateTimeFormat(currentLanguage, { hour: '2-digit', minute: '2-digit' }).format(d);
+        const whenFull = (ms) => { const d = new Date(ms); return isNaN(d.getTime()) ? '' : `${fmtDate(d)} - ${fmtTime(d)}`; };
+        const withWhen = (who, when) => when ? `${who} ${t('info.on')} ${when}` : who;
+
+        const stat = this.view.file && this.view.file.stat;
+        const fm = this.view.file ? this.app.metadataCache.getFileCache(this.view.file)?.frontmatter : null;
+        let createdWhen = '';
+        if (stat && Number.isFinite(stat.ctime)) createdWhen = whenFull(stat.ctime);
+        else if (fm && fm.created) { const d = new Date(fm.created); if (!isNaN(d.getTime())) createdWhen = fmtDate(d); }
+        let editedWhen = '';
+        if (Number.isFinite(data.lastModified)) editedWhen = whenFull(data.lastModified);
+        else if (stat && Number.isFinite(stat.mtime)) editedWhen = whenFull(stat.mtime);
+
+        row(t('info.createdBy'), withWhen(display(data.author), createdWhen));
+        row(t('info.lastEditedBy'), withWhen(display(data.editor), editedWhen));
+
+        // Export image size the current map + configured width would produce (width × height,
+        // same maths as the export). Omitted when the map has no content (nothing to export).
+        const size = typeof this.view.getMapWorldSize === 'function' ? this.view.getMapWorldSize() : null;
+        if (size && size.w > 0 && size.h > 0) {
+            const ew = this.view.plugin.settings.exportWidth || 1024;
+            const eh = Math.round(ew / (size.w / size.h));
+            row(t('info.exportSize'), `${ew} × ${eh} px`);
+        }
     }
 
     onClose() { this.contentEl.empty(); }
