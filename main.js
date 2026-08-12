@@ -8538,7 +8538,9 @@ class HexCartographerView extends ItemView {
                     }
                 }
             }
-            if (this.isMouseDown || this.draggedText || this.isDraggingMap) this.requestSave();
+            // Content edits save the file; a pure map pan only persists the per-device viewport.
+            if (this.isMouseDown || this.draggedText) this.requestSave();
+            else if (this.isDraggingMap) this.persistViewport();
             this.isMouseDown = false;
             this.isDraggingMap = false;
             this.draggedText = null;
@@ -8571,7 +8573,7 @@ class HexCartographerView extends ItemView {
             this.data.zoom = newZoom;
 
             this.render();
-            this.requestSave();
+            this.persistViewport();
         }, { passive: false });
 
         this.touchState = {
@@ -9154,7 +9156,9 @@ class HexCartographerView extends ItemView {
                         }
                     }
                 }
-                if (this.isMouseDown || this.draggedText || this.touchState.hasMovedSinceStart) this.requestSave();
+                // Content edits save the file; a pinch/pan gesture only persists the viewport.
+                if (this.isMouseDown || this.draggedText) this.requestSave();
+                else if (this.touchState.hasMovedSinceStart) this.persistViewport();
 
                 if (this.editMode && this.drawMode === 'eraser' && e.changedTouches.length > 0) {
                     const tapTouch = e.changedTouches[0];
@@ -12422,6 +12426,17 @@ class HexCartographerView extends ItemView {
         this.saveTimeout = setTimeout(() => { this.saveTimeout = null; this.saveData(); }, 1000);
     }
 
+    // Persist the current pan/zoom to this device's viewport bucket WITHOUT writing the map
+    // file. Navigation is per-device and stripped from the file, so a full requestSave() here
+    // would only rewrite unchanged content — churning Obsidian Sync and, via the saveTimeout
+    // guard in the modify handler, blocking incoming remote changes until the map is reopened.
+    persistViewport() {
+        if (!this.canvas || !this.data.zoom) return;
+        const cx = (this.canvas.width / 2 - this.data.offX) / this.data.zoom;
+        const cy = (this.canvas.height / 2 - this.data.offY) / this.data.zoom;
+        this.writeViewport(cx, cy, this.data.zoom);
+    }
+
     // Which viewport bucket this device uses. Platform is the reliable source; the
     // touch heuristic is only a fallback for hosts where Platform is unavailable.
     // Deliberately coarse — desktop / tablet / phone, no OS, no per-device id — so the
@@ -12505,7 +12520,12 @@ class HexCartographerView extends ItemView {
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;
 
-        if (!this._initialResizeDone) {
+        // (Re)apply the stored device viewport on the first sizing — AND whenever the current
+        // offset is invalid. The latter happens when a Sync reload replaces this.data while the
+        // tab is in the background (canvas not yet sized): applyDeviceViewport() no-ops there and
+        // the file carries no offset, so offX/offY end up undefined. Without this, switching back
+        // to the tab left an offset map with dead panning (NaN offsets) until a full reopen.
+        if (!this._initialResizeDone || !Number.isFinite(this.data.offX) || !Number.isFinite(this.data.offY)) {
             this._initialResizeDone = true;
             if (!this.applyDeviceViewport()) {
                 this.data.offX = this.canvas.width / 2;
@@ -13809,19 +13829,6 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     });
             });
 
-        // Show hexes: the grid border toggle, stored inverted (hideHexBorders).
-        new Setting(containerEl)
-            .setName(t('settings.hexBorderVisibility'))
-            .setDesc(t('settings.hexBorderVisibilityDesc'))
-            .addToggle(toggle => {
-                toggle.setValue(!this.plugin.settings.hideHexBorders)
-                    .onChange(async (value) => {
-                        this.plugin.settings.hideHexBorders = !value;
-                        await this.plugin.saveSettings();
-                        renderOpenMaps();
-                    });
-            });
-
         // Thumbnails: preview images instead of names in the selection menu.
         new Setting(containerEl)
             .setName(t('settings.userAssetPreview'))
@@ -13861,13 +13868,26 @@ class HexCartographerSettingTab extends PluginSettingTab {
             });
 
         // ── Hex options ───────────────────────────────────────────
-        // Collapsible group: frame colour/transparency and numbering.
-        // Stay open only when the user adjusted an actual option here: border colour,
-        // transparency, or the "Numbering" checkbox. Numbering sub-options don't count
-        // (they hang off the checkbox), so a Reset really collapses the section again.
-        const HEX_OPTION_KEYS = ['hexBorderColor', 'hexBorderOpacity', 'hexNumberingEnabled'];
+        // Collapsible group: border visibility, frame colour/transparency and numbering.
+        // Stay open only when the user adjusted an actual option here: border visibility,
+        // border colour, transparency, or the "Numbering" checkbox. Numbering sub-options
+        // don't count (they hang off the checkbox), so a Reset really collapses it again.
+        const HEX_OPTION_KEYS = ['hideHexBorders', 'hexBorderColor', 'hexBorderOpacity', 'hexNumberingEnabled'];
         const hexBody = makeSettingsSection('settings.hexSection',
             HEX_OPTION_KEYS.some(k => this.plugin.settings[k] !== DEFAULT_SETTINGS[k]));
+
+        // Show hexes: the grid border toggle, stored inverted (hideHexBorders).
+        new Setting(hexBody)
+            .setName(t('settings.hexBorderVisibility'))
+            .setDesc(t('settings.hexBorderVisibilityDesc'))
+            .addToggle(toggle => {
+                toggle.setValue(!this.plugin.settings.hideHexBorders)
+                    .onChange(async (value) => {
+                        this.plugin.settings.hideHexBorders = !value;
+                        await this.plugin.saveSettings();
+                        renderOpenMaps();
+                    });
+            });
 
         // Frame colour + transparency: a colour swatch (opens the palette) plus a
         // percent input (100 = fully visible). Shipped defaults are the code's values.
@@ -13912,8 +13932,10 @@ class HexCartographerSettingTab extends PluginSettingTab {
         // ── Custom graphics ───────────────────────────────────────
         // Collapsible via native <details> — Obsidian has no official
         // API. Already configured -> open, otherwise collapsed ("on demand").
+        // Open when a folder is configured OR the clip toggle deviates from its default.
         const anyUserPath = USER_ASSET_CATEGORIES.some(c => this.plugin.settings[c.settingKey]);
-        const assetsBody = makeSettingsSection('settings.userAssets', anyUserPath);
+        const clipChanged = this.plugin.settings.clipUserGraphics !== DEFAULT_SETTINGS.clipUserGraphics;
+        const assetsBody = makeSettingsSection('settings.userAssets', anyUserPath || clipChanged);
         assetsBody.createEl('p', {
             text: t('settings.userAssetsDesc'),
             attr: { style: 'color: var(--text-muted); font-size: 13px; margin-top: 0; white-space: pre-line;' }
