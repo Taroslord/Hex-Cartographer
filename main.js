@@ -5262,7 +5262,7 @@ class HexCartographerView extends ItemView {
     }
 
     rebuildToolbar() {
-        const toolbar = this.containerEl.querySelector('.hex-toolbar');
+        const toolbar = this.hexToolbarEl();
         if (!toolbar) return;
         toolbar.empty();
         this.createToolbar(toolbar);
@@ -5413,7 +5413,7 @@ class HexCartographerView extends ItemView {
     updateToolGroupButtonIcons() {
         if (!this.containerEl) return;
 
-        const toolbar = this.containerEl.querySelector('.hex-toolbar');
+        const toolbar = this.hexToolbarEl();
         if (!toolbar) return;
 
         ['grass', 'tree', 'mountain', 'building'].forEach(groupId => {
@@ -5777,15 +5777,15 @@ class HexCartographerView extends ItemView {
                 if (newData.settings.lastUsedTextAlign !== undefined) this.lastUsedTextAlign = newData.settings.lastUsedTextAlign;
                 if (newData.settings.masterColor) {
                     this.masterColor = newData.settings.masterColor;
-                    if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                    this.syncMasterColorInput();
                 }
                 if (this.currentToolGroup === 'hexcolor') {
                     // newData, not this.data: the map data is only swapped in further below.
                     this.masterColor = this.hexToolColor(newData.textureColors);
-                    if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                    this.syncMasterColorInput();
                 } else if (this.currentToolGroup && this.toolConfigs[this.currentToolGroup]) {
                     this.masterColor = this.toolConfigs[this.currentToolGroup].symbolColor;
-                    if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                    this.syncMasterColorInput();
                 }
             } else {
                 this.updateToolConfigsWithAvailableSVGs();
@@ -5966,7 +5966,7 @@ class HexCartographerView extends ItemView {
             this.loadProjectionImage();
 
             if (this.containerEl) {
-                const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                const toolbar = this.hexToolbarEl();
                 if (toolbar) {
                     this.updateToolbarState(toolbar);
                     if (this.editMode) {
@@ -6418,7 +6418,7 @@ class HexCartographerView extends ItemView {
                 this.currentToolGroup = 'hexcolor';
                 this.drawMode = 'pen';
                 this.masterColor = this.hexToolColor();
-                if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                this.syncMasterColorInput();
             }
             this.recordToolSetting('hexcolor'); // activating the tool records its current setting
             this.updateToolbarState(toolbar);
@@ -6633,12 +6633,12 @@ class HexCartographerView extends ItemView {
             this.currentToolGroup = groupId;
             this.drawMode = 'pen';
             this.masterColor = config.symbolColor;
-            if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+            this.syncMasterColorInput();
 
             this.recordToolSetting(groupId); // activating the tool records its current setting
             // Update the FULL toolbar, not just the cluster row this button lives in — otherwise
             // buttons outside the cluster (e.g. the text tool) keep their old active state.
-            this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
+            this.updateToolbarState(this.hexToolbarEl());
 
             if (needsRender) {
                 this.render();
@@ -6923,7 +6923,7 @@ class HexCartographerView extends ItemView {
     }
 
     hexPreviewPoints() {
-        const angleOffset = this.hexOrientation ? 0 : -30;
+        const angleOffset = this.hexAngleOffset();
         const pts = [];
         for (let i = 0; i < 6; i++) {
             const a = (Math.PI / 180) * (60 * i + angleOffset);
@@ -7045,7 +7045,7 @@ class HexCartographerView extends ItemView {
                 if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
             }
             this.recordToolSetting(groupId); // remember this variant + colours for quick re-pick
-            this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
+            this.updateToolbarState(this.hexToolbarEl());
             this.requestSave();
         };
 
@@ -7119,7 +7119,7 @@ class HexCartographerView extends ItemView {
             }
             this.updateHexColorButtonIcon(btn);
             this.recordToolSetting('hexcolor'); // remember this colour/texture for quick re-pick
-            this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
+            this.updateToolbarState(this.hexToolbarEl());
             this.requestSave();
         };
 
@@ -7198,10 +7198,10 @@ class HexCartographerView extends ItemView {
                 }
                 this.masterColor = this[paletteKey][index];
                 if (this.currentToolGroup === 'hexcolor') this.hexColorColor = this.masterColor;
-                if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                this.syncMasterColorInput();
                 this.updateActivePathColor();
                 this.recordToolSetting(this.currentToolGroup); // colour committed -> remember it
-                const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                const toolbar = this.hexToolbarEl();
                 if (toolbar) this.updateToolbarState(toolbar);
             };
 
@@ -7212,7 +7212,7 @@ class HexCartographerView extends ItemView {
                         btn.style.backgroundColor = color;
                         hiddenInput.value = color;
                         this.masterColor = color;
-                        if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                        this.syncMasterColorInput();
                         this.updateActivePathColor();
                         this.requestSave();
                     }).open();
@@ -7232,7 +7232,7 @@ class HexCartographerView extends ItemView {
                 this[paletteKey][index] = e.target.value;
                 btn.style.backgroundColor = e.target.value;
                 this.masterColor = e.target.value;
-                if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                this.syncMasterColorInput();
                 this.updateActivePathColor();
             };
             hiddenInput.addEventListener('change', () => {
@@ -7260,7 +7260,7 @@ class HexCartographerView extends ItemView {
             this.currentToolGroup = 'river';
             this.drawMode = 'pen';
             this.masterColor = this.riverSettings.color || DEFAULT_RIVER_COLOR;
-            if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+            this.syncMasterColorInput();
             this.updateToolbarState(toolbar);
             if (needsRender) this.render();
             this.requestSave();
@@ -7278,7 +7278,7 @@ class HexCartographerView extends ItemView {
             this.currentToolGroup = 'road';
             this.drawMode = 'pen';
             this.masterColor = this.roadSettings.color || DEFAULT_ROAD_COLOR;
-            if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+            this.syncMasterColorInput();
             this.updateToolbarState(toolbar);
             if (needsRender) this.render();
             this.requestSave();
@@ -7415,7 +7415,7 @@ class HexCartographerView extends ItemView {
             this.riverSettings.editMode = true;
             this.riverSettings.insertAfter = path.waypoints.length - 1;
             this.masterColor = path.color;
-            if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+            this.syncMasterColorInput();
             if (this.riverWidthInput) this.riverWidthInput.value = path.width.toString();
             this.pathDashes = path.dashes || DEFAULT_PATH_DASHES;
             if (this.pathDashesInput) this.pathDashesInput.value = this.pathDashes.toString();
@@ -7427,7 +7427,7 @@ class HexCartographerView extends ItemView {
             this.roadSettings.editMode = true;
             this.roadSettings.insertAfter = path.waypoints.length - 1;
             this.masterColor = path.color;
-            if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+            this.syncMasterColorInput();
             if (this.roadWidthInput) this.roadWidthInput.value = path.width.toString();
             this.pathDashes = path.dashes || DEFAULT_PATH_DASHES;
             if (this.pathDashesInput) this.pathDashesInput.value = this.pathDashes.toString();
@@ -7440,7 +7440,7 @@ class HexCartographerView extends ItemView {
             this.pathPickerBtn.style.color = '';
         }
         this.drawMode = 'pen';
-        const toolbar = this.containerEl.querySelector('.hex-toolbar');
+        const toolbar = this.hexToolbarEl();
         if (toolbar) this.updateToolbarState(toolbar);
         this.render();
         this.requestSave();
@@ -7454,7 +7454,7 @@ class HexCartographerView extends ItemView {
         if (foundRiver && foundRoad) {
             this.pathPickPending = { river: foundRiver, road: foundRoad };
             new Notice(t('notice.chooseRiverOrRoad'));
-            const toolbar = this.containerEl.querySelector('.hex-toolbar');
+            const toolbar = this.hexToolbarEl();
             if (toolbar) this.updateToolbarState(toolbar);
             return;
         }
@@ -7477,7 +7477,7 @@ class HexCartographerView extends ItemView {
                 this.pathPickerBtn.style.color = '';
             }
             this.drawMode = 'pen';
-            const toolbar = this.containerEl.querySelector('.hex-toolbar');
+            const toolbar = this.hexToolbarEl();
             if (toolbar) this.updateToolbarState(toolbar);
             this.render();
         }
@@ -7519,12 +7519,12 @@ class HexCartographerView extends ItemView {
                 this.hexTexture = null;
                 this.updateHexColorButtonIcon(this.hexColorBtn);
             }
-            const toolbar = this.containerEl.querySelector('.hex-toolbar');
+            const toolbar = this.hexToolbarEl();
             if (toolbar) this.updateToolbarState(toolbar);
             this.requestSave();
         } else if (this.currentToolGroup && this.toolConfigs[this.currentToolGroup]) {
             this.toolConfigs[this.currentToolGroup].symbolColor = this.masterColor;
-            const toolbar = this.containerEl.querySelector('.hex-toolbar');
+            const toolbar = this.hexToolbarEl();
             if (toolbar) this.updateToolbarState(toolbar);
         }
     }
@@ -7599,7 +7599,7 @@ class HexCartographerView extends ItemView {
             this.currentToolGroup = 'border';
             this.drawMode = 'pen';
             this.masterColor = this.borderSettings.color || DEFAULT_BORDER_COLOR;
-            if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+            this.syncMasterColorInput();
             if (wasHidden) this.borderSettings.visible = true;
             this.updateToolbarState(toolbar);
             if (wasPatternActive || wasHidden) {
@@ -7784,12 +7784,24 @@ class HexCartographerView extends ItemView {
         btn.style.boxShadow = pointyTop ? ACTIVE_BOX_SHADOW : '';
     }
 
+    // Reflect this.masterColor in the master colour input + swatch (both absent during build).
+    syncMasterColorInput() {
+        if (!this.masterColorInput) return;
+        this.masterColorInput.value = this.masterColor;
+        if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
+    }
+
+    // The toolbar element (null until it is built).
+    hexToolbarEl() {
+        return this.containerEl.querySelector('.hex-toolbar');
+    }
+
     updateToolbarState(toolbar) {
         // Always refresh the FULL toolbar. Several callers pass a sub-container (the tool cluster
         // row, editContent, a path/border sub-toolbar); without this, buttons OUTSIDE that
         // container keep a stale active state (e.g. the text tool staying lit after switching to a
         // symbol tool). Fall back to the passed element only before the toolbar exists.
-        toolbar = (this.containerEl && this.containerEl.querySelector('.hex-toolbar')) || toolbar;
+        toolbar = (this.containerEl && this.hexToolbarEl()) || toolbar;
         if (!toolbar) return;
         if (this.editModeBtn) {
             this.editModeBtn.classList.toggle('active', this.editMode);
@@ -7968,7 +7980,7 @@ class HexCartographerView extends ItemView {
             if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
         }
         this.toolHistory[group] = historyMruPush(this.toolHistory[group], entry, HISTORY_MAX_SLOTS);
-        this.updateToolbarState(this.containerEl.querySelector('.hex-toolbar'));
+        this.updateToolbarState(this.hexToolbarEl());
         this.render();
         this.requestSave();
     }
@@ -8254,7 +8266,7 @@ class HexCartographerView extends ItemView {
                     const pixel = this.ctx.getImageData(cx, cy, 1, 1).data;
                     if (pixel[3] > 0) {
                         this.masterColor = rgbToHex(pixel[0], pixel[1], pixel[2]);
-                        if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                        this.syncMasterColorInput();
                         this.updateActivePathColor();
                         new Notice(t('notice.colorPicked'));
                     } else {
@@ -8266,7 +8278,7 @@ class HexCartographerView extends ItemView {
                 this.colorPickMode = false;
                 if (this.colorEyedropperBtn) { this.colorEyedropperBtn.style.background = BUTTON_BG_DEFAULT; this.colorEyedropperBtn.style.color = ''; }
                 this.isMouseDown = false;
-                const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                const toolbar = this.hexToolbarEl();
                 if (toolbar) this.updateToolbarState(toolbar);
                 this.render();
                 return;
@@ -8290,7 +8302,7 @@ class HexCartographerView extends ItemView {
                 if (this.patternPickerBtn) {
                     this.patternPickerBtn.style.background = BUTTON_BG_DEFAULT;
                 }
-                const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                const toolbar = this.hexToolbarEl();
                 if (toolbar) {
                     this.updateToolbarState(toolbar);
                 }
@@ -8316,7 +8328,7 @@ class HexCartographerView extends ItemView {
                     this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
                     this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH;
                     this.masterColor = foundRegion.color;
-                    if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                    this.syncMasterColorInput();
                     if (this.borderDashesInput) this.borderDashesInput.value = this.borderSettings.dashes.toString();
                     if (this.borderWidthInput) this.borderWidthInput.value = this.borderSettings.width.toString();
                     new Notice(t('notice.borderSelected', { id: foundRegion.id }));
@@ -8330,7 +8342,7 @@ class HexCartographerView extends ItemView {
                 }
                 this.currentToolGroup = 'border';
                 this.drawMode = 'pen';
-                const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                const toolbar = this.hexToolbarEl();
                 if (toolbar) {
                     this.updateToolbarState(toolbar);
                 }
@@ -8688,7 +8700,7 @@ class HexCartographerView extends ItemView {
                                 const pixel = this.ctx.getImageData(cx, cy, 1, 1).data;
                                 if (pixel[3] > 0) {
                                     this.masterColor = rgbToHex(pixel[0], pixel[1], pixel[2]);
-                                    if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                                    this.syncMasterColorInput();
                                     this.updateActivePathColor();
                                     new Notice(t('notice.colorPicked'));
                                 } else {
@@ -8701,7 +8713,7 @@ class HexCartographerView extends ItemView {
                             if (this.colorEyedropperBtn) { this.colorEyedropperBtn.style.background = BUTTON_BG_DEFAULT; this.colorEyedropperBtn.style.color = ''; }
                             this.isMouseDown = false;
                             this.touchState.pendingTouchStart = null;
-                            const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                            const toolbar = this.hexToolbarEl();
                             if (toolbar) this.updateToolbarState(toolbar);
                             this.render();
                             return;
@@ -8725,7 +8737,7 @@ class HexCartographerView extends ItemView {
                             if (this.patternPickerBtn) {
                                 this.patternPickerBtn.style.background = BUTTON_BG_DEFAULT;
                             }
-                            const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                            const toolbar = this.hexToolbarEl();
                             if (toolbar) {
                                 this.updateToolbarState(toolbar);
                             }
@@ -8752,7 +8764,7 @@ class HexCartographerView extends ItemView {
                                 this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
                                 this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH;
                                 this.masterColor = foundRegion.color;
-                                if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                                this.syncMasterColorInput();
                                 if (this.borderDashesInput) this.borderDashesInput.value = this.borderSettings.dashes.toString();
                                 if (this.borderWidthInput) this.borderWidthInput.value = this.borderSettings.width.toString();
                                 new Notice(t('notice.borderSelected', { id: foundRegion.id }));
@@ -8763,7 +8775,7 @@ class HexCartographerView extends ItemView {
                             if (this.borderPickerBtn) { this.borderPickerBtn.style.background = BUTTON_BG_DEFAULT; this.borderPickerBtn.style.color = ''; }
                             this.currentToolGroup = 'border';
                             this.drawMode = 'pen';
-                            const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                            const toolbar = this.hexToolbarEl();
                             if (toolbar) this.updateToolbarState(toolbar);
                             this.render();
                             this.touchState.pendingTouchStart = null;
@@ -8972,7 +8984,7 @@ class HexCartographerView extends ItemView {
                             const pixel = this.ctx.getImageData(cx, cy, 1, 1).data;
                             if (pixel[3] > 0) {
                                 this.masterColor = rgbToHex(pixel[0], pixel[1], pixel[2]);
-                                if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                                this.syncMasterColorInput();
                                 this.updateActivePathColor();
                                 new Notice(t('notice.colorPicked'));
                             } else {
@@ -8985,7 +8997,7 @@ class HexCartographerView extends ItemView {
                         if (this.colorEyedropperBtn) { this.colorEyedropperBtn.style.background = BUTTON_BG_DEFAULT; this.colorEyedropperBtn.style.color = ''; }
                         this.isMouseDown = false;
                         this.touchState.pendingTouchStart = null;
-                        const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                        const toolbar = this.hexToolbarEl();
                         if (toolbar) this.updateToolbarState(toolbar);
                         this.render();
                         return;
@@ -9009,7 +9021,7 @@ class HexCartographerView extends ItemView {
                         if (this.patternPickerBtn) {
                             this.patternPickerBtn.style.background = BUTTON_BG_DEFAULT;
                         }
-                        const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                        const toolbar = this.hexToolbarEl();
                         if (toolbar) {
                             this.updateToolbarState(toolbar);
                         }
@@ -9037,7 +9049,7 @@ class HexCartographerView extends ItemView {
                             this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
                             this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH;
                             this.masterColor = foundRegion.color;
-                            if (this.masterColorInput) { this.masterColorInput.value = this.masterColor; if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor; }
+                            this.syncMasterColorInput();
                             if (this.borderDashesInput) this.borderDashesInput.value = this.borderSettings.dashes.toString();
                             if (this.borderWidthInput) this.borderWidthInput.value = this.borderSettings.width.toString();
                             new Notice(t('notice.borderSelected', { id: foundRegion.id }));
@@ -9048,7 +9060,7 @@ class HexCartographerView extends ItemView {
                         if (this.borderPickerBtn) { this.borderPickerBtn.style.background = BUTTON_BG_DEFAULT; this.borderPickerBtn.style.color = ''; }
                         this.currentToolGroup = 'border';
                         this.drawMode = 'pen';
-                        const toolbar = this.containerEl.querySelector('.hex-toolbar');
+                        const toolbar = this.hexToolbarEl();
                         if (toolbar) this.updateToolbarState(toolbar);
                         this.render();
                         this.touchState.pendingTouchStart = null;
@@ -9444,7 +9456,7 @@ class HexCartographerView extends ItemView {
             region.hexes.push({ q: hq, r: hr });
         }
 
-        const toolbar = this.containerEl.querySelector('.hex-toolbar');
+        const toolbar = this.hexToolbarEl();
         if (toolbar) this.updateToolbarState(toolbar);
     }
 
@@ -10227,7 +10239,7 @@ class HexCartographerView extends ItemView {
 
             this.ctx.beginPath();
             for (let i = 0; i < 6; i++) {
-                const a = (Math.PI / 180) * (60 * i + (this.hexOrientation ? 0 : -30));
+                const a = (Math.PI / 180) * (60 * i + this.hexAngleOffset());
                 this.ctx.lineTo(pos.x + s * Math.cos(a), pos.y + s * Math.sin(a));
             }
             this.ctx.closePath();
@@ -11252,7 +11264,7 @@ class HexCartographerView extends ItemView {
         const pb = this._exportProjectionBounds(); // unclipped, visible projection
         if (hexes.length === 0 && texts.length === 0 && borderOnlyHexes.length === 0 && !pb) return null;
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        const angleOffset = this.hexOrientation ? 0 : -30;
+        const angleOffset = this.hexAngleOffset();
         const expandBounds = (hex) => {
             const pos = this.hexToPixel(hex);
             const s = this.data.gridSize;
@@ -11295,7 +11307,7 @@ class HexCartographerView extends ItemView {
             }
         }
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        const angleOffset = this.hexOrientation ? 0 : -30;
+        const angleOffset = this.hexAngleOffset();
         const expandBounds = (hex) => {
             const pos = this.hexToPixel(hex);
             const s = this.data.gridSize;
@@ -11459,7 +11471,7 @@ class HexCartographerView extends ItemView {
 
     drawHexBase(h) {
         const pos = this.hexToPixel(h), s = this.data.gridSize;
-        const angleOffset = this.hexOrientation ? 0 : -30;
+        const angleOffset = this.hexAngleOffset();
         const sf = s + 0.5; // Small overhang so no gaps appear between neighboring hexes
 
         // Color first: it stays as background and also serves as
@@ -11493,7 +11505,7 @@ class HexCartographerView extends ItemView {
         const bo = (Number.isFinite(this.plugin.settings.hexBorderOpacity) ? this.plugin.settings.hexBorderOpacity : DEFAULT_SETTINGS.hexBorderOpacity) / 100;
         this.ctx.strokeStyle = `rgba(${bc.r},${bc.g},${bc.b},${bo})`;
         this.ctx.lineWidth = 1;
-        const angleOffset = this.hexOrientation ? 0 : -30;
+        const angleOffset = this.hexAngleOffset();
         const s = this.data.gridSize;
         for (const h of Object.values(this.data.hexes)) {
             const pos = this.hexToPixel(h);
@@ -11526,14 +11538,14 @@ class HexCartographerView extends ItemView {
         }
 
         const clip = this.plugin.settings.clipUserGraphics !== false;
-        const angleOffset = this.hexOrientation ? 0 : -30;
+        const angleOffset = this.hexAngleOffset();
         this.ctx.save();
         if (clip) { this.tracehexPath(pos, radius, angleOffset); this.ctx.clip(); }
 
         if (asset.colorable) {
             const vw = asset.viewBoxWidth;
             const vh = asset.viewBoxHeight || asset.viewBoxWidth;
-            const scale = (2 * radius) / Math.min(vw, vh);
+            const scale = this.hexGraphicScale(radius, vw, vh);
             this.ctx.translate(pos.x - (vw * scale) / 2, pos.y - (vh * scale) / 2);
             this.ctx.scale(scale, scale);
             this.ctx.fillStyle = color || DEFAULT_MASTER_COLOR;
@@ -11547,7 +11559,7 @@ class HexCartographerView extends ItemView {
             const iw = img.naturalWidth || img.width;
             const ih = img.naturalHeight || img.height;
             if (iw && ih) {
-                const scale = (2 * radius) / Math.min(iw, ih);
+                const scale = this.hexGraphicScale(radius, iw, ih);
                 const dw = iw * scale;
                 const dh = ih * scale;
                 this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
@@ -11663,6 +11675,16 @@ class HexCartographerView extends ItemView {
             : { w: radius * Math.sqrt(3), h: radius * 2 };
     }
 
+    // Scale for a user graphic so its SHORTEST side spans the hex corner-to-corner (2 * radius).
+    hexGraphicScale(radius, w, h) {
+        return (2 * radius) / Math.min(w, h);
+    }
+
+    // Rotation of the hex polygon's first vertex: 0° for flat top, -30° for pointy top.
+    hexAngleOffset() {
+        return this.hexOrientation ? 0 : -30;
+    }
+
     // Safety net: if an undecoded key shows up while drawing
     // (e.g. via undo or a pattern hex), it is loaded on demand and
     // then redrawn once. The normal case is already covered by ensureUserAssets()
@@ -11709,7 +11731,7 @@ class HexCartographerView extends ItemView {
             if (iw && ih) {
                 // The graphic's SHORTEST side spans the hex corner-to-corner (2 * radius); the
                 // overhang is always cut to the hex shape.
-                const scale = (2 * radius) / Math.min(iw, ih);
+                const scale = this.hexGraphicScale(radius, iw, ih);
                 const dw = iw * scale;
                 const dh = ih * scale;
                 this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
@@ -11767,7 +11789,7 @@ class HexCartographerView extends ItemView {
 
                 const corners = [];
                 for (let i = 0; i < 6; i++) {
-                    const a = (Math.PI / 180) * (60 * i + (this.hexOrientation ? 0 : -30));
+                    const a = (Math.PI / 180) * (60 * i + this.hexAngleOffset());
                     corners.push({
                         x: pos.x + sf * factor * Math.cos(a),
                         y: pos.y + sf * factor * Math.sin(a)
@@ -11803,7 +11825,7 @@ class HexCartographerView extends ItemView {
                 const hlInset = (sf - this.borderHighlightWidth / 2 - 1) / sf;
                 this.ctx.beginPath();
                 for (let i = 0; i < 6; i++) {
-                    const a = (Math.PI / 180) * (60 * i + (this.hexOrientation ? 0 : -30));
+                    const a = (Math.PI / 180) * (60 * i + this.hexAngleOffset());
                     const cx = pos.x + sf * hlInset * Math.cos(a);
                     const cy = pos.y + sf * hlInset * Math.sin(a);
                     if (i === 0) this.ctx.moveTo(cx, cy);
