@@ -349,6 +349,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': 'Zuletzt bearbeitet von:',
         'info.on': 'am',
         'info.exportSize': 'Aktuelle Bildgröße für Export:',
+        'info.today': 'heute',
         'info.anonymous': 'Anonym',
         'tooltip.historySlot': 'Zuletzt verwendet',
         'tooltip.color': 'Farbe',
@@ -688,6 +689,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': 'Last edited by:',
         'info.on': 'on',
         'info.exportSize': 'Current export image size:',
+        'info.today': 'today',
         'info.anonymous': 'Anonymous',
         'tooltip.historySlot': 'Recently used',
         'tooltip.color': 'Color',
@@ -1019,6 +1021,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': '最后编辑者：',
         'info.on': '·',
         'info.exportSize': '当前导出图像尺寸：',
+        'info.today': '今天',
         'info.anonymous': '匿名',
         'tooltip.historySlot': '最近使用',
         'tooltip.color': '颜色',
@@ -1330,6 +1333,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': 'Последнее изменение:',
         'info.on': '·',
         'info.exportSize': 'Текущий размер изображения для экспорта:',
+        'info.today': 'сегодня',
         'info.anonymous': 'Аноним',
         'tooltip.historySlot': 'Недавно использованные',
         'tooltip.color': 'Цвет',
@@ -1641,6 +1645,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': '最終編集者：',
         'info.on': '·',
         'info.exportSize': '現在のエクスポート画像サイズ：',
+        'info.today': '今日',
         'info.anonymous': '匿名',
         'tooltip.historySlot': '最近使用した設定',
         'tooltip.color': '色',
@@ -1952,6 +1957,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': 'Dernière modification par :',
         'info.on': 'le',
         'info.exportSize': 'Taille d’image d’export actuelle :',
+        'info.today': 'aujourd’hui',
         'info.anonymous': 'Anonyme',
         'tooltip.historySlot': 'Récemment utilisé',
         'tooltip.color': 'Couleur',
@@ -2263,6 +2269,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': 'Última edição por:',
         'info.on': 'em',
         'info.exportSize': 'Tamanho de imagem de exportação atual:',
+        'info.today': 'hoje',
         'info.anonymous': 'Anónimo',
         'tooltip.historySlot': 'Usado recentemente',
         'tooltip.color': 'Cor',
@@ -2574,6 +2581,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': '마지막 편집자:',
         'info.on': '·',
         'info.exportSize': '현재 내보내기 이미지 크기:',
+        'info.today': '오늘',
         'info.anonymous': '익명',
         'tooltip.historySlot': '최근 사용',
         'tooltip.color': '색상',
@@ -2885,6 +2893,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': 'Última edición por:',
         'info.on': 'el',
         'info.exportSize': 'Tamaño de imagen de exportación actual:',
+        'info.today': 'hoy',
         'info.anonymous': 'Anónimo',
         'tooltip.historySlot': 'Usado recientemente',
         'tooltip.color': 'Color',
@@ -3196,6 +3205,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': 'Ostatnio edytowane przez:',
         'info.on': '·',
         'info.exportSize': 'Aktualny rozmiar obrazu eksportu:',
+        'info.today': 'dziś',
         'info.anonymous': 'Anonim',
         'tooltip.historySlot': 'Ostatnio używane',
         'tooltip.color': 'Kolor',
@@ -3507,6 +3517,7 @@ const TRANSLATIONS = {
         'info.lastEditedBy': 'Ultima modifica di:',
         'info.on': 'il',
         'info.exportSize': 'Dimensione immagine di esportazione attuale:',
+        'info.today': 'oggi',
         'info.anonymous': 'Anonimo',
         'tooltip.historySlot': 'Usato di recente',
         'tooltip.color': 'Colore',
@@ -10829,6 +10840,7 @@ class HexCartographerView extends ItemView {
         this.projVisBtn.onclick = () => {
             const p = this.data.projection;
             if (!p) return;
+            this.pushHistory(); // own undo step, so a later undo doesn't revert the last tool action too
             p.visible = p.visible === false; // toggle (undefined/true -> false, false -> true)
             if (p.visible !== false) this.loadProjectionImage(); // decode on demand (lazy)
             this._updateProjectionVisButton();
@@ -12508,10 +12520,8 @@ class HexCartographerView extends ItemView {
         this.saveTimeout = setTimeout(() => { this.saveTimeout = null; this.saveData(); }, 1000);
     }
 
-    // Persist the current pan/zoom to this device's viewport bucket WITHOUT writing the map
-    // file. Navigation is per-device and stripped from the file, so a full requestSave() here
-    // would only rewrite unchanged content — churning Obsidian Sync and, via the saveTimeout
-    // guard in the modify handler, blocking incoming remote changes until the map is reopened.
+    // Persist pan/zoom to this device's viewport bucket only, never the map file: it is
+    // per-device/stripped, so saving would just churn Sync (and block reloads) for no change.
     persistViewport() {
         if (!this.canvas || !this.data.zoom) return;
         const cx = (this.canvas.width / 2 - this.data.offX) / this.data.zoom;
@@ -12602,11 +12612,9 @@ class HexCartographerView extends ItemView {
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;
 
-        // (Re)apply the stored device viewport on the first sizing — AND whenever the current
-        // offset is invalid. The latter happens when a Sync reload replaces this.data while the
-        // tab is in the background (canvas not yet sized): applyDeviceViewport() no-ops there and
-        // the file carries no offset, so offX/offY end up undefined. Without this, switching back
-        // to the tab left an offset map with dead panning (NaN offsets) until a full reopen.
+        // (Re)apply the stored viewport on first sizing AND whenever offX/offY are invalid: a
+        // background Sync reload (tab hidden, canvas unsized) leaves them undefined, which
+        // otherwise showed an offset map with dead panning until the map was reopened.
         if (!this._initialResizeDone || !Number.isFinite(this.data.offX) || !Number.isFinite(this.data.offY)) {
             this._initialResizeDone = true;
             if (!this.applyDeviceViewport()) {
@@ -12823,9 +12831,8 @@ class NumberInputModal extends Modal {
     onClose() { this.contentEl.empty(); }
 }
 
-// Small popup from the toolbar's info button: who created the map and who last edited it.
-// A stored value that is an anonymous device id (no author name set, i.e. "dev-…") is shown
-// as "Anonymous" instead of the raw id.
+// Toolbar info-button popup: who created the map and who last edited it. An anonymous device
+// id (no author name, "dev-…") shows as "Anonymous" instead of the raw id.
 class MapInfoModal extends Modal {
     constructor(app, view) {
         super(app);
@@ -12840,34 +12847,52 @@ class MapInfoModal extends Modal {
             return (!s || s.startsWith('dev-')) ? t('info.anonymous') : s;
         };
         const data = this.view.data || {};
-        const row = (label, value) => {
-            const p = contentEl.createEl('p', { attr: { style: 'margin: 6px 0;' } });
-            p.createSpan({ text: label + ' ', attr: { style: 'color: var(--text-muted);' } });
-            p.createSpan({ text: value });
-        };
-        // Both lines get a "when": the file's creation time (stat.ctime) and the last-edit time
-        // (data.lastModified — content-based, so it is stable across devices). Date + time are
-        // formatted for the active UI language via Intl, i.e. culture-correct 24h / AM-PM
-        // (DE "01.01.1970 - 11:25", US "01/01/1970 - 11:25 AM"). Time is hh:mm only.
+        const phone = this.view.deviceViewportClass && this.view.deviceViewportClass() === 'phone';
+        let row;
+        if (phone) {
+            // Phones are too narrow for two columns -> stack label, then value on its own line.
+            row = (label, value) => {
+                const wrap = contentEl.createDiv({ attr: { style: 'margin: 10px 0;' } });
+                wrap.createDiv({ text: label, attr: { style: 'color: var(--text-muted);' } });
+                wrap.createDiv({ text: value, attr: { style: 'margin-left: 12px;' } });
+            };
+        } else {
+            // Desktop/tablet: two-column grid so values align in their own column.
+            const grid = contentEl.createDiv({ attr: { style: 'display: grid; grid-template-columns: auto 1fr; column-gap: 16px; row-gap: 6px; align-items: baseline;' } });
+            row = (label, value) => {
+                grid.createSpan({ text: label, attr: { style: 'color: var(--text-muted); white-space: nowrap;' } });
+                grid.createSpan({ text: value });
+            };
+        }
+        // Both lines show date + time: creation from stat.ctime, last edit from data.lastModified
+        // (content-based -> stable across devices). Intl formats them in the active UI language
+        // (culture-correct 24h / AM-PM); time is hh:mm only.
         const fmtDate = (d) => new Intl.DateTimeFormat(currentLanguage, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
         const fmtTime = (d) => new Intl.DateTimeFormat(currentLanguage, { hour: '2-digit', minute: '2-digit' }).format(d);
-        const whenFull = (ms) => { const d = new Date(ms); return isNaN(d.getTime()) ? '' : `${fmtDate(d)} - ${fmtTime(d)}`; };
-        const withWhen = (who, when) => when ? `${who} ${t('info.on')} ${when}` : who;
+        const isToday = (d) => { const n = new Date(); return d.getDate() === n.getDate() && d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear(); };
+        // "who, DATE - time"; today -> "who, today - time"; date-only drops the " - time".
+        const compose = (who, d, hasTime) => {
+            if (!d || isNaN(d.getTime())) return who;
+            const today = isToday(d);
+            const datePart = today ? t('info.today') : fmtDate(d);
+            const when = hasTime ? `${datePart} - ${fmtTime(d)}` : datePart;
+            return today ? `${who}, ${when}` : `${who}, ${t('info.on')} ${when}`;
+        };
 
         const stat = this.view.file && this.view.file.stat;
         const fm = this.view.file ? this.app.metadataCache.getFileCache(this.view.file)?.frontmatter : null;
-        let createdWhen = '';
-        if (stat && Number.isFinite(stat.ctime)) createdWhen = whenFull(stat.ctime);
-        else if (fm && fm.created) { const d = new Date(fm.created); if (!isNaN(d.getTime())) createdWhen = fmtDate(d); }
-        let editedWhen = '';
-        if (Number.isFinite(data.lastModified)) editedWhen = whenFull(data.lastModified);
-        else if (stat && Number.isFinite(stat.mtime)) editedWhen = whenFull(stat.mtime);
+        let createdD = null, createdHasTime = false;
+        if (stat && Number.isFinite(stat.ctime)) { createdD = new Date(stat.ctime); createdHasTime = true; }
+        else if (fm && fm.created) { const d = new Date(fm.created); if (!isNaN(d.getTime())) createdD = d; }
+        let editedD = null, editedHasTime = false;
+        if (Number.isFinite(data.lastModified)) { editedD = new Date(data.lastModified); editedHasTime = true; }
+        else if (stat && Number.isFinite(stat.mtime)) { editedD = new Date(stat.mtime); editedHasTime = true; }
 
-        row(t('info.createdBy'), withWhen(display(data.author), createdWhen));
-        row(t('info.lastEditedBy'), withWhen(display(data.editor), editedWhen));
+        row(t('info.createdBy'), compose(display(data.author), createdD, createdHasTime));
+        row(t('info.lastEditedBy'), compose(display(data.editor), editedD, editedHasTime));
 
-        // Export image size the current map + configured width would produce (width × height,
-        // same maths as the export). Omitted when the map has no content (nothing to export).
+        // Export size this map + configured width would produce (same maths as the export);
+        // omitted when there is no content.
         const size = typeof this.view.getMapWorldSize === 'function' ? this.view.getMapWorldSize() : null;
         if (size && size.w > 0 && size.h > 0) {
             const ew = this.view.plugin.settings.exportWidth || 1024;
@@ -14006,10 +14031,9 @@ class HexCartographerSettingTab extends PluginSettingTab {
             });
 
         // ── Hex options ───────────────────────────────────────────
-        // Collapsible group: border visibility, frame colour/transparency and numbering.
-        // Stay open only when the user adjusted an actual option here: border visibility,
-        // border colour, transparency, or the "Numbering" checkbox. Numbering sub-options
-        // don't count (they hang off the checkbox), so a Reset really collapses it again.
+        // Collapsible group (border visibility, colour/transparency, numbering). Stays open when
+        // any real option here deviates from default; numbering sub-options hang off the
+        // "Numbering" checkbox and don't count, so a Reset collapses it again.
         const HEX_OPTION_KEYS = ['hideHexBorders', 'hexBorderColor', 'hexBorderOpacity', 'hexNumberingEnabled'];
         const hexBody = makeSettingsSection('settings.hexSection',
             HEX_OPTION_KEYS.some(k => this.plugin.settings[k] !== DEFAULT_SETTINGS[k]));
