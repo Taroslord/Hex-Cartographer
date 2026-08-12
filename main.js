@@ -73,6 +73,7 @@ const stableStringify = (v) => {
 // Per-tool quick-select history: the drawing tools that get one, and the max slots each keeps.
 const HISTORY_TOOL_GROUPS = ['hexcolor', 'grass', 'tree', 'mountain', 'building'];
 const HISTORY_MAX_SLOTS = 6;
+const HISTORY_PREVIEW_SIZE = 80; // hover preview hex size (px)
 // Two history entries are the same setting when their values match (order-free).
 const historyEntrySame = (a, b) => stableStringify(a) === stableStringify(b);
 // Most-recently-used insert: an identical entry moves to the front (no duplicate); otherwise
@@ -6495,6 +6496,9 @@ class HexCartographerView extends ItemView {
         const toolCluster = editContent.createDiv({ cls: 'hex-tool-cluster' });
         const clusterTools = toolCluster.createDiv({ cls: 'hex-tool-cluster-row' });
         this.toolHistoryRow = toolCluster.createDiv({ cls: 'hex-history-row' });
+        // Hide the hover preview when the pointer leaves the whole row (not when sliding between
+        // its slots, so the user can browse across them quickly).
+        this.toolHistoryRow.addEventListener('pointerleave', () => this.hideHistoryPreview());
 
         const hexColorBtn = this.createToolButton(clusterTools, { icon: 'hexagon', title: t('tooltip.hexColor'), dataset: { toolGroup: 'hexcolor' } });
         hexColorBtn.onclick = () => {
@@ -8085,6 +8089,7 @@ class HexCartographerView extends ItemView {
     renderToolHistory() {
         const row = this.toolHistoryRow;
         if (!row) return;
+        this.hideHistoryPreview(); // stale preview would point at a removed slot
         if (this.deviceViewportClass() === 'phone') { row.empty(); row.style.display = 'none'; return; }
         const group = HISTORY_TOOL_GROUPS.includes(this.currentToolGroup) ? this.currentToolGroup : null;
         const list = group ? (this.toolHistory[group] || []) : [];
@@ -8107,14 +8112,83 @@ class HexCartographerView extends ItemView {
                 tip = this.variantLabelFor(cfg, entry.variant) || t('tooltip.historySlot'); // symbol name
                 this.renderSymbolButtonIcon(b, entry.variant, this.variantIconFor(cfg, entry.variant));
             }
-            b.setAttribute('title', tip || t('tooltip.historySlot'));
-            b.onclick = () => this.applyHistoryEntry(group, entry);
+            const label = tip || t('tooltip.historySlot');
+            b.setAttribute('title', label);
+            // Mouse hover -> larger hex preview + name below the slot, so the user can slide
+            // across the slots to browse. Touch never triggers it (tap just selects).
+            b.addEventListener('pointerenter', (e) => {
+                if (e.pointerType === 'mouse') this.showHistoryPreview(b, group, entry, label);
+            });
+            b.onclick = () => { this.hideHistoryPreview(); this.applyHistoryEntry(group, entry); };
         }
         // Pad to the max with invisible placeholders so the real slots stay left-aligned at the
         // same fixed gap (space-between then only spreads the full six edge-to-edge).
         for (let i = list.length; i < HISTORY_MAX_SLOTS; i++) {
             row.createDiv({ cls: 'hex-history-slot', attr: { style: 'visibility: hidden; pointer-events: none;' } });
         }
+    }
+
+    // --- Tool-history hover preview (mouse only) ------------------------------------------
+    // One reused overlay: larger hex preview + name below the hovered slot. pointer-events:none
+    // so it never blocks sliding to the next slot; position:fixed so toolbar overflow can't clip.
+    ensureHistoryPreviewEl() {
+        if (this.historyPreviewEl) return this.historyPreviewEl;
+        // Appended to <body>, not containerEl: a transformed workspace ancestor would otherwise
+        // make position:fixed resolve against that ancestor and misplace the overlay.
+        const el = this.containerEl.ownerDocument.body.createDiv({ cls: 'hex-history-preview' });
+        el.style.cssText = 'position: fixed; z-index: 100; pointer-events: none; display: none; flex-direction: column; align-items: flex-start; gap: 4px;';
+        this.historyPreviewEl = el;
+        return el;
+    }
+
+    hideHistoryPreview() {
+        if (this.historyPreviewEl) this.historyPreviewEl.style.display = 'none';
+    }
+
+    showHistoryPreview(button, group, entry, label) {
+        const el = this.ensureHistoryPreviewEl();
+        el.empty();
+        // Hex card at a fixed size, kept SEPARATE from the name so a long name cannot stretch it.
+        const card = el.createDiv();
+        card.style.cssText = 'display: flex; padding: 4px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.25);';
+        card.appendChild(this.historyPreviewHex(group, entry, HISTORY_PREVIEW_SIZE));
+        card.querySelectorAll('polygon[stroke]').forEach(p => p.setAttribute('stroke-width', '1')); // thin hex outline
+        // Name in its own box: wraps within a capped width instead of breaking the hex card.
+        const name = el.createDiv({ text: label });
+        name.style.cssText = 'max-width: 160px; padding: 2px 8px; font-size: 12px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); white-space: normal; overflow-wrap: anywhere;';
+        // Below the slot, left-aligned to it (getBoundingClientRect -> viewport -> position:fixed).
+        const r = button.getBoundingClientRect();
+        el.style.left = `${r.left}px`;
+        el.style.top = `${r.bottom + 6}px`;
+        el.style.display = 'flex';
+    }
+
+    // Larger hex preview for a history entry: texture image / colour hex / system- or user-symbol
+    // in a hex — mirrors the slot icon at a bigger size.
+    historyPreviewHex(group, entry, size) {
+        if (group === 'hexcolor') {
+            if (entry.texture) {
+                const asset = this.plugin.getUserAsset(entry.texture);
+                if (asset) return this.makeHexImageSvg(this.app.vault.adapter.getResourcePath(asset.filePath), size);
+            }
+            return this.makeHexPreviewSvg(size, entry.color || DEFAULT_MASTER_COLOR, false);
+        }
+        const symbolColor = entry.symbolColor || DEFAULT_MASTER_COLOR;
+        if (isUserAssetKey(entry.variant)) {
+            const asset = this.plugin.getUserAsset(entry.variant);
+            if (asset) return this.makeSymbolImageHex(this.app.vault.adapter.getResourcePath(asset.filePath), size);
+        }
+        const info = this.svgSymbols[entry.variant];
+        if (info) return this.makeSystemSymbolHex(info, symbolColor, size);
+        // Fallback: empty hex with the variant's Lucide icon centered.
+        const wrap = document.createElement('div');
+        wrap.style.cssText = `position: relative; width: ${size}px; height: ${size}px;`;
+        wrap.appendChild(this.makeHexPreviewSvg(size));
+        const icon = document.createElement('span');
+        icon.style.cssText = 'position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;';
+        setIcon(icon, this.variantIconFor(this.toolConfigs[group], entry.variant));
+        wrap.appendChild(icon);
+        return wrap;
     }
 
     // Display name of a user-asset key (texture/symbol): the registry label if loaded, else the
@@ -12708,6 +12782,7 @@ class HexCartographerView extends ItemView {
     async onClose() {
         this.clearDecodeTimer();
         if (this.resizeObserver) this.resizeObserver.disconnect();
+        if (this.historyPreviewEl) { this.historyPreviewEl.remove(); this.historyPreviewEl = null; } // body-appended overlay
         if (this.saveTimeout) { clearTimeout(this.saveTimeout); this.saveTimeout = null; }
         // Only write when there is something unsaved (drawing, or a zoom/pan change — those
         // mark _dirty too, so the per-device viewport still persists). Closing a map you only
