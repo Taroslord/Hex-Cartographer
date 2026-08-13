@@ -29,11 +29,16 @@ const DEFAULT_OFF_X = 400;
 const DEFAULT_OFF_Y = 300;
 const DEFAULT_RIVER_WIDTH = 5;
 const DEFAULT_ROAD_WIDTH = 3;
+// Max road/river width = a hex's flat-to-flat width (gridSize * √3). Wider than this would
+// spill past the hex edges, which is meaningless for a path.
+const MAX_PATH_WIDTH = Math.round(DEFAULT_GRID_SIZE * Math.sqrt(3));
 const PATH_OVERLAP_SPACING = 1.5; // Edge-to-edge spacing factor: 1.0 = touching, 1.5 = small gap, 2.0 = clear gap
 const DEFAULT_BORDER_HIGHLIGHT_WIDTH = 3;
 const DEFAULT_BORDER_DASHES = 1;
 const DEFAULT_BORDER_WIDTH = 3;
-const DEFAULT_PATH_DASHES = 1;
+const DEFAULT_PATH_DASHES = 1;           // legacy (roads only) — kept for migration
+const DEFAULT_PATH_GAP_PERCENT = 0;      // road dash gap as % of a hex segment; 0 = solid, 100 = dots
+const DEFAULT_PATH_DASH_DENSITY = 1;     // road dash+gap periods per hex segment (interruptions)
 const PATH_END_INSET = 0.15;
 const MAX_HISTORY = 50;            // default undo depth
 const UNDO_STEPS_MIN = 1;
@@ -259,8 +264,8 @@ const SVG_SYMBOL_CONFIG = {
     'house':       { size: 0.30, align: 'center', marginX: 0, marginY: -2 },
     'village':     { size: 0.50,  align: 'center', marginX: 0, marginY: 0 },
     'town':        { size: 0.60,  align: 'center', marginX: 0, marginY: -1 },
-    'castle':      { size: 0.65,  align: 'center', marginX: 0, marginY: 0 },
-    'harbor':      { size: 0.60,  align: 'center', marginX: 0, marginY: -8 },
+    'castle':      { size: 0.75,  align: 'center', marginX: 0, marginY: 0 },
+    'harbor':      { size: 0.60,  align: 'center', marginX: 0, marginY: -3 },
     'monastery':   { size: 0.60,  align: 'center', marginX: 0, marginY: -3 },
     'tower':       { size: 0.50,  align: 'center', marginX: 0, marginY: -7 },
     'ruins':        { size: 0.6,  align: 'center', marginX: 0, marginY: 0 },
@@ -371,7 +376,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': 'Fluss abschließen',
         'input.riverWidth': 'Flussbreite',
         'input.roadWidth': 'Wegbreite',
-        'input.pathDashes': 'Striche',
+        'input.pathDashes': 'Lücke zwischen Strichen in % (0 = durchgehend, 100 = Punkte)',
+        'migrate.title': 'Altes Kartenformat',
+        'migrate.intro': 'Folgendes wurde migriert, bitte ggf. kontrollieren:',
+        'migrate.roads': 'Wege',
 
         // Tooltips — Grenzen
         'tooltip.border': 'Grenz-Werkzeug\nKlick: Grenzwaben zeichnen\nRechtsklick in Karte: Löschen\nDoppelklick Radierer: Zusammenhängende Grenze löschen',
@@ -381,7 +389,9 @@ const TRANSLATIONS = {
         'input.borderDashes': 'Striche',
         'input.borderWidth': 'Grenzbreite',
         'option.width': 'Breite',
-        'option.dashes': 'Striche',
+        'option.dashes': 'Lücke %',
+        'option.dashDensity': 'Dichte',
+        'input.dashDensity': 'Dichte: Unterbrechungen pro Wabe (1–20)',
 
         // Notices
         'notice.fileCreateError': 'Fehler beim Erstellen der Datei: {error}',
@@ -566,7 +576,7 @@ const TRANSLATIONS = {
         'guide.paths.road': 'Wegpunkte setzen für Wege. Bearbeitung wie bei Fluss.',
         'guide.paths.pick': 'Bestehenden Fluss/Weg auswählen und bearbeiten. Liegen beide auf einer Wabe, leuchten Fluss- und Weg-Button auf — Klick auf das entsprechende Symbol setzt den Edit-Modus.',
         'guide.paths.width': 'Breite der Flüsse/Wege über die Eingabefelder mit einem Wert anpassen.',
-        'guide.paths.dashes': 'Unterteilt jedes Waben-Segment in abwechselnd Strich und Lücke (1 = durchgehend, 2 = halbe Linie, 3 = zwei Striche usw.).',
+        'guide.paths.dashes': 'Abstand zwischen den Strichen in % der Wabenlänge (0 % durchgehend, 100 % Punkte). Nur Wege; Flüsse sind nie gestrichelt.',
         'guide.borders': 'Grenzen',
         'guide.borders.draw': 'Grenzregion zeichnen durch Klicken oder Ziehen auf Waben.',
         'guide.borders.pick': 'Bestehende Grenze zum Bearbeiten auswählen.',
@@ -711,7 +721,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': 'Finish river',
         'input.riverWidth': 'River width',
         'input.roadWidth': 'Road width',
-        'input.pathDashes': 'Dashes',
+        'input.pathDashes': 'Gap between dashes in % (0 = solid, 100 = dots)',
+        'migrate.title': 'Old map format',
+        'migrate.intro': 'The following was migrated, please double-check:',
+        'migrate.roads': 'Roads',
 
         // Tooltips — Borders
         'tooltip.border': 'Border Tool\nClick: Draw border hexes\nRight-click on map: Delete\nDouble-click Eraser: Delete connected border',
@@ -721,7 +734,9 @@ const TRANSLATIONS = {
         'input.borderDashes': 'Dashes',
         'input.borderWidth': 'Border width',
         'option.width': 'Width',
-        'option.dashes': 'Dashes',
+        'option.dashes': 'Gap %',
+        'option.dashDensity': 'Density',
+        'input.dashDensity': 'Density: interruptions per hex (1–20)',
 
         // Notices
         'notice.fileCreateError': 'Error creating file: {error}',
@@ -906,7 +921,7 @@ const TRANSLATIONS = {
         'guide.paths.road': 'Place waypoints for roads. Editing works like rivers.',
         'guide.paths.pick': 'Select an existing river/road to edit. If both overlap, the river and road buttons highlight — click the corresponding icon to set the edit mode.',
         'guide.paths.width': 'Adjust river/road width via the input fields.',
-        'guide.paths.dashes': 'Divides each hex-to-hex section into alternating dashes and gaps (1 = continuous, 2 = half line, 3 = two dashes, etc.).',
+        'guide.paths.dashes': 'Dash gap in % of the hex length (0 % solid, 100 % dots). Roads only; rivers are never dashed.',
         'guide.borders': 'Borders',
         'guide.borders.draw': 'Draw border region by clicking or dragging on hexes.',
         'guide.borders.pick': 'Select an existing border to edit.',
@@ -1039,7 +1054,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': '完成河流',
         'input.riverWidth': '河流宽度',
         'input.roadWidth': '道路宽度',
-        'input.pathDashes': '虚线',
+        'input.pathDashes': '虚线间隙百分比（0 = 实线，100 = 圆点）',
+        'migrate.title': '旧地图格式',
+        'migrate.intro': '已迁移以下内容，请检查：',
+        'migrate.roads': '道路',
         'tooltip.border': '边界工具\n点击：绘制边界六角格\n右键地图：删除\n双击橡皮擦：删除相连边界',
         'tooltip.borderPicker': '采集边界颜色\n点击：选择已有边界进行编辑',
         'tooltip.borderFinish': '完成\n点击：完成当前边界',
@@ -1047,7 +1065,9 @@ const TRANSLATIONS = {
         'input.borderDashes': '虚线',
         'input.borderWidth': '边界宽度',
         'option.width': '宽度',
-        'option.dashes': '虚线',
+        'option.dashes': '间隙 %',
+        'option.dashDensity': '密度',
+        'input.dashDensity': '密度：每格的中断数量（1–20）',
         'notice.fileCreateError': '创建文件时出错：{error}',
         'notice.nothingToUndo': '没有可撤销的操作',
         'notice.mapRecovered': '地图无法保存（同步冲突），已作为“{name}”恢复。',
@@ -1222,7 +1242,7 @@ const TRANSLATIONS = {
         'guide.paths.road': '为道路放置路径点。编辑方式与河流相同。',
         'guide.paths.pick': '选择并编辑已有的河流/道路。若两者重叠，河流和道路按钮会高亮——点击对应图标以设置编辑模式。',
         'guide.paths.width': '通过输入框调整河流/道路的宽度值。',
-        'guide.paths.dashes': '将每个六角格段分为交替的线段和间隔（1 = 实线，2 = 半线，3 = 两段线等）。',
+        'guide.paths.dashes': '虚线间隙，占六角格长度的百分比（0 % 实线，100 % 圆点）。仅道路；河流从不使用虚线。',
         'guide.borders': '边界',
         'guide.borders.draw': '点击或拖动六角格绘制边界区域。',
         'guide.borders.pick': '选择已有边界进行编辑。',
@@ -1351,7 +1371,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': 'Завершить реку',
         'input.riverWidth': 'Ширина реки',
         'input.roadWidth': 'Ширина дороги',
-        'input.pathDashes': 'Штрихи',
+        'input.pathDashes': 'Зазор между штрихами в % (0 = сплошная, 100 = точки)',
+        'migrate.title': 'Старый формат карты',
+        'migrate.intro': 'Следующее было перенесено, проверьте:',
+        'migrate.roads': 'Дороги',
         'tooltip.border': 'Инструмент «Граница»\nКлик: Рисовать граничные соты\nПравый клик на карте: Удалить\nДвойной клик ластиком: Удалить связанную границу',
         'tooltip.borderPicker': 'Захватить цвет границы\nКлик: Выбрать существующую границу для редактирования',
         'tooltip.borderFinish': 'Завершить\nКлик: Завершить текущую границу',
@@ -1359,7 +1382,9 @@ const TRANSLATIONS = {
         'input.borderDashes': 'Штрихи',
         'input.borderWidth': 'Ширина границы',
         'option.width': 'Ширина',
-        'option.dashes': 'Штрихи',
+        'option.dashes': 'Зазор %',
+        'option.dashDensity': 'Плотность',
+        'input.dashDensity': 'Плотность: разрывов на соту (1–20)',
         'notice.fileCreateError': 'Ошибка при создании файла: {error}',
         'notice.nothingToUndo': 'Нечего отменять',
         'notice.mapRecovered': 'Карту не удалось сохранить (конфликт синхронизации), она восстановлена как «{name}».',
@@ -1534,7 +1559,7 @@ const TRANSLATIONS = {
         'guide.paths.road': 'Расставить путевые точки для дорог. Редактирование — как у рек.',
         'guide.paths.pick': 'Выбрать и редактировать существующую реку/дорогу. При совпадении подсвечиваются кнопки реки и дороги — нажмите на соответствующий значок, чтобы задать режим редактирования.',
         'guide.paths.width': 'Настроить ширину рек/дорог через поля ввода.',
-        'guide.paths.dashes': 'Разбивает каждый сегмент соты на чередующиеся штрихи и пробелы (1 = сплошная, 2 = половина линии, 3 = два штриха и т.д.).',
+        'guide.paths.dashes': 'Зазор между штрихами в % от длины соты (0 % сплошная, 100 % точки). Только дороги; реки никогда не штрихуются.',
         'guide.borders': 'Границы',
         'guide.borders.draw': 'Рисовать область границы нажатием или перетаскиванием по сотам.',
         'guide.borders.pick': 'Выбрать существующую границу для редактирования.',
@@ -1663,7 +1688,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': '川を確定',
         'input.riverWidth': '川の幅',
         'input.roadWidth': '道の幅',
-        'input.pathDashes': '破線',
+        'input.pathDashes': '破線の間隔（%、0 = 実線、100 = 点）',
+        'migrate.title': '古いマップ形式',
+        'migrate.intro': '以下が移行されました。ご確認ください：',
+        'migrate.roads': '道',
         'tooltip.border': '境界ツール\nクリック：境界ヘックスを描画\nマップ上で右クリック：削除\nダブルクリック消しゴム：つながった境界を削除',
         'tooltip.borderPicker': '境界色を取得\nクリック：既存の境界を選択して編集',
         'tooltip.borderFinish': '完了\nクリック：現在の境界を確定',
@@ -1671,7 +1699,9 @@ const TRANSLATIONS = {
         'input.borderDashes': '破線',
         'input.borderWidth': '境界の幅',
         'option.width': '幅',
-        'option.dashes': '破線',
+        'option.dashes': '間隔 %',
+        'option.dashDensity': '密度',
+        'input.dashDensity': '密度：ヘックスあたりの区切り数（1–20）',
         'notice.fileCreateError': 'ファイル作成エラー：{error}',
         'notice.nothingToUndo': '元に戻す操作がありません',
         'notice.mapRecovered': 'マップを保存できませんでした（同期の競合）。「{name}」として復旧しました。',
@@ -1846,7 +1876,7 @@ const TRANSLATIONS = {
         'guide.paths.road': '道の経由点を配置。編集方法は川と同じです。',
         'guide.paths.pick': '既存の川/道を選択して編集。両方が重なる場合、川と道のボタンが光ります — 対応するアイコンをクリックして編集モードを設定。',
         'guide.paths.width': '入力フィールドで川/道の幅を調整。',
-        'guide.paths.dashes': '各ヘックスセグメントを線と間隔に交互に分割（1 = 実線、2 = 半分の線、3 = 2本の線など）。',
+        'guide.paths.dashes': '破線の間隔（ヘックス長に対する%、0 % 実線、100 % 点）。道のみ。川は破線になりません。',
         'guide.borders': '境界',
         'guide.borders.draw': 'ヘックスをクリックまたはドラッグして境界領域を描画。',
         'guide.borders.pick': '既存の境界を選択して編集。',
@@ -1975,7 +2005,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': 'Terminer la rivière',
         'input.riverWidth': 'Largeur de rivière',
         'input.roadWidth': 'Largeur de chemin',
-        'input.pathDashes': 'Tirets',
+        'input.pathDashes': 'Espace entre les tirets en % (0 = continu, 100 = points)',
+        'migrate.title': 'Ancien format de carte',
+        'migrate.intro': 'Les éléments suivants ont été migrés, veuillez vérifier :',
+        'migrate.roads': 'Routes',
         'tooltip.border': 'Outil frontière\nClic : Dessiner des hexagones de frontière\nClic droit sur la carte : Supprimer\nDouble-clic gomme : Supprimer la frontière contiguë',
         'tooltip.borderPicker': 'Capturer la couleur de frontière\nClic : Sélectionner une frontière existante pour la modifier',
         'tooltip.borderFinish': 'Terminer\nClic : Finaliser la frontière en cours',
@@ -1983,7 +2016,9 @@ const TRANSLATIONS = {
         'input.borderDashes': 'Tirets',
         'input.borderWidth': 'Largeur de frontière',
         'option.width': 'Largeur',
-        'option.dashes': 'Tirets',
+        'option.dashes': 'Espace %',
+        'option.dashDensity': 'Densité',
+        'input.dashDensity': 'Densité : interruptions par hexagone (1–20)',
         'notice.fileCreateError': 'Erreur lors de la création du fichier : {error}',
         'notice.nothingToUndo': 'Rien à annuler',
         'notice.mapRecovered': 'La carte n’a pas pu être enregistrée (conflit de synchronisation) et a été récupérée sous « {name} ».',
@@ -2158,7 +2193,7 @@ const TRANSLATIONS = {
         'guide.paths.road': 'Placer des points de passage pour les chemins. L\'édition fonctionne comme pour les rivières.',
         'guide.paths.pick': 'Sélectionner et modifier une rivière/un chemin existant. Si les deux se chevauchent, les boutons rivière et chemin s\'illuminent — cliquez sur l\'icône correspondante pour définir le mode d\'édition.',
         'guide.paths.width': 'Ajuster la largeur des rivières/chemins via les champs de saisie.',
-        'guide.paths.dashes': 'Divise chaque segment d\'hexagone en alternance de tiret et d\'espace (1 = continu, 2 = demi-ligne, 3 = deux tirets, etc.).',
+        'guide.paths.dashes': 'Espace entre les tirets en % de la longueur de l\'hexagone (0 % continu, 100 % points). Routes uniquement ; les rivières ne sont jamais en pointillés.',
         'guide.borders': 'Frontières',
         'guide.borders.draw': 'Dessiner une région de frontière en cliquant ou en glissant sur les hexagones.',
         'guide.borders.pick': 'Sélectionner une frontière existante pour la modifier.',
@@ -2287,7 +2322,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': 'Finalizar rio',
         'input.riverWidth': 'Largura do rio',
         'input.roadWidth': 'Largura do caminho',
-        'input.pathDashes': 'Traços',
+        'input.pathDashes': 'Espaço entre traços em % (0 = contínuo, 100 = pontos)',
+        'migrate.title': 'Formato de mapa antigo',
+        'migrate.intro': 'O seguinte foi migrado, verifique:',
+        'migrate.roads': 'Estradas',
         'tooltip.border': 'Ferramenta de fronteira\nClique: Desenhar hexágonos de fronteira\nClique direito no mapa: Excluir\nDuplo clique borracha: Apagar fronteira contígua',
         'tooltip.borderPicker': 'Capturar cor da fronteira\nClique: Selecionar fronteira existente para editar',
         'tooltip.borderFinish': 'Finalizar\nClique: Concluir a fronteira atual',
@@ -2295,7 +2333,9 @@ const TRANSLATIONS = {
         'input.borderDashes': 'Traços',
         'input.borderWidth': 'Largura da fronteira',
         'option.width': 'Largura',
-        'option.dashes': 'Traços',
+        'option.dashes': 'Espaço %',
+        'option.dashDensity': 'Densidade',
+        'input.dashDensity': 'Densidade: interrupções por hexágono (1–20)',
         'notice.fileCreateError': 'Erro ao criar o arquivo: {error}',
         'notice.nothingToUndo': 'Nada para desfazer',
         'notice.mapRecovered': 'O mapa não pôde ser salvo (conflito de sincronização) e foi recuperado como “{name}”.',
@@ -2470,7 +2510,7 @@ const TRANSLATIONS = {
         'guide.paths.road': 'Colocar pontos de passagem para caminhos. A edição funciona como nos rios.',
         'guide.paths.pick': 'Selecionar e editar rio/caminho existente. Se ambos se sobrepõem, os botões rio e caminho acendem — clique no ícone correspondente para definir o modo de edição.',
         'guide.paths.width': 'Ajustar a largura dos rios/caminhos pelos campos de entrada.',
-        'guide.paths.dashes': 'Divide cada segmento de hexágono em alternância de traço e espaço (1 = contínuo, 2 = meia linha, 3 = dois traços, etc.).',
+        'guide.paths.dashes': 'Espaço entre traços em % do comprimento do hexágono (0 % contínuo, 100 % pontos). Apenas estradas; rios nunca são tracejados.',
         'guide.borders': 'Fronteiras',
         'guide.borders.draw': 'Desenhar região de fronteira clicando ou arrastando sobre hexágonos.',
         'guide.borders.pick': 'Selecionar fronteira existente para editar.',
@@ -2599,7 +2639,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': '강 완료',
         'input.riverWidth': '강 너비',
         'input.roadWidth': '길 너비',
-        'input.pathDashes': '대시',
+        'input.pathDashes': '대시 간격 %(0 = 실선, 100 = 점)',
+        'migrate.title': '이전 지도 형식',
+        'migrate.intro': '다음 항목이 마이그레이션되었습니다. 확인해 주세요:',
+        'migrate.roads': '도로',
         'tooltip.border': '경계 도구\n클릭: 경계 헥스 셀 그리기\n지도에서 우클릭: 삭제\n더블 클릭 지우개: 인접한 경계 지우기',
         'tooltip.borderPicker': '경계 색상 캡처\n클릭: 기존 경계를 선택하여 편집',
         'tooltip.borderFinish': '완료\n클릭: 현재 경계 완성',
@@ -2607,7 +2650,9 @@ const TRANSLATIONS = {
         'input.borderDashes': '대시',
         'input.borderWidth': '경계 너비',
         'option.width': '너비',
-        'option.dashes': '대시',
+        'option.dashes': '간격 %',
+        'option.dashDensity': '밀도',
+        'input.dashDensity': '밀도: 헥스당 끊김 수 (1–20)',
         'notice.fileCreateError': '파일 생성 오류: {error}',
         'notice.nothingToUndo': '실행 취소할 항목이 없습니다',
         'notice.mapRecovered': '지도를 저장할 수 없어(동기화 충돌) “{name}”(으)로 복구했습니다.',
@@ -2782,7 +2827,7 @@ const TRANSLATIONS = {
         'guide.paths.road': '길의 경유점을 배치합니다. 편집은 강과 동일합니다.',
         'guide.paths.pick': '기존 강/길을 선택하여 편집합니다. 둘 다 겹치면 강/길 버튼이 강조됩니다 — 해당 아이콘을 클릭하여 편집 모드를 설정합니다.',
         'guide.paths.width': '입력 필드를 통해 강/길의 너비를 조정합니다.',
-        'guide.paths.dashes': '각 헥스 셀 구간을 대시와 간격으로 번갈아 나눕니다 (1 = 연속, 2 = 반 선, 3 = 두 대시 등).',
+        'guide.paths.dashes': '헥스 길이에 대한 대시 간격 %(0 % 실선, 100 % 점). 도로만 해당하며, 강은 절대 점선이 아닙니다.',
         'guide.borders': '경계',
         'guide.borders.draw': '헥스 셀을 클릭하거나 드래그하여 경계 영역을 그립니다.',
         'guide.borders.pick': '기존 경계를 선택하여 편집합니다.',
@@ -2911,7 +2956,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': 'Finalizar río',
         'input.riverWidth': 'Ancho de río',
         'input.roadWidth': 'Ancho de camino',
-        'input.pathDashes': 'Trazos',
+        'input.pathDashes': 'Hueco entre trazos en % (0 = continuo, 100 = puntos)',
+        'migrate.title': 'Formato de mapa antiguo',
+        'migrate.intro': 'Se migró lo siguiente, por favor revísalo:',
+        'migrate.roads': 'Caminos',
         'tooltip.border': 'Herramienta de frontera\nClic: Dibujar celdas de frontera\nClic derecho en mapa: Eliminar\nDoble clic borrador: Borrar frontera contigua',
         'tooltip.borderPicker': 'Capturar color de frontera\nClic: Seleccionar frontera existente para editar',
         'tooltip.borderFinish': 'Finalizar\nClic: Completar frontera actual',
@@ -2919,7 +2967,9 @@ const TRANSLATIONS = {
         'input.borderDashes': 'Trazos',
         'input.borderWidth': 'Ancho de borde',
         'option.width': 'Ancho',
-        'option.dashes': 'Trazos',
+        'option.dashes': 'Hueco %',
+        'option.dashDensity': 'Densidad',
+        'input.dashDensity': 'Densidad: interrupciones por hexágono (1–20)',
         'notice.fileCreateError': 'Error al crear el archivo: {error}',
         'notice.nothingToUndo': 'Nada que deshacer',
         'notice.mapRecovered': 'El mapa no se pudo guardar (conflicto de sincronización) y se recuperó como «{name}».',
@@ -3094,7 +3144,7 @@ const TRANSLATIONS = {
         'guide.paths.road': 'Colocar puntos de ruta para caminos. La edición funciona como en los ríos.',
         'guide.paths.pick': 'Seleccionar y editar río/camino existente. Si ambos coinciden, los botones río y camino se iluminan — clic en el icono correspondiente establece el modo de edición.',
         'guide.paths.width': 'Ajustar el ancho de ríos/caminos mediante los campos de entrada.',
-        'guide.paths.dashes': 'Divide cada segmento de celda en alternancia de trazo y hueco (1 = continuo, 2 = media línea, 3 = dos trazos, etc.).',
+        'guide.paths.dashes': 'Hueco entre trazos en % de la longitud del hexágono (0 % continuo, 100 % puntos). Solo caminos; los ríos nunca son discontinuos.',
         'guide.borders': 'Fronteras',
         'guide.borders.draw': 'Dibujar región fronteriza haciendo clic o arrastrando sobre celdas.',
         'guide.borders.pick': 'Seleccionar frontera existente para editar.',
@@ -3223,7 +3273,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': 'Zakończ rzekę',
         'input.riverWidth': 'Szerokość rzeki',
         'input.roadWidth': 'Szerokość drogi',
-        'input.pathDashes': 'Kreski',
+        'input.pathDashes': 'Przerwa między kreskami w % (0 = ciągła, 100 = kropki)',
+        'migrate.title': 'Stary format mapy',
+        'migrate.intro': 'Zmigrowano poniższe, sprawdź:',
+        'migrate.roads': 'Drogi',
         'tooltip.border': 'Narzędzie granicy\nKliknij: Rysuj komórki graniczne\nPrawy klik na mapie: Usuń\nPodwójne kliknięcie gumką: Usuń przyległą granicę',
         'tooltip.borderPicker': 'Pobierz kolor granicy\nKliknij: Wybierz istniejącą granicę do edycji',
         'tooltip.borderFinish': 'Zakończ\nKliknij: Zakończ bieżącą granicę',
@@ -3231,7 +3284,9 @@ const TRANSLATIONS = {
         'input.borderDashes': 'Kreski',
         'input.borderWidth': 'Szerokość granicy',
         'option.width': 'Szerokość',
-        'option.dashes': 'Kreski',
+        'option.dashes': 'Przerwa %',
+        'option.dashDensity': 'Gęstość',
+        'input.dashDensity': 'Gęstość: przerwy na sześciokąt (1–20)',
         'notice.fileCreateError': 'Błąd podczas tworzenia pliku: {error}',
         'notice.nothingToUndo': 'Nie ma czego cofnąć',
         'notice.mapRecovered': 'Nie udało się zapisać mapy (konflikt synchronizacji), odzyskano ją jako „{name}”.',
@@ -3406,7 +3461,7 @@ const TRANSLATIONS = {
         'guide.paths.road': 'Ustaw punkty trasy dla dróg. Edycja działa jak przy rzekach.',
         'guide.paths.pick': 'Wybierz i edytuj istniejącą rzekę/drogę. Jeśli oba się pokrywają, przyciski rzeka i droga podświetlą się — kliknij odpowiednią ikonę, aby ustawić tryb edycji.',
         'guide.paths.width': 'Dostosuj szerokość rzek/dróg za pomocą pól wartości.',
-        'guide.paths.dashes': 'Dzieli każdy segment komórki na naprzemienne kreski i przerwy (1 = ciągła, 2 = pół linii, 3 = dwie kreski itd.).',
+        'guide.paths.dashes': 'Przerwa między kreskami w % długości sześciokąta (0 % ciągła, 100 % kropki). Tylko drogi; rzeki nigdy nie są kreskowane.',
         'guide.borders': 'Granice',
         'guide.borders.draw': 'Rysuj region graniczny klikając lub przeciągając po komórkach.',
         'guide.borders.pick': 'Wybierz istniejącą granicę do edycji.',
@@ -3535,7 +3590,10 @@ const TRANSLATIONS = {
         'tooltip.riverFinish': 'Completa fiume',
         'input.riverWidth': 'Larghezza fiume',
         'input.roadWidth': 'Larghezza strada',
-        'input.pathDashes': 'Tratti',
+        'input.pathDashes': 'Spazio tra i tratti in % (0 = continuo, 100 = punti)',
+        'migrate.title': 'Vecchio formato mappa',
+        'migrate.intro': 'Quanto segue è stato migrato, controlla:',
+        'migrate.roads': 'Strade',
         'tooltip.border': 'Strumento confine\nClic: Disegna celle di confine\nClic destro sulla mappa: Elimina\nDoppio clic gomma: Cancella confine contiguo',
         'tooltip.borderPicker': 'Acquisisci colore confine\nClic: Seleziona confine esistente per modificare',
         'tooltip.borderFinish': 'Completa\nClic: Completa confine corrente',
@@ -3543,7 +3601,9 @@ const TRANSLATIONS = {
         'input.borderDashes': 'Tratti',
         'input.borderWidth': 'Larghezza confine',
         'option.width': 'Larghezza',
-        'option.dashes': 'Tratti',
+        'option.dashes': 'Spazio %',
+        'option.dashDensity': 'Densità',
+        'input.dashDensity': 'Densità: interruzioni per esagono (1–20)',
         'notice.fileCreateError': 'Errore nella creazione del file: {error}',
         'notice.nothingToUndo': 'Niente da annullare',
         'notice.mapRecovered': 'Impossibile salvare la mappa (conflitto di sincronizzazione); è stata recuperata come «{name}».',
@@ -3718,7 +3778,7 @@ const TRANSLATIONS = {
         'guide.paths.road': 'Posiziona punti di percorso per strade. La modifica funziona come per i fiumi.',
         'guide.paths.pick': 'Seleziona e modifica fiume/strada esistente. Se entrambi si sovrappongono, i pulsanti fiume e strada si illuminano — clic sull\'icona corrispondente imposta la modalità di modifica.',
         'guide.paths.width': 'Regola la larghezza di fiumi/strade tramite i campi di input.',
-        'guide.paths.dashes': 'Divide ogni segmento di cella in tratti e spazi alternati (1 = continuo, 2 = mezza linea, 3 = due tratti ecc.).',
+        'guide.paths.dashes': 'Spazio tra i tratti in % della lunghezza dell\'esagono (0 % continuo, 100 % punti). Solo strade; i fiumi non sono mai tratteggiati.',
         'guide.borders': 'Confini',
         'guide.borders.draw': 'Disegna regione di confine cliccando o trascinando sulle celle.',
         'guide.borders.pick': 'Seleziona confine esistente per modificare.',
@@ -5212,7 +5272,8 @@ class HexCartographerView extends ItemView {
         this.borderPickMode = false;
         this.riverSettings = { width: DEFAULT_RIVER_WIDTH, color: DEFAULT_RIVER_COLOR, activeRiverId: null, editMode: false, insertAfter: null };
         this.roadSettings = { width: DEFAULT_ROAD_WIDTH, color: DEFAULT_ROAD_COLOR, activeRoadId: null, editMode: false, insertAfter: null };
-        this.pathDashes = DEFAULT_PATH_DASHES;
+        this.pathGapPercent = DEFAULT_PATH_GAP_PERCENT;
+        this.pathDashDensity = DEFAULT_PATH_DASH_DENSITY;
         this.pathPickMode = false;
         this.pathPickPending = null;
         this.lastToolGroup = null;
@@ -5837,8 +5898,13 @@ class HexCartographerView extends ItemView {
                     this.roadSettings.insertAfter = null;
                     if (this.roadSettings.color === undefined) this.roadSettings.color = DEFAULT_ROAD_COLOR;
                 }
-                if (newData.settings.pathDashes !== undefined) {
-                    this.pathDashes = newData.settings.pathDashes;
+                if (newData.settings.pathGapPercent !== undefined) {
+                    this.pathGapPercent = newData.settings.pathGapPercent;
+                } else if (newData.settings.pathDashes !== undefined) {
+                    this.pathGapPercent = newData.settings.pathDashes >= 2 ? 50 : 0; // legacy dashes -> gap %
+                }
+                if (newData.settings.pathDashDensity !== undefined) {
+                    this.pathDashDensity = newData.settings.pathDashDensity;
                 }
                 if (newData.settings.hexColorColor) {
                     this.hexColorColor = newData.settings.hexColorColor;
@@ -5912,6 +5978,21 @@ class HexCartographerView extends ItemView {
                 });
                 newData.roads = waypoints.length > 0 ? [{ id: 1, color: DEFAULT_ROAD_COLOR, width: DEFAULT_ROAD_WIDTH, waypoints }] : [];
             }
+
+            // Migrate legacy dashed roads (integer "dashes") to the new gap-percent model, and drop
+            // any legacy river dashes (rivers are never dashed). A migrated map triggers a one-time
+            // notice so the user can double-check.
+            let migratedRoads = false;
+            for (const road of newData.roads) {
+                if (road && road.dashes !== undefined && road.gapPercent === undefined) {
+                    road.gapPercent = road.dashes >= 2 ? 50 : 0;
+                    road.dashDensity = Math.max(1, Math.round(road.dashes / 2)); // old count -> density
+                    migratedRoads = true;
+                }
+                if (road) delete road.dashes;
+            }
+            for (const river of newData.rivers) { if (river) delete river.dashes; }
+            if (migratedRoads) (this._pendingMigrations = this._pendingMigrations || []).push('roads');
 
             // Sanitize: remove viewport properties and corrupted coordinates
             const VIEWPORT_KEYS = ['offX', 'offY', 'zoom', 'viewportSaved'];
@@ -6076,7 +6157,18 @@ class HexCartographerView extends ItemView {
             new Notice(t('notice.mapLoadError'), 12000);
         } finally {
             this.isReloading = false;
+            if (typeof this._showMigrationNoticeIfNeeded === 'function') this._showMigrationNoticeIfNeeded();
         }
+    }
+
+    // One-time notice after loading an old-format map: lists what was migrated so the user can
+    // double-check. Cleared after showing; guarded to appear at most once per view session.
+    _showMigrationNoticeIfNeeded() {
+        const cats = this._pendingMigrations;
+        this._pendingMigrations = null;
+        if (this._loadError || this._migrationNoticeShown || !cats || !cats.length) return;
+        this._migrationNoticeShown = true;
+        new MigrationNoticeModal(this.app, [...new Set(cats)]).open();
     }
 
     // Snapshot of everything undo/redo restore. `projection` is included so moving,
@@ -6927,7 +7019,7 @@ class HexCartographerView extends ItemView {
 
         const info = this.svgSymbols[variant.id];
         if (info) {
-            wrap.appendChild(this.makeSystemSymbolHex(info, symbolColor, 22));
+            wrap.appendChild(this.makeSystemSymbolHex(info, symbolColor, 22, variant.id));
         } else {
             const icon = document.createElement('span');
             icon.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:0 0 auto;';
@@ -6980,7 +7072,7 @@ class HexCartographerView extends ItemView {
 
     // Hex with a centered system symbol (SVG path). Uniform symbol size
     // (not the per-symbol map size), so the list stays evenly readable.
-    makeSystemSymbolHex(info, symbolColor, size) {
+    makeSystemSymbolHex(info, symbolColor, size, symbolId) {
         const NS = 'http://www.w3.org/2000/svg';
         // Darken the hex backdrop when the tint is near-white, else keep the theme default.
         const svg = isNearWhite(symbolColor)
@@ -6990,8 +7082,15 @@ class HexCartographerView extends ItemView {
         const target = 60; // Symbol width within the 100-unit hex
         const scale = target / info.viewBoxWidth;
         const off = (100 - target) / 2;
+        // Per-symbol offset from SVG_SYMBOL_CONFIG so the preview matches the map. On the map the
+        // margin is a % of the hex box (hexHeight = gridSize*2, hexWidth = gridSize*√3); in this
+        // 100-unit box that is marginY directly and marginX * √3/2. Keeps map and preview aligned
+        // as new symbols are tuned.
+        const cfg = (symbolId && this.svgSymbolConfig && this.svgSymbolConfig[symbolId]) || null;
+        const dx = cfg ? (cfg.marginX || 0) * (Math.sqrt(3) / 2) : 0;
+        const dy = cfg ? (cfg.marginY || 0) : 0;
         const g = document.createElementNS(NS, 'g');
-        g.setAttribute('transform', `translate(${off},${off}) scale(${scale})`);
+        g.setAttribute('transform', `translate(${off + dx},${off + dy}) scale(${scale})`);
         const path = document.createElementNS(NS, 'path');
         path.setAttribute('d', info.pathData);
         path.setAttribute('fill', symbolColor || DEFAULT_MASTER_COLOR);
@@ -7435,12 +7534,12 @@ class HexCartographerView extends ItemView {
         this.riverWidthUnit = this.createOptionUnit('option.width');
         const riverWidthInput = this.createOptionInput(this.riverWidthUnit, {
             value: this.riverSettings.width.toString(),
-            title: t('input.riverWidth'), max: '999'
+            title: t('input.riverWidth'), max: String(MAX_PATH_WIDTH)
         });
         this.riverWidthInput = riverWidthInput;
         riverWidthInput.oninput = (e) => {
-            if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
-            this.riverSettings.width = Math.min(999, Math.max(1, parseInt(e.target.value) || DEFAULT_RIVER_WIDTH));
+            if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
+            this.riverSettings.width = Math.min(MAX_PATH_WIDTH, Math.max(1, parseInt(e.target.value) || DEFAULT_RIVER_WIDTH));
             e.target.value = this.riverSettings.width;
             const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
             if (river) river.width = this.riverSettings.width;
@@ -7451,12 +7550,12 @@ class HexCartographerView extends ItemView {
         this.roadWidthUnit = this.createOptionUnit('option.width');
         const roadWidthInput = this.createOptionInput(this.roadWidthUnit, {
             value: this.roadSettings.width.toString(),
-            title: t('input.roadWidth'), max: '999'
+            title: t('input.roadWidth'), max: String(MAX_PATH_WIDTH)
         });
         this.roadWidthInput = roadWidthInput;
         roadWidthInput.oninput = (e) => {
-            if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
-            this.roadSettings.width = Math.min(999, Math.max(1, parseInt(e.target.value) || DEFAULT_ROAD_WIDTH));
+            if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
+            this.roadSettings.width = Math.min(MAX_PATH_WIDTH, Math.max(1, parseInt(e.target.value) || DEFAULT_ROAD_WIDTH));
             e.target.value = this.roadSettings.width;
             const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
             if (road) road.width = this.roadSettings.width;
@@ -7464,20 +7563,37 @@ class HexCartographerView extends ItemView {
             this.requestSave();
         };
 
+        // Road dash gap as % of a hex segment (0 = solid, 100 = round dots). Roads only — rivers
+        // are never dashed, so this unit is shown for the road tool only (see updateToolbarOptions).
         this.pathDashesUnit = this.createOptionUnit('option.dashes');
         const dashesInput = this.createOptionInput(this.pathDashesUnit, {
-            value: (this.pathDashes || DEFAULT_PATH_DASHES).toString(),
-            title: t('input.pathDashes'), max: '99'
+            value: (this.pathGapPercent || 0).toString(),
+            title: t('input.pathDashes'), max: '100'
         });
         this.pathDashesInput = dashesInput;
         dashesInput.oninput = (e) => {
-            if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
-            this.pathDashes = Math.min(99, Math.max(1, parseInt(e.target.value) || DEFAULT_PATH_DASHES));
-            e.target.value = this.pathDashes;
-            const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
-            if (river) river.dashes = this.pathDashes;
+            if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
+            this.pathGapPercent = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+            e.target.value = this.pathGapPercent;
             const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
-            if (road) road.dashes = this.pathDashes;
+            if (road) road.gapPercent = this.pathGapPercent;
+            this.render();
+            this.requestSave();
+        };
+
+        // Dash density = number of dash+gap periods (interruptions) per hex segment. Roads only.
+        this.pathDensityUnit = this.createOptionUnit('option.dashDensity');
+        const densityInput = this.createOptionInput(this.pathDensityUnit, {
+            value: (this.pathDashDensity || 1).toString(),
+            title: t('input.dashDensity'), max: '20'
+        });
+        this.pathDensityInput = densityInput;
+        densityInput.oninput = (e) => {
+            if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
+            this.pathDashDensity = Math.min(20, Math.max(1, parseInt(e.target.value) || 1));
+            e.target.value = this.pathDashDensity;
+            const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
+            if (road) road.dashDensity = this.pathDashDensity;
             this.render();
             this.requestSave();
         };
@@ -7517,6 +7633,7 @@ class HexCartographerView extends ItemView {
     completePathPick(path, type) {
         this.exitPathEditMode();
         this.pathPickPending = null;
+        if (path.width > MAX_PATH_WIDTH) path.width = MAX_PATH_WIDTH; // pull legacy over-size down to the hex limit
         if (type === 'river') {
             this.currentToolGroup = 'river';
             this.riverSettings.activeRiverId = path.id;
@@ -7526,8 +7643,7 @@ class HexCartographerView extends ItemView {
             this.masterColor = path.color;
             this.syncMasterColorInput();
             if (this.riverWidthInput) this.riverWidthInput.value = path.width.toString();
-            this.pathDashes = path.dashes || DEFAULT_PATH_DASHES;
-            if (this.pathDashesInput) this.pathDashesInput.value = this.pathDashes.toString();
+            // Rivers are never dashed -> no gap input to load.
             new Notice(t('notice.riverSelected', { id: path.id }));
         } else {
             this.currentToolGroup = 'road';
@@ -7538,8 +7654,10 @@ class HexCartographerView extends ItemView {
             this.masterColor = path.color;
             this.syncMasterColorInput();
             if (this.roadWidthInput) this.roadWidthInput.value = path.width.toString();
-            this.pathDashes = path.dashes || DEFAULT_PATH_DASHES;
-            if (this.pathDashesInput) this.pathDashesInput.value = this.pathDashes.toString();
+            this.pathGapPercent = path.gapPercent || 0;
+            if (this.pathDashesInput) this.pathDashesInput.value = this.pathGapPercent.toString();
+            this.pathDashDensity = path.dashDensity || 1;
+            if (this.pathDensityInput) this.pathDensityInput.value = this.pathDashDensity.toString();
             new Notice(t('notice.roadSelected', { id: path.id }));
         }
         this.lastToolGroup = null;
@@ -7760,12 +7878,12 @@ class HexCartographerView extends ItemView {
         this.borderWidthUnit = this.createOptionUnit('option.width');
         const widthInput = this.createOptionInput(this.borderWidthUnit, {
             value: (this.borderSettings.width || DEFAULT_BORDER_WIDTH).toString(),
-            title: t('input.borderWidth'), max: '999'
+            title: t('input.borderWidth'), max: String(MAX_PATH_WIDTH)
         });
         this.borderWidthInput = widthInput;
         widthInput.oninput = (e) => {
-            if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
-            this.borderSettings.width = Math.min(999, Math.max(1, parseInt(e.target.value) || DEFAULT_BORDER_WIDTH));
+            if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
+            this.borderSettings.width = Math.min(MAX_PATH_WIDTH, Math.max(1, parseInt(e.target.value) || DEFAULT_BORDER_WIDTH));
             e.target.value = this.borderSettings.width;
             const region = this.data.borders && this.data.borders.find(r => r.id === this.borderSettings.activeRegionId);
             if (region) region.width = this.borderSettings.width;
@@ -7869,7 +7987,8 @@ class HexCartographerView extends ItemView {
         const river = g === 'river', road = g === 'road', border = g === 'border', proj = g === 'projection';
         if (this.riverWidthUnit) this.riverWidthUnit.style.display = river ? '' : 'none';
         if (this.roadWidthUnit) this.roadWidthUnit.style.display = road ? '' : 'none';
-        if (this.pathDashesUnit) this.pathDashesUnit.style.display = (river || road) ? '' : 'none';
+        if (this.pathDashesUnit) this.pathDashesUnit.style.display = road ? '' : 'none'; // roads only; rivers never dashed
+        if (this.pathDensityUnit) this.pathDensityUnit.style.display = road ? '' : 'none';
         if (this.borderWidthUnit) this.borderWidthUnit.style.display = border ? '' : 'none';
         if (this.borderDashesUnit) this.borderDashesUnit.style.display = border ? '' : 'none';
         for (const u of [this.projLoadUnit, this.projDeleteUnit, this.projSepBeforeTransparency, this.projOpacityUnit, this.projScaleUnit, this.projRotationUnit, this.projSepBeforeReset, this.projIconGroup]) {
@@ -7929,7 +8048,8 @@ class HexCartographerView extends ItemView {
 
         if (this.riverWidthInput) this.riverWidthInput.value = this.riverSettings.width.toString();
         if (this.roadWidthInput) this.roadWidthInput.value = this.roadSettings.width.toString();
-        if (this.pathDashesInput) this.pathDashesInput.value = (this.pathDashes || DEFAULT_PATH_DASHES).toString();
+        if (this.pathDashesInput) this.pathDashesInput.value = (this.pathGapPercent || 0).toString();
+        if (this.pathDensityInput) this.pathDensityInput.value = (this.pathDashDensity || 1).toString();
 
         const activePathSettings = this.currentToolGroup === 'river' ? this.riverSettings : this.roadSettings;
         if (this.pathPickerBtn) {
@@ -8248,7 +8368,7 @@ class HexCartographerView extends ItemView {
             if (asset) return this.makeSymbolImageHex(this.app.vault.adapter.getResourcePath(asset.filePath), size);
         }
         const info = this.svgSymbols[entry.variant];
-        if (info) return this.makeSystemSymbolHex(info, symbolColor, size);
+        if (info) return this.makeSystemSymbolHex(info, symbolColor, size, entry.variant);
         // Fallback: empty hex with the variant's Lucide icon centered.
         const wrap = document.createElement('div');
         wrap.style.cssText = `position: relative; width: ${size}px; height: ${size}px;`;
@@ -8269,7 +8389,7 @@ class HexCartographerView extends ItemView {
             if (asset) return this.makeSymbolImageHex(this.app.vault.adapter.getResourcePath(asset.filePath), size);
         }
         const info = this.svgSymbols[id];
-        if (info) return this.makeSystemSymbolHex(info, config.symbolColor, size);
+        if (info) return this.makeSystemSymbolHex(info, config.symbolColor, size, id);
         const wrap = document.createElement('div');
         wrap.style.cssText = `position: relative; width: ${size}px; height: ${size}px;`;
         wrap.appendChild(this.makeHexPreviewSvg(size));
@@ -8582,7 +8702,7 @@ class HexCartographerView extends ItemView {
                     this.borderSettings.activeRegionId = foundRegion.id;
                     this.borderSettings.pickedHex = { q: clickedHex.q, r: clickedHex.r };
                     this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
-                    this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH;
+                    if (foundRegion.width > MAX_PATH_WIDTH) { foundRegion.width = MAX_PATH_WIDTH; this.requestSave(); } this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH; // pull legacy over-size down to the hex limit
                     this.masterColor = foundRegion.color;
                     this.syncMasterColorInput();
                     if (this.borderDashesInput) this.borderDashesInput.value = this.borderSettings.dashes.toString();
@@ -9020,7 +9140,7 @@ class HexCartographerView extends ItemView {
                                 this.borderSettings.activeRegionId = foundRegion.id;
                                 this.borderSettings.pickedHex = { q: clickedHex.q, r: clickedHex.r };
                                 this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
-                                this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH;
+                                if (foundRegion.width > MAX_PATH_WIDTH) { foundRegion.width = MAX_PATH_WIDTH; this.requestSave(); } this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH; // pull legacy over-size down to the hex limit
                                 this.masterColor = foundRegion.color;
                                 this.syncMasterColorInput();
                                 if (this.borderDashesInput) this.borderDashesInput.value = this.borderSettings.dashes.toString();
@@ -9305,7 +9425,7 @@ class HexCartographerView extends ItemView {
                             this.borderSettings.activeRegionId = foundRegion.id;
                             this.borderSettings.pickedHex = { q: clickedHex.q, r: clickedHex.r };
                             this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
-                            this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH;
+                            if (foundRegion.width > MAX_PATH_WIDTH) { foundRegion.width = MAX_PATH_WIDTH; this.requestSave(); } this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH; // pull legacy over-size down to the hex limit
                             this.masterColor = foundRegion.color;
                             this.syncMasterColorInput();
                             if (this.borderDashesInput) this.borderDashesInput.value = this.borderSettings.dashes.toString();
@@ -9740,10 +9860,10 @@ class HexCartographerView extends ItemView {
         if (!this.data.roads) this.data.roads = [];
 
         let road = this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
-        if (road) road.dashes = this.pathDashes || DEFAULT_PATH_DASHES;
+        if (road) { road.gapPercent = this.pathGapPercent || 0; road.dashDensity = this.pathDashDensity || 1; }
         if (!road) {
             const maxId = this.data.roads.reduce((max, r) => Math.max(max, r.id || 0), 0);
-            road = { id: maxId + 1, color: this.masterColor, width: this.roadSettings.width, dashes: this.pathDashes || DEFAULT_PATH_DASHES, waypoints: [] };
+            road = { id: maxId + 1, color: this.masterColor, width: this.roadSettings.width, gapPercent: this.pathGapPercent || 0, dashDensity: this.pathDashDensity || 1, waypoints: [] };
             this.data.roads.push(road);
             this.roadSettings.activeRoadId = road.id;
             this.roadSettings.editMode = true;
@@ -9864,10 +9984,10 @@ class HexCartographerView extends ItemView {
         if (!this.data.rivers) this.data.rivers = [];
 
         let river = this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
-        if (river) river.dashes = this.pathDashes || DEFAULT_PATH_DASHES;
+        // Rivers are never dashed.
         if (!river) {
             const maxId = this.data.rivers.reduce((max, r) => Math.max(max, r.id || 0), 0);
-            river = { id: maxId + 1, color: this.masterColor, width: this.riverSettings.width, dashes: this.pathDashes || DEFAULT_PATH_DASHES, waypoints: [] };
+            river = { id: maxId + 1, color: this.masterColor, width: this.riverSettings.width, waypoints: [] };
             this.data.rivers.push(river);
             this.riverSettings.activeRiverId = river.id;
             this.riverSettings.editMode = true;
@@ -12457,11 +12577,13 @@ class HexCartographerView extends ItemView {
             }
 
             const hasTaper = canTaper;
-            this.drawWavyLines(segments, path.color, path.width, trimStart, trimEnd, path.dashes || 1, hasTaper);
+            const gapPercent = pathType === 'river' ? 0 : (path.gapPercent || 0); // rivers are never dashed
+            const dashDensity = pathType === 'river' ? 1 : (path.dashDensity || 1);
+            this.drawWavyLines(segments, path.color, path.width, trimStart, trimEnd, gapPercent, dashDensity, hasTaper);
         });
     }
 
-    drawWavyLines(lines, color, defaultWidth, trimStart, trimEnd, dashCount, taper = false) {
+    drawWavyLines(lines, color, defaultWidth, trimStart, trimEnd, gapPercent, dashDensity, taper = false) {
         if (!lines || lines.length === 0) return;
         this.ctx.strokeStyle = color;
         this.ctx.lineCap = "round";
@@ -12513,10 +12635,17 @@ class HexCartographerView extends ItemView {
 
         if (allPts.length < 2) return;
 
-        if (dashCount > 1 && computedLines.length > 0) {
-            const unitLen = computedLines[0].fullDist / dashCount;
-            this.ctx.setLineDash([unitLen, unitLen]);
-            this.ctx.lineDashOffset = (dashCount % 2 === 0) ? unitLen / 2 : 0;
+        if (gapPercent > 0 && computedLines.length > 0) {
+            // "dashDensity" dash+gap periods per hex segment (node-aligned), so the look is global
+            // and length-independent. gapPercent = the VISIBLE gap as a % of ONE period: 0 % solid,
+            // 100 % -> the dash shrinks to a round dot. Ends are always round (see lineCap), so the
+            // caps add w back; shorten the dash by w so the visible gap matches gapPercent.
+            const period = computedLines[0].fullDist / Math.max(1, dashDensity || 1);
+            const w = defaultWidth;
+            const visDash = period * (1 - Math.min(100, gapPercent) / 100);
+            const dash = Math.max(0.01, visDash - w);   // -> 0.01 renders as a round dot
+            this.ctx.setLineDash([dash, period - dash]);
+            this.ctx.lineDashOffset = dash / 2;          // dash sits centered on the hex nodes
         }
 
         if (taper) {
@@ -12552,7 +12681,7 @@ class HexCartographerView extends ItemView {
             this.ctx.stroke();
         }
 
-        if (dashCount > 1) { this.ctx.setLineDash([]); this.ctx.lineDashOffset = 0; }
+        if (gapPercent > 0) { this.ctx.setLineDash([]); this.ctx.lineDashOffset = 0; }
     }
 
     // The saved payload WITHOUT the fields that must not, on their own, count as a content
@@ -12608,7 +12737,8 @@ class HexCartographerView extends ItemView {
                     borderSettings: this.borderSettings,
                     riverSettings: this.riverSettings,
                     roadSettings: this.roadSettings,
-                    pathDashes: this.pathDashes,
+                    pathGapPercent: this.pathGapPercent,
+                    pathDashDensity: this.pathDashDensity,
                     masterColor: this.masterColor,
                     editMode: this.editMode,
                     hexColorColor: this.hexColorColor,
@@ -13063,6 +13193,25 @@ class MapInfoModal extends Modal {
             const eh = Math.round(ew / (size.w / size.h));
             row(t('info.exportSize'), `${ew} × ${eh} px`);
         }
+    }
+
+    onClose() { this.contentEl.empty(); }
+}
+
+// One-time notice shown when an old-format map was migrated on load: a short intro plus a
+// bullet list of the migrated categories (keywords), so the user can double-check them.
+class MigrationNoticeModal extends Modal {
+    constructor(app, categories) {
+        super(app);
+        this.categories = categories;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        this.titleEl.setText(t('migrate.title'));
+        contentEl.createEl('p', { text: t('migrate.intro'), attr: { style: 'margin-top: 0;' } });
+        const ul = contentEl.createEl('ul', { attr: { style: 'margin: 4px 0 0 0;' } });
+        for (const c of this.categories) ul.createEl('li', { text: t('migrate.' + c) });
     }
 
     onClose() { this.contentEl.empty(); }
