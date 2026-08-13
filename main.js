@@ -7085,17 +7085,19 @@ class HexCartographerView extends ItemView {
     // so a tap can move the checkmark to the chosen entry live. On mobile the menu stays
     // open after a tap (native scrolling), so without this the checkmark would keep
     // pointing at the previously selected asset — no feedback about what was picked.
-    buildAssetMenu(menu, node, currentKey, onSelect, previewKind = null, prefix = '', checked = []) {
+    // assetKind ('symbol'/'texture') drives the hover preview and is independent of previewKind
+    // (inline thumbnails), so the hover preview works even when thumbnails are off.
+    buildAssetMenu(menu, node, currentKey, onSelect, previewKind = null, prefix = '', checked = [], assetKind = null) {
         const flat = !this.supportsSubmenus();
 
         this.sortByLabel(node.folders, f => f.name).forEach(folder => {
             if (flat) {
-                this.buildAssetMenu(menu, folder, currentKey, onSelect, previewKind, `${prefix}${folder.name} / `, checked);
+                this.buildAssetMenu(menu, folder, currentKey, onSelect, previewKind, `${prefix}${folder.name} / `, checked, assetKind);
                 return;
             }
             menu.addItem(item => {
                 item.setTitle(folder.name);
-                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), folder, currentKey, onSelect, previewKind, '', checked);
+                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), folder, currentKey, onSelect, previewKind, '', checked, assetKind);
                 this.fixSubmenuHover(menu, item);
             });
         });
@@ -7114,6 +7116,12 @@ class HexCartographerView extends ItemView {
                     checked.forEach(c => c.item.setChecked(c.key === asset.key));
                     onSelect(asset.key);
                 });
+                // Resource path resolved lazily (only when a preview is actually shown).
+                this.attachEntryPreview(item,
+                    assetKind === 'texture'
+                        ? () => this.makeHexImageSvg(this.app.vault.adapter.getResourcePath(asset.filePath), HISTORY_PREVIEW_SIZE)
+                        : () => this.makeSymbolImageHex(this.app.vault.adapter.getResourcePath(asset.filePath), HISTORY_PREVIEW_SIZE),
+                    asset.label);
             });
         });
     }
@@ -7162,6 +7170,7 @@ class HexCartographerView extends ItemView {
                         checked.forEach(c => c.item.setChecked(c.key === variant.id));
                         selectVariant(variant.id);
                     });
+                    this.attachEntryPreview(item, () => this.previewHexForVariant(config, variant.id), variant.label);
                 });
             });
         };
@@ -7175,7 +7184,7 @@ class HexCartographerView extends ItemView {
         } else if (!this.supportsSubmenus()) {
             addSystemVariants(menu);
             menu.addSeparator();
-            this.buildAssetMenu(menu, registry.tree, config.currentVariant, selectVariant, previewKind, '', checked);
+            this.buildAssetMenu(menu, registry.tree, config.currentVariant, selectVariant, previewKind, '', checked, 'symbol');
         } else {
             menu.addItem(item => {
                 item.setTitle(t('menu.system'));
@@ -7183,10 +7192,11 @@ class HexCartographerView extends ItemView {
             });
             menu.addItem(item => {
                 item.setTitle(registry.rootName);
-                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, config.currentVariant, selectVariant, previewKind, '', checked);
+                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, config.currentVariant, selectVariant, previewKind, '', checked, 'symbol');
             });
         }
 
+        if (typeof menu.onHide === 'function') menu.onHide(() => this.hideHistoryPreview());
         menu.showAtPosition({ x: rect.left, y: rect.bottom + 4 });
     }
 
@@ -7237,13 +7247,14 @@ class HexCartographerView extends ItemView {
                     checked.forEach(c => c.item.setChecked(c.key === null));
                     selectTexture(null);
                 });
+                this.attachEntryPreview(item, () => this.makeHexPreviewSvg(HISTORY_PREVIEW_SIZE, this.hexColorColor, false), t('menu.color'));
             });
         };
 
         if (!this.supportsSubmenus()) {
             addColorEntry(menu);
             menu.addSeparator();
-            this.buildAssetMenu(menu, registry.tree, this.hexTexture, selectTexture, previewKind, '', checked);
+            this.buildAssetMenu(menu, registry.tree, this.hexTexture, selectTexture, previewKind, '', checked, 'texture');
         } else {
             menu.addItem(item => {
                 item.setTitle(t('menu.system'));
@@ -7251,10 +7262,11 @@ class HexCartographerView extends ItemView {
             });
             menu.addItem(item => {
                 item.setTitle(registry.rootName);
-                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, this.hexTexture, selectTexture, previewKind, '', checked);
+                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, this.hexTexture, selectTexture, previewKind, '', checked, 'texture');
             });
         }
 
+        if (typeof menu.onHide === 'function') menu.onHide(() => this.hideHistoryPreview());
         menu.showAtPosition({ x: rect.left, y: rect.bottom + 4 });
     }
 
@@ -8029,7 +8041,21 @@ class HexCartographerView extends ItemView {
         if (group === 'hexcolor') return { color: this.hexColorColor, texture: this.hexTexture || null };
         const c = this.toolConfigs[group];
         if (!c) return null;
-        return { variant: c.currentVariant, symbolColor: c.symbolColor, backgroundColor: c.backgroundColor, backgroundEnabled: !!c.backgroundEnabled };
+        const entry = { variant: c.currentVariant, backgroundColor: c.backgroundColor, backgroundEnabled: !!c.backgroundEnabled };
+        // Symbol colour tints only colorable SVGs; on a non-colorable bitmap it has no visible
+        // effect. Leaving it out keeps colour changes from spawning duplicate history slots for
+        // what looks like the same symbol.
+        if (this.isSymbolColorable(c.currentVariant)) entry.symbolColor = c.symbolColor;
+        return entry;
+    }
+
+    // Whether a symbol variant can be tinted: system symbols are colorable SVG paths; a user
+    // asset only if decoded as a single-path SVG. Unknown (not yet decoded) counts as colorable
+    // so a colorable symbol's entries are never wrongly merged.
+    isSymbolColorable(variant) {
+        if (!isUserAssetKey(variant)) return true;
+        const asset = this.plugin.getUserAsset(variant);
+        return !asset || asset.colorable !== false;
     }
 
     // Record the active drawing tool's current setting into its history (deduped, most-recent
@@ -8062,7 +8088,7 @@ class HexCartographerView extends ItemView {
             const c = this.toolConfigs[group];
             if (!c) return;
             c.currentVariant = entry.variant;
-            c.symbolColor = entry.symbolColor;
+            if (entry.symbolColor !== undefined) c.symbolColor = entry.symbolColor; // omitted for bitmaps
             c.backgroundColor = entry.backgroundColor;
             c.backgroundEnabled = !!entry.backgroundEnabled;
             this.currentToolGroup = group;
@@ -8128,15 +8154,16 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    // --- Tool-history hover preview (mouse only) ------------------------------------------
-    // One reused overlay: larger hex preview + name below the hovered slot. pointer-events:none
-    // so it never blocks sliding to the next slot; position:fixed so toolbar overflow can't clip.
+    // --- Hex hover preview (mouse only) ---------------------------------------------------
+    // One reused overlay: larger hex preview + name. Used below a tool-history slot AND at the
+    // cursor over a right-click-menu entry. pointer-events:none so it never blocks the hover;
+    // position:fixed + high z-index so toolbar overflow can't clip it and it sits above the menu.
     ensureHistoryPreviewEl() {
         if (this.historyPreviewEl) return this.historyPreviewEl;
         // Appended to <body>, not containerEl: a transformed workspace ancestor would otherwise
         // make position:fixed resolve against that ancestor and misplace the overlay.
         const el = this.containerEl.ownerDocument.body.createDiv({ cls: 'hex-history-preview' });
-        el.style.cssText = 'position: fixed; z-index: 100; pointer-events: none; display: none; flex-direction: column; align-items: flex-start; gap: 4px;';
+        el.style.cssText = 'position: fixed; z-index: 9999; pointer-events: none; display: none; flex-direction: column; align-items: flex-start; gap: 4px;';
         this.historyPreviewEl = el;
         return el;
     }
@@ -8145,22 +8172,64 @@ class HexCartographerView extends ItemView {
         if (this.historyPreviewEl) this.historyPreviewEl.style.display = 'none';
     }
 
-    showHistoryPreview(button, group, entry, label) {
+    // Fills the overlay with hex card + name box (positioning is the caller's job).
+    fillPreview(hexEl, label) {
         const el = this.ensureHistoryPreviewEl();
         el.empty();
         // Hex card at a fixed size, kept SEPARATE from the name so a long name cannot stretch it.
         const card = el.createDiv();
         card.style.cssText = 'display: flex; padding: 4px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.25);';
-        card.appendChild(this.historyPreviewHex(group, entry, HISTORY_PREVIEW_SIZE));
+        card.appendChild(hexEl);
         card.querySelectorAll('polygon[stroke]').forEach(p => p.setAttribute('stroke-width', '1')); // thin hex outline
         // Name in its own box: wraps within a capped width instead of breaking the hex card.
         const name = el.createDiv({ text: label });
         name.style.cssText = 'max-width: 160px; padding: 2px 8px; font-size: 12px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); white-space: normal; overflow-wrap: anywhere;';
+        return el;
+    }
+
+    showHistoryPreview(button, group, entry, label) {
+        const el = this.fillPreview(this.historyPreviewHex(group, entry, HISTORY_PREVIEW_SIZE), label);
         // Below the slot, left-aligned to it (getBoundingClientRect -> viewport -> position:fixed).
         const r = button.getBoundingClientRect();
         el.style.left = `${r.left}px`;
         el.style.top = `${r.bottom + 6}px`;
         el.style.display = 'flex';
+    }
+
+    // Right-click-menu hover: show a preview that follows the cursor (offset so it doesn't sit
+    // under it, flipped near the viewport edges).
+    showPreviewAtCursor(hexEl, label, x, y) {
+        this.fillPreview(hexEl, label);
+        this.historyPreviewEl.style.display = 'flex';
+        this.movePreviewToCursor(x, y);
+    }
+
+    movePreviewToCursor(x, y) {
+        const el = this.historyPreviewEl;
+        if (!el || el.style.display === 'none') return;
+        const OFF = 18;
+        const root = el.ownerDocument.documentElement;
+        let left = x + OFF, top = y + OFF;
+        if (left + el.offsetWidth > root.clientWidth) left = x - OFF - el.offsetWidth;   // flip left
+        if (top + el.offsetHeight > root.clientHeight) top = y - OFF - el.offsetHeight;  // flip up
+        el.style.left = `${Math.max(4, left)}px`;
+        el.style.top = `${Math.max(4, top)}px`;
+    }
+
+    // Binds the cursor-following preview to a right-click-menu item (mouse/pen only, so a finger
+    // tap just selects). makeHex builds the preview hex lazily on enter.
+    attachEntryPreview(item, makeHex, label) {
+        const dom = item && item.dom;
+        if (!dom || typeof dom.addEventListener !== 'function') return;
+        dom.addEventListener('pointerenter', (e) => {
+            if (e.pointerType === 'touch') return;
+            this.showPreviewAtCursor(makeHex(), label, e.clientX, e.clientY);
+        });
+        dom.addEventListener('pointermove', (e) => {
+            if (e.pointerType === 'touch') return;
+            this.movePreviewToCursor(e.clientX, e.clientY);
+        });
+        dom.addEventListener('pointerleave', () => this.hideHistoryPreview());
     }
 
     // Larger hex preview for a history entry: texture image / colour hex / system- or user-symbol
@@ -8187,6 +8256,26 @@ class HexCartographerView extends ItemView {
         const icon = document.createElement('span');
         icon.style.cssText = 'position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;';
         setIcon(icon, this.variantIconFor(this.toolConfigs[group], entry.variant));
+        wrap.appendChild(icon);
+        return wrap;
+    }
+
+    // Larger hex preview for a symbol variant in the right-click menu (system SVG / user symbol /
+    // Lucide-icon fallback), mirroring historyPreviewHex's symbol branch.
+    previewHexForVariant(config, id) {
+        const size = HISTORY_PREVIEW_SIZE;
+        if (isUserAssetKey(id)) {
+            const asset = this.plugin.getUserAsset(id);
+            if (asset) return this.makeSymbolImageHex(this.app.vault.adapter.getResourcePath(asset.filePath), size);
+        }
+        const info = this.svgSymbols[id];
+        if (info) return this.makeSystemSymbolHex(info, config.symbolColor, size);
+        const wrap = document.createElement('div');
+        wrap.style.cssText = `position: relative; width: ${size}px; height: ${size}px;`;
+        wrap.appendChild(this.makeHexPreviewSvg(size));
+        const icon = document.createElement('span');
+        icon.style.cssText = 'position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;';
+        setIcon(icon, this.variantIconFor(config, id));
         wrap.appendChild(icon);
         return wrap;
     }
