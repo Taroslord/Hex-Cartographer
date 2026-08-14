@@ -392,6 +392,9 @@ const TRANSLATIONS = {
         'option.dashes': 'Lücke %',
         'option.dashDensity': 'Dichte',
         'input.dashDensity': 'Dichte: Unterbrechungen pro Wabe (1–20)',
+        'option.endpoint': 'Endpunkt',
+        'endpoint.edge': 'Kante',
+        'endpoint.center': 'Zentrum',
 
         // Notices
         'notice.fileCreateError': 'Fehler beim Erstellen der Datei: {error}',
@@ -737,6 +740,9 @@ const TRANSLATIONS = {
         'option.dashes': 'Gap %',
         'option.dashDensity': 'Density',
         'input.dashDensity': 'Density: interruptions per hex (1–20)',
+        'option.endpoint': 'Endpoint',
+        'endpoint.edge': 'Edge',
+        'endpoint.center': 'Center',
 
         // Notices
         'notice.fileCreateError': 'Error creating file: {error}',
@@ -1068,6 +1074,9 @@ const TRANSLATIONS = {
         'option.dashes': '间隙 %',
         'option.dashDensity': '密度',
         'input.dashDensity': '密度：每格的中断数量（1–20）',
+        'option.endpoint': '端点',
+        'endpoint.edge': '边缘',
+        'endpoint.center': '中心',
         'notice.fileCreateError': '创建文件时出错：{error}',
         'notice.nothingToUndo': '没有可撤销的操作',
         'notice.mapRecovered': '地图无法保存（同步冲突），已作为“{name}”恢复。',
@@ -1385,6 +1394,9 @@ const TRANSLATIONS = {
         'option.dashes': 'Зазор %',
         'option.dashDensity': 'Плотность',
         'input.dashDensity': 'Плотность: разрывов на соту (1–20)',
+        'option.endpoint': 'Конец',
+        'endpoint.edge': 'Край',
+        'endpoint.center': 'Центр',
         'notice.fileCreateError': 'Ошибка при создании файла: {error}',
         'notice.nothingToUndo': 'Нечего отменять',
         'notice.mapRecovered': 'Карту не удалось сохранить (конфликт синхронизации), она восстановлена как «{name}».',
@@ -1702,6 +1714,9 @@ const TRANSLATIONS = {
         'option.dashes': '間隔 %',
         'option.dashDensity': '密度',
         'input.dashDensity': '密度：ヘックスあたりの区切り数（1–20）',
+        'option.endpoint': '端点',
+        'endpoint.edge': '辺',
+        'endpoint.center': '中心',
         'notice.fileCreateError': 'ファイル作成エラー：{error}',
         'notice.nothingToUndo': '元に戻す操作がありません',
         'notice.mapRecovered': 'マップを保存できませんでした（同期の競合）。「{name}」として復旧しました。',
@@ -2019,6 +2034,9 @@ const TRANSLATIONS = {
         'option.dashes': 'Espace %',
         'option.dashDensity': 'Densité',
         'input.dashDensity': 'Densité : interruptions par hexagone (1–20)',
+        'option.endpoint': 'Extrémité',
+        'endpoint.edge': 'Bord',
+        'endpoint.center': 'Centre',
         'notice.fileCreateError': 'Erreur lors de la création du fichier : {error}',
         'notice.nothingToUndo': 'Rien à annuler',
         'notice.mapRecovered': 'La carte n’a pas pu être enregistrée (conflit de synchronisation) et a été récupérée sous « {name} ».',
@@ -2336,6 +2354,9 @@ const TRANSLATIONS = {
         'option.dashes': 'Espaço %',
         'option.dashDensity': 'Densidade',
         'input.dashDensity': 'Densidade: interrupções por hexágono (1–20)',
+        'option.endpoint': 'Extremidade',
+        'endpoint.edge': 'Borda',
+        'endpoint.center': 'Centro',
         'notice.fileCreateError': 'Erro ao criar o arquivo: {error}',
         'notice.nothingToUndo': 'Nada para desfazer',
         'notice.mapRecovered': 'O mapa não pôde ser salvo (conflito de sincronização) e foi recuperado como “{name}”.',
@@ -2653,6 +2674,9 @@ const TRANSLATIONS = {
         'option.dashes': '간격 %',
         'option.dashDensity': '밀도',
         'input.dashDensity': '밀도: 헥스당 끊김 수 (1–20)',
+        'option.endpoint': '끝점',
+        'endpoint.edge': '가장자리',
+        'endpoint.center': '중심',
         'notice.fileCreateError': '파일 생성 오류: {error}',
         'notice.nothingToUndo': '실행 취소할 항목이 없습니다',
         'notice.mapRecovered': '지도를 저장할 수 없어(동기화 충돌) “{name}”(으)로 복구했습니다.',
@@ -2970,6 +2994,9 @@ const TRANSLATIONS = {
         'option.dashes': 'Hueco %',
         'option.dashDensity': 'Densidad',
         'input.dashDensity': 'Densidad: interrupciones por hexágono (1–20)',
+        'option.endpoint': 'Extremo',
+        'endpoint.edge': 'Borde',
+        'endpoint.center': 'Centro',
         'notice.fileCreateError': 'Error al crear el archivo: {error}',
         'notice.nothingToUndo': 'Nada que deshacer',
         'notice.mapRecovered': 'El mapa no se pudo guardar (conflicto de sincronización) y se recuperó como «{name}».',
@@ -3287,6 +3314,9 @@ const TRANSLATIONS = {
         'option.dashes': 'Przerwa %',
         'option.dashDensity': 'Gęstość',
         'input.dashDensity': 'Gęstość: przerwy na sześciokąt (1–20)',
+        'option.endpoint': 'Koniec',
+        'endpoint.edge': 'Krawędź',
+        'endpoint.center': 'Środek',
         'notice.fileCreateError': 'Błąd podczas tworzenia pliku: {error}',
         'notice.nothingToUndo': 'Nie ma czego cofnąć',
         'notice.mapRecovered': 'Nie udało się zapisać mapy (konflikt synchronizacji), odzyskano ją jako „{name}”.',
@@ -3604,6 +3634,9 @@ const TRANSLATIONS = {
         'option.dashes': 'Spazio %',
         'option.dashDensity': 'Densità',
         'input.dashDensity': 'Densità: interruzioni per esagono (1–20)',
+        'option.endpoint': 'Estremità',
+        'endpoint.edge': 'Bordo',
+        'endpoint.center': 'Centro',
         'notice.fileCreateError': 'Errore nella creazione del file: {error}',
         'notice.nothingToUndo': 'Niente da annullare',
         'notice.mapRecovered': 'Impossibile salvare la mappa (conflitto di sincronizzazione); è stata recuperata come «{name}».',
@@ -5274,6 +5307,7 @@ class HexCartographerView extends ItemView {
         this.roadSettings = { width: DEFAULT_ROAD_WIDTH, color: DEFAULT_ROAD_COLOR, activeRoadId: null, editMode: false, insertAfter: null };
         this.pathGapPercent = DEFAULT_PATH_GAP_PERCENT;
         this.pathDashDensity = DEFAULT_PATH_DASH_DENSITY;
+        this.pathEndpoint = 'edge'; // where a path ends/starts: 'edge' (default) or 'center'
         this.pathPickMode = false;
         this.pathPickPending = null;
         this.lastToolGroup = null;
@@ -5905,6 +5939,9 @@ class HexCartographerView extends ItemView {
                 }
                 if (newData.settings.pathDashDensity !== undefined) {
                     this.pathDashDensity = newData.settings.pathDashDensity;
+                }
+                if (newData.settings.pathEndpoint !== undefined) {
+                    this.pathEndpoint = newData.settings.pathEndpoint;
                 }
                 if (newData.settings.hexColorColor) {
                     this.hexColorColor = newData.settings.hexColorColor;
@@ -7295,7 +7332,9 @@ class HexCartographerView extends ItemView {
             });
         }
 
-        if (typeof menu.onHide === 'function') menu.onHide(() => this.hideHistoryPreview());
+        // Return keyboard focus to the canvas so Ctrl+Z/Y (bound on containerEl) work again after
+        // the body-appended menu closes; also hide the hover preview.
+        if (typeof menu.onHide === 'function') menu.onHide(() => { this.hideHistoryPreview(); if (this.canvas) this.canvas.focus(); });
         menu.showAtPosition({ x: rect.left, y: rect.bottom + 4 });
     }
 
@@ -7365,7 +7404,9 @@ class HexCartographerView extends ItemView {
             });
         }
 
-        if (typeof menu.onHide === 'function') menu.onHide(() => this.hideHistoryPreview());
+        // Return keyboard focus to the canvas so Ctrl+Z/Y (bound on containerEl) work again after
+        // the body-appended menu closes; also hide the hover preview.
+        if (typeof menu.onHide === 'function') menu.onHide(() => { this.hideHistoryPreview(); if (this.canvas) this.canvas.focus(); });
         menu.showAtPosition({ x: rect.left, y: rect.bottom + 4 });
     }
 
@@ -7597,6 +7638,27 @@ class HexCartographerView extends ItemView {
             this.render();
             this.requestSave();
         };
+
+        // Endpoint: where a path ends/starts — at the hex edge or centre. Roads AND rivers.
+        // A two-state toggle button showing the current mode.
+        this.pathEndpointUnit = this.createOptionUnit('option.endpoint');
+        const endpointBtn = this.pathEndpointUnit.createEl('button', {
+            cls: 'hex-option-btn',
+            attr: { style: `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px 8px; box-sizing: border-box; cursor: pointer;` }
+        });
+        this.pathEndpointBtn = endpointBtn;
+        this._syncEndpointBtn = () => endpointBtn.setText(t(this.pathEndpoint === 'center' ? 'endpoint.center' : 'endpoint.edge'));
+        this._syncEndpointBtn();
+        endpointBtn.onclick = () => {
+            this.pathEndpoint = this.pathEndpoint === 'center' ? 'edge' : 'center';
+            this._syncEndpointBtn();
+            const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
+            if (river) river.endpoint = this.pathEndpoint;
+            const rd = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
+            if (rd) rd.endpoint = this.pathEndpoint;
+            this.render();
+            this.requestSave();
+        };
     }
 
     handleWaypointClick(path, settings, clickedIdx) {
@@ -7644,6 +7706,8 @@ class HexCartographerView extends ItemView {
             this.syncMasterColorInput();
             if (this.riverWidthInput) this.riverWidthInput.value = path.width.toString();
             // Rivers are never dashed -> no gap input to load.
+            this.pathEndpoint = path.endpoint || 'edge';
+            if (this._syncEndpointBtn) this._syncEndpointBtn();
             new Notice(t('notice.riverSelected', { id: path.id }));
         } else {
             this.currentToolGroup = 'road';
@@ -7658,6 +7722,8 @@ class HexCartographerView extends ItemView {
             if (this.pathDashesInput) this.pathDashesInput.value = this.pathGapPercent.toString();
             this.pathDashDensity = path.dashDensity || 1;
             if (this.pathDensityInput) this.pathDensityInput.value = this.pathDashDensity.toString();
+            this.pathEndpoint = path.endpoint || 'edge';
+            if (this._syncEndpointBtn) this._syncEndpointBtn();
             new Notice(t('notice.roadSelected', { id: path.id }));
         }
         this.lastToolGroup = null;
@@ -7989,6 +8055,7 @@ class HexCartographerView extends ItemView {
         if (this.roadWidthUnit) this.roadWidthUnit.style.display = road ? '' : 'none';
         if (this.pathDashesUnit) this.pathDashesUnit.style.display = road ? '' : 'none'; // roads only; rivers never dashed
         if (this.pathDensityUnit) this.pathDensityUnit.style.display = road ? '' : 'none';
+        if (this.pathEndpointUnit) this.pathEndpointUnit.style.display = (river || road) ? '' : 'none'; // roads AND rivers
         if (this.borderWidthUnit) this.borderWidthUnit.style.display = border ? '' : 'none';
         if (this.borderDashesUnit) this.borderDashesUnit.style.display = border ? '' : 'none';
         for (const u of [this.projLoadUnit, this.projDeleteUnit, this.projSepBeforeTransparency, this.projOpacityUnit, this.projScaleUnit, this.projRotationUnit, this.projSepBeforeReset, this.projIconGroup]) {
@@ -8050,6 +8117,7 @@ class HexCartographerView extends ItemView {
         if (this.roadWidthInput) this.roadWidthInput.value = this.roadSettings.width.toString();
         if (this.pathDashesInput) this.pathDashesInput.value = (this.pathGapPercent || 0).toString();
         if (this.pathDensityInput) this.pathDensityInput.value = (this.pathDashDensity || 1).toString();
+        if (this._syncEndpointBtn) this._syncEndpointBtn();
 
         const activePathSettings = this.currentToolGroup === 'river' ? this.riverSettings : this.roadSettings;
         if (this.pathPickerBtn) {
@@ -9860,10 +9928,10 @@ class HexCartographerView extends ItemView {
         if (!this.data.roads) this.data.roads = [];
 
         let road = this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
-        if (road) { road.gapPercent = this.pathGapPercent || 0; road.dashDensity = this.pathDashDensity || 1; }
+        if (road) { road.gapPercent = this.pathGapPercent || 0; road.dashDensity = this.pathDashDensity || 1; road.endpoint = this.pathEndpoint || 'edge'; }
         if (!road) {
             const maxId = this.data.roads.reduce((max, r) => Math.max(max, r.id || 0), 0);
-            road = { id: maxId + 1, color: this.masterColor, width: this.roadSettings.width, gapPercent: this.pathGapPercent || 0, dashDensity: this.pathDashDensity || 1, waypoints: [] };
+            road = { id: maxId + 1, color: this.masterColor, width: this.roadSettings.width, gapPercent: this.pathGapPercent || 0, dashDensity: this.pathDashDensity || 1, endpoint: this.pathEndpoint || 'edge', waypoints: [] };
             this.data.roads.push(road);
             this.roadSettings.activeRoadId = road.id;
             this.roadSettings.editMode = true;
@@ -9984,10 +10052,10 @@ class HexCartographerView extends ItemView {
         if (!this.data.rivers) this.data.rivers = [];
 
         let river = this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
-        // Rivers are never dashed.
+        if (river) river.endpoint = this.pathEndpoint || 'edge'; // rivers are never dashed, but have an endpoint
         if (!river) {
             const maxId = this.data.rivers.reduce((max, r) => Math.max(max, r.id || 0), 0);
-            river = { id: maxId + 1, color: this.masterColor, width: this.riverSettings.width, waypoints: [] };
+            river = { id: maxId + 1, color: this.masterColor, width: this.riverSettings.width, endpoint: this.pathEndpoint || 'edge', waypoints: [] };
             this.data.rivers.push(river);
             this.riverSettings.activeRiverId = river.id;
             this.riverSettings.editMode = true;
@@ -12002,9 +12070,8 @@ class HexCartographerView extends ItemView {
             this.drawUserSymbolOnCanvas(symbol, pos, color);
         } else if (this.svgSymbols[symbol]) {
             this.drawSVGOnCanvas(symbol, pos, color);
-        } else {
-            this.drawCustomSymbol(symbol, pos.x, pos.y, this.data.gridSize, color);
         }
+        // System symbols always have embedded SVG data (SVG_SYMBOL_DATA) -> no procedural fallback.
     }
 
     // symbols === null draws the user symbols (everything with the user: prefix).
@@ -12221,187 +12288,6 @@ class HexCartographerView extends ItemView {
         this.ctx.restore();
     }
 
-    drawCustomSymbol(type, x, y, size, color) {
-        this.ctx.save();
-        this.ctx.translate(x, y);
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = color;
-        this.ctx.fillStyle = color;
-        this.ctx.lineWidth = 2;
-        this.ctx.lineJoin = "round";
-        this.ctx.lineCap = "round";
-        const s = size / 2;
-
-
-        if (type === 'grass') {
-            for (let i = 0; i < 3; i++) {
-                const x = (i - 1) * s * 0.3;
-                this.ctx.moveTo(x, s * 0.3);
-                this.ctx.lineTo(x, -s * 0.3);
-            }
-            this.ctx.stroke();
-        } else if (type === 'swamp') {
-            for (let i = 0; i < 3; i++) {
-                const y = (i - 1) * s * 0.25;
-                this.ctx.moveTo(-s * 0.5, y);
-                this.ctx.quadraticCurveTo(-s * 0.25, y - s * 0.1, 0, y);
-                this.ctx.quadraticCurveTo(s * 0.25, y + s * 0.1, s * 0.5, y);
-            }
-            this.ctx.stroke();
-        }
-        else if (type === 'bush') {
-            this.ctx.arc(0, 0, s * 0.3, 0, Math.PI * 2);
-            this.ctx.stroke();
-        } else if (type === 'tree') {
-            this.ctx.beginPath();
-            this.ctx.arc(0, -s * 0.2, s * 0.3, 0, Math.PI * 2);
-            this.ctx.stroke();
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, s * 0.1);
-            this.ctx.lineTo(0, s * 0.5);
-            this.ctx.stroke();
-        } else if (type === 'pine') {
-            this.ctx.moveTo(-s * 0.3, 0);
-            this.ctx.lineTo(0, -s * 0.5);
-            this.ctx.lineTo(s * 0.3, 0);
-            this.ctx.moveTo(-s * 0.35, s * 0.2);
-            this.ctx.lineTo(0, -s * 0.1);
-            this.ctx.lineTo(s * 0.35, s * 0.2);
-            this.ctx.stroke();
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, s * 0.2);
-            this.ctx.lineTo(0, s * 0.5);
-            this.ctx.stroke();
-        } else if (type === 'palm') {
-            this.ctx.moveTo(0, -s * 0.5);
-            this.ctx.lineTo(0, s * 0.4);
-            this.ctx.stroke();
-            for (let i = 0; i < 4; i++) {
-                const angle = (i * Math.PI / 2) - Math.PI / 4;
-                this.ctx.beginPath();
-                this.ctx.moveTo(0, -s * 0.5);
-                this.ctx.lineTo(Math.cos(angle) * s * 0.4, -s * 0.5 + Math.sin(angle) * s * 0.4);
-                this.ctx.stroke();
-            }
-        }
-        else if (type === 'hill') {
-            this.ctx.moveTo(-s * 0.6, s * 0.3);
-            this.ctx.quadraticCurveTo(-s * 0.3, -s * 0.4, 0, -s * 0.3);
-            this.ctx.quadraticCurveTo(s * 0.3, -s * 0.4, s * 0.6, s * 0.3);
-            this.ctx.stroke();
-        } else if (type === 'mountain') {
-            this.ctx.beginPath();
-            this.ctx.moveTo(-s * 0.8, s * 0.5);
-            this.ctx.lineTo(0, -s * 0.6);
-            this.ctx.lineTo(s * 0.8, s * 0.5);
-            this.ctx.moveTo(-s * 0.3, s * 0.5);
-            this.ctx.lineTo(s * 0.3, -s * 0.1);
-            this.ctx.lineTo(s * 0.7, s * 0.5);
-            this.ctx.stroke();
-        }
-        else if (type === 'tent') {
-            this.ctx.moveTo(-s * 0.4, s * 0.3);
-            this.ctx.lineTo(0, -s * 0.4);
-            this.ctx.lineTo(s * 0.4, s * 0.3);
-            this.ctx.closePath();
-            this.ctx.stroke();
-        } else if (type === 'house') {
-            this.ctx.rect(-s*0.3, -s*0.1, s*0.6, s*0.5);
-            this.ctx.moveTo(-s*0.4, -s*0.1);
-            this.ctx.lineTo(0, -s*0.5);
-            this.ctx.lineTo(s*0.4, -s*0.1);
-            this.ctx.stroke();
-        } else if (type === 'village') {
-            for(let i=0; i<3; i++) {
-                const ox = (i-1)*s*0.4, oy = (i%2)*s*0.2;
-                this.ctx.moveTo(ox-s*0.2, oy+s*0.3);
-                this.ctx.lineTo(ox-s*0.2, oy);
-                this.ctx.lineTo(ox, oy-s*0.2);
-                this.ctx.lineTo(ox+s*0.2, oy);
-                this.ctx.lineTo(ox+s*0.2, oy+s*0.3);
-                this.ctx.stroke();
-            }
-        } else if (type === 'town') {
-            this.ctx.arc(0, 0, s * 0.15, 0, Math.PI * 2);
-            this.ctx.stroke();
-            for (let i = 0; i < 4; i++) {
-                const angle = i * Math.PI / 2;
-                const px = Math.cos(angle) * s * 0.5;
-                const py = Math.sin(angle) * s * 0.5;
-                this.ctx.beginPath();
-                this.ctx.rect(px - s*0.1, py - s*0.1, s*0.2, s*0.25);
-                this.ctx.stroke();
-            }
-        } else if (type === 'castle') {
-            this.ctx.moveTo(-s*0.6, s*0.5);
-            this.ctx.lineTo(-s*0.6, -s*0.3);
-            this.ctx.lineTo(-s*0.4, -s*0.3);
-            this.ctx.lineTo(-s*0.4, -s*0.1);
-            this.ctx.lineTo(-s*0.2, -s*0.1);
-            this.ctx.lineTo(-s*0.2, -s*0.5);
-            this.ctx.lineTo(s*0.2, -s*0.5);
-            this.ctx.lineTo(s*0.2, -s*0.1);
-            this.ctx.lineTo(s*0.4, -s*0.1);
-            this.ctx.lineTo(s*0.4, -s*0.3);
-            this.ctx.lineTo(s*0.6, -s*0.3);
-            this.ctx.lineTo(s*0.6, s*0.5);
-            this.ctx.closePath();
-            this.ctx.stroke();
-        } else if (type === 'harbor') {
-            this.ctx.rect(-s*0.5, -s*0.3, s*1.0, s*0.6);
-            this.ctx.stroke();
-        } else if (type === 'monastery') {
-            this.ctx.rect(-s*0.4, -s*0.2, s*0.8, s*0.6);
-            this.ctx.stroke();
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, -s*0.6);
-            this.ctx.lineTo(0, -s*0.2);
-            this.ctx.moveTo(-s*0.15, -s*0.5);
-            this.ctx.lineTo(s*0.15, -s*0.5);
-            this.ctx.stroke();
-        } else if (type === 'tower') {
-            this.ctx.rect(-s*0.2, -s*0.6, s*0.4, s*1.0);
-            this.ctx.stroke();
-            for (let i = 0; i < 3; i++) {
-                const x = -s*0.2 + i * s*0.2;
-                this.ctx.beginPath();
-                this.ctx.rect(x, -s*0.7, s*0.15, s*0.1);
-                this.ctx.stroke();
-            }
-        } else if (type === 'ruins') {
-            this.ctx.moveTo(-s*0.4, s*0.3);
-            this.ctx.lineTo(-s*0.4, -s*0.1);
-            this.ctx.lineTo(-s*0.2, -s*0.3);
-            this.ctx.moveTo(0, s*0.3);
-            this.ctx.lineTo(0, 0);
-            this.ctx.moveTo(s*0.3, s*0.3);
-            this.ctx.lineTo(s*0.3, -s*0.2);
-            this.ctx.stroke();
-        } else if (type === 'cave') {
-            this.ctx.arc(0, s*0.2, s*0.35, Math.PI, 0, true);
-            this.ctx.lineTo(s*0.35, s*0.4);
-            this.ctx.lineTo(-s*0.35, s*0.4);
-            this.ctx.closePath();
-            this.ctx.stroke();
-        } else if (type === 'oasis') {
-            this.ctx.ellipse(0, s*0.2, s*0.4, s*0.25, 0, 0, Math.PI * 2);
-            this.ctx.stroke();
-            this.ctx.beginPath();
-            this.ctx.moveTo(s*0.3, 0);
-            this.ctx.lineTo(s*0.3, -s*0.3);
-            this.ctx.stroke();
-            for (let i = 0; i < 3; i++) {
-                const angle = (i * Math.PI / 3);
-                this.ctx.beginPath();
-                this.ctx.moveTo(s*0.3, -s*0.3);
-                this.ctx.lineTo(s*0.3 + Math.cos(angle) * s*0.2, -s*0.3 + Math.sin(angle) * s*0.2);
-                this.ctx.stroke();
-            }
-        }
-
-        this.ctx.restore();
-    }
-
     _segKey(from, to) {
         if (from.q < to.q || (from.q === to.q && from.r < to.r))
             return `${from.q},${from.r}|${to.q},${to.r}`;
@@ -12517,14 +12403,15 @@ class HexCartographerView extends ItemView {
             }
         }
 
-        const segCount = {};
+        // How many DISTINCT chains touch each hex. A terminus shared with ANOTHER chain is a
+        // junction (branch) and must not recede/taper. A terminus that only repeats WITHIN its own
+        // chain (endpoint dragged back onto an earlier point -> rounded end) is still a free end and
+        // should honor the endpoint toggle, so we count chains, not raw segment hits (which would
+        // double-count a self-overlapping end and wrongly treat it as a junction).
+        const junctionCount = {};
         chains.forEach(chain => {
-            for (let i = 0; i < chain.length - 1; i++) {
-                const k1 = `${chain[i].q}_${chain[i].r}`;
-                const k2 = `${chain[i + 1].q}_${chain[i + 1].r}`;
-                segCount[k1] = (segCount[k1] || 0) + 1;
-                segCount[k2] = (segCount[k2] || 0) + 1;
-            }
+            const keys = new Set(chain.map(w => `${w.q}_${w.r}`));
+            keys.forEach(k => { junctionCount[k] = (junctionCount[k] || 0) + 1; });
         });
 
         chains.forEach(chain => {
@@ -12551,25 +12438,37 @@ class HexCartographerView extends ItemView {
 
             const startKey = `${chain[0].q}_${chain[0].r}`;
             const endKey = `${chain[chain.length - 1].q}_${chain[chain.length - 1].r}`;
-            const trimStart = segCount[startKey] === 1;
-            const trimEnd = segCount[endKey] === 1;
+            // A terminus RECEDES (endpoint toggle) when it is a free end - not shared with ANOTHER
+            // chain (a branch junction). It stays ROUNDED (no taper to a point) when its hex repeats
+            // WITHIN its own chain: dragging the endpoint back onto an earlier point is how the user
+            // rounds an end off, so we keep that look and only honor the toggle for where it ends.
+            const keysInChain = chain.map(w => `${w.q}_${w.r}`);
+            const startRepeats = keysInChain.indexOf(startKey) !== keysInChain.lastIndexOf(startKey);
+            const endRepeats = keysInChain.indexOf(endKey) !== keysInChain.lastIndexOf(endKey);
+            const trimStart = junctionCount[startKey] === 1;
+            const trimEnd = junctionCount[endKey] === 1;
 
-            const canTaper = taper && (trimStart || trimEnd) && !(pairCount === 1 && trimStart && trimEnd);
+            const canTaperStart = taper && trimStart && !startRepeats;
+            const canTaperEnd = taper && trimEnd && !endRepeats;
+            const canTaper = (canTaperStart || canTaperEnd) && !(pairCount === 1 && trimStart && trimEnd);
             if (canTaper) {
+                // Taper only the last ~2 hex steps (linear, even) so the point looks the same
+                // regardless of how long the segment is, and never drop below ~1 screen pixel so it
+                // ends in a clean rounded point instead of a hair-thin sub-pixel tail.
+                const minW = this.taperMinWidth(path.width);
+                const TAPER_SEGS = 2;
                 let offset = 0;
                 for (let i = 0; i < pairCount; i++) {
                     const n = pairSegCounts[i];
-                    if (i === 0 && trimStart) {
+                    if (i === 0 && canTaperStart) {
                         for (let j = 0; j < n; j++) {
-                            const t = n <= 1 ? 0 : j / (n - 1);
-                            const e = t * t * (3 - 2 * t);
-                            segments[offset + j].width = path.width * (0.01 + 0.99 * e);
+                            const f = Math.min(1, j / TAPER_SEGS); // 0 at the start tip .. 1 full width
+                            segments[offset + j].width = minW + (path.width - minW) * f;
                         }
-                    } else if (i === pairCount - 1 && trimEnd) {
+                    } else if (i === pairCount - 1 && canTaperEnd) {
                         for (let j = 0; j < n; j++) {
-                            const t = n <= 1 ? 0 : j / (n - 1);
-                            const e = t * t * (3 - 2 * t);
-                            segments[offset + j].width = path.width * (1.0 - 0.99 * e);
+                            const f = Math.min(1, (n - j) / TAPER_SEGS); // full .. -> minW near the end tip
+                            segments[offset + j].width = minW + (path.width - minW) * f;
                         }
                     }
                     offset += n;
@@ -12579,11 +12478,18 @@ class HexCartographerView extends ItemView {
             const hasTaper = canTaper;
             const gapPercent = pathType === 'river' ? 0 : (path.gapPercent || 0); // rivers are never dashed
             const dashDensity = pathType === 'river' ? 1 : (path.dashDensity || 1);
-            this.drawWavyLines(segments, path.color, path.width, trimStart, trimEnd, gapPercent, dashDensity, hasTaper);
+            const endInset = path.endpoint === 'center' ? 0 : (1 - PATH_END_INSET) * 0.5; // 'edge' (default) vs 'center'
+            this.drawWavyLines(segments, path.color, path.width, trimStart, trimEnd, gapPercent, dashDensity, endInset, hasTaper, canTaperEnd);
         });
     }
 
-    drawWavyLines(lines, color, defaultWidth, trimStart, trimEnd, gapPercent, dashDensity, taper = false) {
+    // Minimum width of a tapered path tip: at least ~1 screen pixel (so it ends in a clean rounded
+    // point, never a sub-pixel hair), and never wider than the path itself.
+    taperMinWidth(width) {
+        return Math.min(width, Math.max(0.5, 1 / (this.data.zoom || 1)));
+    }
+
+    drawWavyLines(lines, color, defaultWidth, trimStart, trimEnd, gapPercent, dashDensity, endInset, taper = false, taperTail = taper) {
         if (!lines || lines.length === 0) return;
         this.ctx.strokeStyle = color;
         this.ctx.lineCap = "round";
@@ -12593,9 +12499,18 @@ class HexCartographerView extends ItemView {
         const computedLines = lines.map((l, idx) => {
             const fullP1 = this.hexToPixel(l.from), fullP2 = this.hexToPixel(l.to);
             let p1 = { x: fullP1.x, y: fullP1.y }, p2 = { x: fullP2.x, y: fullP2.y };
-            const inset = (1 - this.pathEndInset) * 0.5;
+            const inset = endInset; // 0 = ends at the hex centre, 0.5 = exactly on the edge
+            // A fold (hairpin) is a real visual endpoint too, so it must react to the edge/centre
+            // toggle. Detect it by DIRECTION (~180° reversal), not by exact hexes — a folded arm's
+            // out- and back-path may round to slightly different intermediate hexes. Both sides of a
+            // fold recede the shared tip toward the SAME point (the incoming source) so they meet.
+            const dirOf = (ln) => { const a = this.hexToPixel(ln.from), b = this.hexToPixel(ln.to); const dx = b.x - a.x, dy = b.y - a.y; const d = Math.hypot(dx, dy) || 1; return [dx / d, dy / d]; };
+            const reverses = (i, j) => { const a = dirOf(lines[i]), b = dirOf(lines[j]); return a[0] * b[0] + a[1] * b[1] < -0.9; };
+            const foldBefore = idx > 0 && reverses(idx - 1, idx);              // reversal at this line's start (tip = p1)
+            const foldAfter = idx < lines.length - 1 && reverses(idx, idx + 1); // reversal at this line's end (tip = p2)
             if (trimStart && idx === 0) p1 = { x: p1.x + (p2.x - p1.x) * inset, y: p1.y + (p2.y - p1.y) * inset };
-            if (trimEnd && idx === lines.length - 1) p2 = { x: p2.x + (p1.x - p2.x) * inset, y: p2.y + (p1.y - p2.y) * inset };
+            else if (foldBefore) { const s = this.hexToPixel(lines[idx - 1].from); p1 = { x: p1.x + (s.x - p1.x) * inset, y: p1.y + (s.y - p1.y) * inset }; }
+            if ((trimEnd && idx === lines.length - 1) || foldAfter) p2 = { x: p2.x + (p1.x - p2.x) * inset, y: p2.y + (p1.y - p2.y) * inset };
             const fdx = fullP2.x - fullP1.x, fdy = fullP2.y - fullP1.y;
             const fullDist = Math.sqrt(fdx * fdx + fdy * fdy);
             if (l.lateralOffset && fullDist > 0) {
@@ -12613,7 +12528,7 @@ class HexCartographerView extends ItemView {
             const dist = Math.sqrt(dx * dx + dy * dy);
             const curveSegs = Math.max(3, Math.floor(dist / 5));
             const nx = -dy / dist, ny = dx / dist;
-            const nextWidth = segIdx < computedLines.length - 1 ? computedLines[segIdx + 1].width : (taper && trimEnd ? defaultWidth * 0.01 : width);
+            const nextWidth = segIdx < computedLines.length - 1 ? computedLines[segIdx + 1].width : (taperTail && trimEnd ? this.taperMinWidth(defaultWidth) : width);
 
             if (segIdx === 0) allPts.push({ x: p1.x, y: p1.y, w: width });
 
@@ -12739,6 +12654,7 @@ class HexCartographerView extends ItemView {
                     roadSettings: this.roadSettings,
                     pathGapPercent: this.pathGapPercent,
                     pathDashDensity: this.pathDashDensity,
+                    pathEndpoint: this.pathEndpoint,
                     masterColor: this.masterColor,
                     editMode: this.editMode,
                     hexColorColor: this.hexColorColor,
