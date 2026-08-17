@@ -6469,16 +6469,31 @@ class HexCartographerView extends ItemView {
 
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
+        // The option/warning/conflict overlay covers the top of the canvas. Fit into the VISIBLE
+        // area below it and center there, so the map is not framed too high (a taller bar — e.g.
+        // the projection tool's — no longer makes it look shifted up).
+        const topInset = this.topOverlayInset();
+        const availHeight = Math.max(1, canvasHeight - topInset);
         const zoomX = (canvasWidth * VIEWPORT_PADDING) / width;
-        const zoomY = (canvasHeight * VIEWPORT_PADDING) / height;
+        const zoomY = (availHeight * VIEWPORT_PADDING) / height;
         const newZoom = Math.max(MIN_ZOOM, Math.min(zoomX, zoomY, MAX_ZOOM));
 
         this.data.zoom = newZoom;
         this.data.offX = canvasWidth / 2 - centerX * newZoom;
-        this.data.offY = canvasHeight / 2 - centerY * newZoom;
+        this.data.offY = topInset + availHeight / 2 - centerY * newZoom;
 
         this.render();
         this.requestSave();
+    }
+
+    // Height (screen px) of the overlay covering the top of the canvas (option row + warning +
+    // conflict bars). Map centering uses the area BELOW it. Capped at half the canvas as a guard on
+    // very small windows. canvas.width/height equal clientWidth/clientHeight, so offsetHeight (CSS
+    // px) is directly comparable.
+    topOverlayInset() {
+        const el = this.topOverlayEl;
+        if (!el || !this.canvas) return 0;
+        return Math.min(el.offsetHeight || 0, this.canvas.height * 0.5);
     }
 
     async onOpen() {
@@ -6661,6 +6676,7 @@ class HexCartographerView extends ItemView {
         // Overlay above the map: options row on top, warning bar below it. Both
         // toggle independently and never resize the canvas.
         const topOverlay = canvasContainer.createDiv({ cls: 'hex-map-top-overlay' });
+        this.topOverlayEl = topOverlay; // measured for map centering (it covers the top of the canvas)
         topOverlay.appendChild(this.toolbarOptionsEl);
         topOverlay.appendChild(this.assetWarningBar);
         topOverlay.appendChild(this.conflictBar);
@@ -8458,7 +8474,9 @@ class HexCartographerView extends ItemView {
         const group = HISTORY_TOOL_GROUPS.includes(this.currentToolGroup) ? this.currentToolGroup : null;
         const list = group ? (this.toolHistory[group] || []) : [];
         row.empty();
-        if (!list.length) { row.style.display = 'none'; return; }
+        // Keep the row present (never display:none) even with zero real slots, so the toolbar height
+        // stays CONSTANT across tools. A collapsing history row shortened the toolbar (and its
+        // stretch separators) and, by growing the canvas upward, shifted the map slightly up.
         row.style.display = 'flex';
         for (const entry of list) {
             const b = row.createEl('button', { cls: 'hex-history-slot' });
