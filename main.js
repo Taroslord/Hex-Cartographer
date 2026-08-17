@@ -6673,6 +6673,12 @@ class HexCartographerView extends ItemView {
     }
 
     createToolbar(toolbar) {
+        // The shared options row lives OUTSIDE `toolbar` (in the map overlay), so rebuildToolbar's
+        // toolbar.empty() does not clear it. Clear it here before the tool builders refill it —
+        // otherwise a rebuild appends a second set of option units, and the orphaned old ones keep
+        // their last display and can show a previous tool's options (e.g. projection) alongside the
+        // current tool's. Refs (this.*Unit) are reassigned below, so only the DOM needs clearing.
+        if (this.toolbarOptionsEl) this.toolbarOptionsEl.empty();
         const editModeBtn = this.createToolButton(toolbar, { icon: 'wrench', title: t('tooltip.editMode') });
         this.editModeBtn = editModeBtn;
         editModeBtn.onclick = () => {
