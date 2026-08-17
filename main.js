@@ -520,6 +520,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': 'Grafik nicht gefunden: {name}',
         'notice.assetsMissing': '{name} fehlen. Ordnerinhalt oder Pfad unter {settings} prüfen!',
         'assetWarning.hideHints': 'Hinweise ausblenden',
+        'assetWarning.discard': 'Verwerfen',
+        'assetWarning.list': 'Auflisten',
+        'assetWarning.listTip': 'Alle fehlenden Grafiken auflisten',
+        'assetWarning.missingFile': 'Fehlt: {name}',
+        'missingList.title': 'Fehlende Grafiken',
+        'missingList.heading': '{name} fehlen',
+        'missingList.none': 'Keine fehlenden Grafiken.',
+        'missingList.found': 'Gefunden im aktuellen Pfad',
+        'missingList.apply': 'Neue Pfade übernehmen',
+        'assetWarning.discardTip': 'Alle fehlenden Grafiken endgültig entfernen (von der Karte und aus der Verlaufsleiste)',
+        'discardAssets.title': 'Fehlende Grafiken verwerfen?',
+        'discardAssets.message': 'Alle fehlenden Grafiken werden von der Karte und aus dem Verlauf entfernt. Nach dem Verlassen der App ist dies nicht wiederherstellbar – nur ein Rückgängig (Undo) während der Sitzung kann den Schritt zurücknehmen.',
         'assetName.tex': 'Waben-Texturen',
         'assetName.extras': 'Extra-Symbole',
         'assetName.veg': 'Vegetations-Symbole',
@@ -868,6 +880,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': 'Graphic not found: {name}',
         'notice.assetsMissing': '{name} missing. Check the folder contents or path in {settings}!',
         'assetWarning.hideHints': 'Hide hints',
+        'assetWarning.discard': 'Discard',
+        'assetWarning.list': 'List',
+        'assetWarning.listTip': 'List all missing graphics',
+        'assetWarning.missingFile': 'Missing: {name}',
+        'missingList.title': 'Missing graphics',
+        'missingList.heading': '{name} missing',
+        'missingList.none': 'No missing graphics.',
+        'missingList.found': 'Found in current path',
+        'missingList.apply': 'Apply new paths',
+        'assetWarning.discardTip': 'Permanently remove all missing graphics (from the map and the history row)',
+        'discardAssets.title': 'Discard missing graphics?',
+        'discardAssets.message': 'All missing graphics will be removed from the map and from the history. This cannot be undone after you leave the app — only an undo during the session can restore this step.',
         'assetName.tex': 'Hex textures',
         'assetName.extras': 'Extra symbols',
         'assetName.veg': 'Vegetation symbols',
@@ -1194,6 +1218,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': '未找到图形：{name}',
         'notice.assetsMissing': '{name}缺失。请在{settings}中检查文件夹内容或路径！',
         'assetWarning.hideHints': '隐藏提示',
+        'assetWarning.discard': '丢弃',
+        'assetWarning.list': '列出',
+        'assetWarning.listTip': '列出所有缺失的图形',
+        'assetWarning.missingFile': '缺失：{name}',
+        'missingList.title': '缺失的图形',
+        'missingList.heading': '{name}缺失',
+        'missingList.none': '没有缺失的图形。',
+        'missingList.found': '在当前路径中找到',
+        'missingList.apply': '采用新路径',
+        'assetWarning.discardTip': '永久移除所有缺失的图形（从地图和历史栏中）',
+        'discardAssets.title': '丢弃缺失的图形？',
+        'discardAssets.message': '所有缺失的图形将从地图和历史记录中移除。退出应用后将无法恢复——只有在本次会话中撤销才能还原此步骤。',
         'assetName.tex': '六边形纹理',
         'assetName.extras': '额外符号',
         'assetName.veg': '植被符号',
@@ -1514,6 +1550,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': 'Графика не найдена: {name}',
         'notice.assetsMissing': '{name} отсутствуют. Проверьте содержимое папки или путь в разделе «{settings}»!',
         'assetWarning.hideHints': 'Скрыть подсказки',
+        'assetWarning.discard': 'Отбросить',
+        'assetWarning.list': 'Список',
+        'assetWarning.listTip': 'Показать все отсутствующие изображения',
+        'assetWarning.missingFile': 'Отсутствует: {name}',
+        'missingList.title': 'Отсутствующие изображения',
+        'missingList.heading': '{name} отсутствуют',
+        'missingList.none': 'Нет отсутствующих изображений.',
+        'missingList.found': 'Найдено в текущей папке',
+        'missingList.apply': 'Применить новые пути',
+        'assetWarning.discardTip': 'Безвозвратно удалить все отсутствующие изображения (с карты и из панели истории)',
+        'discardAssets.title': 'Отбросить отсутствующие изображения?',
+        'discardAssets.message': 'Все отсутствующие изображения будут удалены с карты и из истории. После выхода из приложения это нельзя будет отменить — восстановить этот шаг можно только отменой (undo) в течение сеанса.',
         'assetName.tex': 'Текстуры сот',
         'assetName.extras': 'Дополнительные символы',
         'assetName.veg': 'Символы растительности',
@@ -1834,6 +1882,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': '画像が見つかりません: {name}',
         'notice.assetsMissing': '{name}がありません。{settings}でフォルダーの内容またはパスを確認してください！',
         'assetWarning.hideHints': 'ヒントを非表示',
+        'assetWarning.discard': '破棄',
+        'assetWarning.list': '一覧',
+        'assetWarning.listTip': '欠落しているグラフィックをすべて一覧表示',
+        'assetWarning.missingFile': '欠落: {name}',
+        'missingList.title': '欠落しているグラフィック',
+        'missingList.heading': '{name}が欠落しています',
+        'missingList.none': '欠落しているグラフィックはありません。',
+        'missingList.found': '現在のパスで見つかりました',
+        'missingList.apply': '新しいパスを適用',
+        'assetWarning.discardTip': '欠落しているグラフィックをすべて完全に削除します（マップと履歴バーから）',
+        'discardAssets.title': '欠落しているグラフィックを破棄しますか？',
+        'discardAssets.message': '欠落しているすべてのグラフィックがマップと履歴から削除されます。アプリを終了すると元に戻せません。この操作を取り消せるのは、セッション中の取り消し（Undo）のみです。',
         'assetName.tex': 'ヘクスのテクスチャ',
         'assetName.extras': '追加シンボル',
         'assetName.veg': '植生シンボル',
@@ -2154,6 +2214,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': 'Graphique introuvable : {name}',
         'notice.assetsMissing': '{name} manquants. Vérifiez le contenu du dossier ou le chemin dans {settings} !',
         'assetWarning.hideHints': 'Masquer les indications',
+        'assetWarning.discard': 'Supprimer',
+        'assetWarning.list': 'Lister',
+        'assetWarning.listTip': 'Lister tous les graphiques manquants',
+        'assetWarning.missingFile': 'Manquant : {name}',
+        'missingList.title': 'Graphiques manquants',
+        'missingList.heading': '{name} manquants',
+        'missingList.none': 'Aucun graphique manquant.',
+        'missingList.found': 'Trouvé dans le dossier actuel',
+        'missingList.apply': 'Appliquer les nouveaux chemins',
+        'assetWarning.discardTip': 'Supprimer définitivement tous les graphiques manquants (de la carte et de la barre d’historique)',
+        'discardAssets.title': 'Supprimer les graphiques manquants ?',
+        'discardAssets.message': 'Tous les graphiques manquants seront retirés de la carte et de l’historique. Cette action est irréversible après la fermeture de l’application — seule une annulation (undo) pendant la session peut rétablir cette étape.',
         'assetName.tex': 'Textures d\'hexagones',
         'assetName.extras': 'Symboles supplémentaires',
         'assetName.veg': 'Symboles de végétation',
@@ -2474,6 +2546,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': 'Gráfico não encontrado: {name}',
         'notice.assetsMissing': '{name} ausentes. Verifique o conteúdo da pasta ou o caminho em {settings}!',
         'assetWarning.hideHints': 'Ocultar avisos',
+        'assetWarning.discard': 'Descartar',
+        'assetWarning.discardTip': 'Remover permanentemente todos os gráficos ausentes (do mapa e da barra de histórico)',
+        'assetWarning.list': 'Listar',
+        'assetWarning.listTip': 'Listar todos os gráficos ausentes',
+        'assetWarning.missingFile': 'Ausente: {name}',
+        'missingList.title': 'Gráficos ausentes',
+        'missingList.heading': '{name} ausentes',
+        'missingList.none': 'Nenhum gráfico ausente.',
+        'missingList.found': 'Encontrado no caminho atual',
+        'missingList.apply': 'Aplicar novos caminhos',
+        'discardAssets.title': 'Descartar gráficos ausentes?',
+        'discardAssets.message': 'Todos os gráficos ausentes serão removidos do mapa e do histórico. Isso não pode ser desfeito depois de sair do aplicativo — apenas um desfazer (undo) durante a sessão pode restaurar esta etapa.',
         'assetName.tex': 'Texturas de hexágonos',
         'assetName.extras': 'Símbolos extra',
         'assetName.veg': 'Símbolos de vegetação',
@@ -2794,6 +2878,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': '그래픽을 찾을 수 없습니다: {name}',
         'notice.assetsMissing': '{name}이(가) 없습니다. {settings}에서 폴더 내용 또는 경로를 확인하세요!',
         'assetWarning.hideHints': '힌트 숨기기',
+        'assetWarning.discard': '버리기',
+        'assetWarning.list': '목록',
+        'assetWarning.listTip': '누락된 모든 그래픽 나열',
+        'assetWarning.missingFile': '누락: {name}',
+        'missingList.title': '누락된 그래픽',
+        'missingList.heading': '{name} 누락',
+        'missingList.none': '누락된 그래픽이 없습니다.',
+        'missingList.found': '현재 경로에서 찾음',
+        'missingList.apply': '새 경로 적용',
+        'assetWarning.discardTip': '누락된 모든 그래픽을 영구적으로 제거합니다(지도 및 기록 표시줄에서)',
+        'discardAssets.title': '누락된 그래픽을 버릴까요?',
+        'discardAssets.message': '누락된 모든 그래픽이 지도와 기록에서 제거됩니다. 앱을 종료한 후에는 복구할 수 없으며, 세션 중 실행 취소(undo)로만 이 단계를 되돌릴 수 있습니다.',
         'assetName.tex': '헥스 텍스처',
         'assetName.extras': '추가 기호',
         'assetName.veg': '식생 기호',
@@ -3114,6 +3210,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': 'Gráfico no encontrado: {name}',
         'notice.assetsMissing': 'Faltan {name}. Comprueba el contenido de la carpeta o la ruta en {settings}!',
         'assetWarning.hideHints': 'Ocultar avisos',
+        'assetWarning.discard': 'Descartar',
+        'assetWarning.discardTip': 'Eliminar permanentemente todos los gráficos faltantes (del mapa y de la barra de historial)',
+        'assetWarning.list': 'Listar',
+        'assetWarning.listTip': 'Listar todos los gráficos faltantes',
+        'assetWarning.missingFile': 'Falta: {name}',
+        'missingList.title': 'Gráficos faltantes',
+        'missingList.heading': '{name} faltan',
+        'missingList.none': 'No faltan gráficos.',
+        'missingList.found': 'Encontrado en la ruta actual',
+        'missingList.apply': 'Aplicar nuevas rutas',
+        'discardAssets.title': '¿Descartar los gráficos faltantes?',
+        'discardAssets.message': 'Todos los gráficos faltantes se eliminarán del mapa y del historial. Esto no se puede deshacer después de salir de la aplicación: solo deshacer (undo) durante la sesión puede restaurar este paso.',
         'assetName.tex': 'Texturas de hexágonos',
         'assetName.extras': 'Símbolos adicionales',
         'assetName.veg': 'Símbolos de vegetación',
@@ -3434,6 +3542,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': 'Nie znaleziono grafiki: {name}',
         'notice.assetsMissing': 'Brak: {name}. Sprawdź zawartość folderu lub ścieżkę w {settings}!',
         'assetWarning.hideHints': 'Ukryj wskazówki',
+        'assetWarning.discard': 'Odrzuć',
+        'assetWarning.list': 'Lista',
+        'assetWarning.listTip': 'Wyświetl wszystkie brakujące grafiki',
+        'assetWarning.missingFile': 'Brak: {name}',
+        'missingList.title': 'Brakujące grafiki',
+        'missingList.heading': 'Brakujące: {name}',
+        'missingList.none': 'Brak brakujących grafik.',
+        'missingList.found': 'Znaleziono w bieżącej ścieżce',
+        'missingList.apply': 'Zastosuj nowe ścieżki',
+        'assetWarning.discardTip': 'Trwale usuń wszystkie brakujące grafiki (z mapy i paska historii)',
+        'discardAssets.title': 'Odrzucić brakujące grafiki?',
+        'discardAssets.message': 'Wszystkie brakujące grafiki zostaną usunięte z mapy i z historii. Po zamknięciu aplikacji nie można tego cofnąć — tylko cofnięcie (undo) w trakcie sesji może przywrócić ten krok.',
         'assetName.tex': 'Tekstury sześciokątów',
         'assetName.extras': 'Dodatkowe symbole',
         'assetName.veg': 'Symbole roślinności',
@@ -3754,6 +3874,18 @@ const TRANSLATIONS = {
         'notice.assetMissing': 'Grafica non trovata: {name}',
         'notice.assetsMissing': '{name} mancanti. Controlla il contenuto della cartella o il percorso in {settings}!',
         'assetWarning.hideHints': 'Nascondi avvisi',
+        'assetWarning.discard': 'Scarta',
+        'assetWarning.list': 'Elenca',
+        'assetWarning.listTip': 'Elenca tutte le grafiche mancanti',
+        'assetWarning.missingFile': 'Mancante: {name}',
+        'missingList.title': 'Grafiche mancanti',
+        'missingList.heading': '{name} mancanti',
+        'missingList.none': 'Nessuna grafica mancante.',
+        'missingList.found': 'Trovato nel percorso attuale',
+        'missingList.apply': 'Applica i nuovi percorsi',
+        'assetWarning.discardTip': 'Rimuovi definitivamente tutte le grafiche mancanti (dalla mappa e dalla barra della cronologia)',
+        'discardAssets.title': 'Scartare le grafiche mancanti?',
+        'discardAssets.message': 'Tutte le grafiche mancanti verranno rimosse dalla mappa e dalla cronologia. Questa operazione non è reversibile dopo aver chiuso l’app: solo un annullamento (undo) durante la sessione può ripristinare questo passaggio.',
         'assetName.tex': 'Texture degli esagoni',
         'assetName.extras': 'Simboli extra',
         'assetName.veg': 'Simboli di vegetazione',
@@ -6194,6 +6326,11 @@ class HexCartographerView extends ItemView {
             new Notice(t('notice.mapLoadError'), 12000);
         } finally {
             this.isReloading = false;
+            // A legacy map was upgraded in memory (e.g. road dashes -> gap %). Persist it once so the
+            // conversion sticks; otherwise the file keeps the old format and the migration notice
+            // reappears on every open. onClose flushes this even if the map is closed before the
+            // debounce fires.
+            if (!this._loadError && this._pendingMigrations && this._pendingMigrations.length) this.requestSave();
             if (typeof this._showMigrationNoticeIfNeeded === 'function') this._showMigrationNoticeIfNeeded();
         }
     }
@@ -6219,7 +6356,10 @@ class HexCartographerView extends ItemView {
             texts: this.data.texts,
             borders: this.data.borders,
             gridSize: this.data.gridSize,
-            projection: this.data.projection || null
+            projection: this.data.projection || null,
+            // Tool-history slots ride along so that discarding missing graphics (which also prunes
+            // those slots) is undoable in one step. Normally unchanged, so undo/redo is a no-op here.
+            toolHistory: this.toolHistory
         };
     }
 
@@ -6239,6 +6379,10 @@ class HexCartographerView extends ItemView {
         this.data.borders = restored.borders || [];
         this.data.gridSize = restored.gridSize;
         this.data.projection = restored.projection || null;
+        if (restored.toolHistory) {
+            this.toolHistory = restored.toolHistory;
+            if (typeof this.renderToolHistory === 'function') this.renderToolHistory();
+        }
         // The snapshot holds x/y from its own time — re-place from the anchor in case the
         // orientation changed since.
         this.applyTextHexPositions();
@@ -8642,11 +8786,29 @@ class HexCartographerView extends ItemView {
         });
     }
 
+    // Whether this view should own the undo/redo shortcut right now. Because the listener is on the
+    // document, guard it: only the active leaf, only when no modal is open (the modal owns keys then),
+    // and never while typing in an input/textarea/contenteditable.
+    canHandleUndoShortcut(e) {
+        if (this.app.workspace.activeLeaf !== this.leaf) return false;
+        if (this.containerEl.ownerDocument.querySelector('.modal-container')) return false;
+        const el = e && e.target;
+        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return false;
+        return true;
+    }
+
     setupEventListeners() {
-        this.containerEl.addEventListener('keydown', (e) => {
+        // Undo/redo listen at the DOCUMENT level (not on containerEl), so the shortcut works even
+        // when focus left the view — e.g. right after a modal or menu closed. canHandleUndoShortcut()
+        // guards it so it only fires when this map is the active view, no modal is open, and the user
+        // is not typing in a field. This removes the whole class of "focus lost -> Ctrl+Z dead" bugs;
+        // new map-mutating features only need pushHistory(), never a manual re-focus.
+        this.registerDomEvent(this.containerEl.ownerDocument, 'keydown', (e) => {
             const mod = e.ctrlKey || e.metaKey;
             if (!mod) return;
             const key = e.key.toLowerCase();
+            if (key !== 'z' && key !== 'y') return;
+            if (!this.canHandleUndoShortcut(e)) return;
             // Redo: Ctrl+Y or Ctrl+Shift+Z. Undo: Ctrl+Z (without Shift) — checked first so
             // Shift+Z is not swallowed as undo.
             if (key === 'y' || (e.shiftKey && key === 'z')) {
@@ -8904,8 +9066,15 @@ class HexCartographerView extends ItemView {
             if (hoverText && hoverText.link) {
                 this.canvas.title = `${hoverText.link}`;
                 this.canvas.style.cursor = 'pointer';
+                this.hideMissingTip();
             } else {
                 this.canvas.title = '';
+                // Over a hex with a missing graphic (while its error icon is shown): name the file.
+                // Uses a custom overlay so it appears instantly and switches without the native
+                // title's ~1s delay when moving from one error icon to the next.
+                const missingTip = this.missingAssetTipAt(world.x, world.y);
+                if (missingTip) this.showMissingTip(missingTip, e.clientX, e.clientY);
+                else this.hideMissingTip();
                 this.canvas.style.cursor = (hoverText && this.currentToolGroup === 'text') ? 'text' : 'crosshair';
             }
         });
@@ -8992,6 +9161,7 @@ class HexCartographerView extends ItemView {
             this.riverDragIndex = null;
             this.lastHex = null;
             this.startHex = null;
+            this.hideMissingTip(); // leaving the map / releasing hides the missing-graphic tooltip
             this.render();
         };
         this.containerEl.addEventListener('mouseup', stop);
@@ -11351,7 +11521,9 @@ class HexCartographerView extends ItemView {
         if (cats.length > 0) {
             const line = this.assetWarningBar.createDiv();
             this.buildHideHintsToggle(line);
+            this.buildListMissingButton(line);    // right after the "hide hints" toggle
             if (!hidden) {
+                line.createSpan({ text: '|', attr: { style: 'margin: 0 8px; opacity: 0.85;' } });
                 const names = cats.map(c => t('assetName.' + c.id)).join(', ');
                 this.buildAssetWarningLine(line, names);
             }
@@ -11372,21 +11544,187 @@ class HexCartographerView extends ItemView {
             this.requestSave();
             this.render();
         };
-        // Separator between the toggle and the hint sentence — only while hints are shown.
-        if (!this.data.hideAssetWarnings) {
-            lineEl.createSpan({ text: '|', attr: { style: 'margin: 0 8px; opacity: 0.85;' } });
+    }
+
+    // Shared look for the small buttons in the red warning bar: white pill, red label, no border.
+    warningBarButtonStyle() {
+        return 'vertical-align: middle; cursor: pointer; background: #fff; color: var(--text-error); border: none; border-radius: 4px; padding: 0 8px; font-size: 12px; font-weight: 600; line-height: 1.4;';
+    }
+
+    // "List" button in the warning bar: opens a modal listing every missing graphic per category.
+    // The modal also hosts the remap ("apply new paths") and discard actions.
+    buildListMissingButton(lineEl) {
+        const tip = t('assetWarning.listTip');
+        const btn = lineEl.createEl('button', {
+            text: t('assetWarning.list'),
+            attr: { title: tip, style: 'margin-left: 10px; ' + this.warningBarButtonStyle() },
+        });
+        btn.onclick = () => new MissingAssetsModal(
+            this.app,
+            this.collectMissingAssets(),
+            (remaps) => this.applyAssetRemaps(remaps),
+            () => new DiscardAssetsModal(this.app, () => this.discardMissingAssets()).open(),
+        ).open();
+    }
+
+    // Tooltip for a hovered hex whose graphic is missing ("Fehlt: <name>"), else null. Only while
+    // the error icons are shown, so the tip matches what is visible on the map. The stored key has
+    // no file extension, so the name is shown without one.
+    missingAssetTipAt(worldX, worldY) {
+        if (!this.errorIconsVisible()) return null;
+        const hex = this.pixelToHex(worldX, worldY);
+        const h = this.data.hexes[`${hex.q}_${hex.r}`];
+        if (!h) return null;
+        const key = (h.symbol && this.isUnresolvedUserKey(h.symbol)) ? h.symbol
+            : (h.texture && this.isUnresolvedUserKey(h.texture)) ? h.texture : null;
+        if (!key) return null;
+        return t('assetWarning.missingFile').replace('{name}', this.assetLabelForKey(key));
+    }
+
+    // Custom tooltip for the missing-graphic hover: a small pill near the cursor. Replaces the
+    // native `title` (which has a fixed ~1s delay and lags when switching icons) so it shows
+    // instantly. Appended to <body> like the history preview, so position:fixed maps to the
+    // viewport regardless of any transformed ancestor.
+    ensureMissingTipEl() {
+        if (this.missingTipEl) return this.missingTipEl;
+        const el = this.containerEl.ownerDocument.body.createDiv({ cls: 'hex-missing-tip' });
+        el.style.cssText = 'position: fixed; z-index: 9999; pointer-events: none; display: none; background: var(--text-error); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);';
+        this.missingTipEl = el;
+        return el;
+    }
+
+    showMissingTip(text, clientX, clientY) {
+        const el = this.ensureMissingTipEl();
+        if (el.textContent !== text) el.textContent = text;
+        el.style.display = 'block';
+        this.moveMissingTip(clientX, clientY);
+    }
+
+    moveMissingTip(clientX, clientY) {
+        const el = this.missingTipEl;
+        if (!el || el.style.display === 'none') return;
+        const OFF = 16;
+        const root = this.containerEl.ownerDocument.documentElement;
+        let left = clientX + OFF, top = clientY + OFF;
+        if (left + el.offsetWidth > root.clientWidth) left = clientX - OFF - el.offsetWidth;
+        if (top + el.offsetHeight > root.clientHeight) top = clientY - OFF - el.offsetHeight;
+        el.style.left = left + 'px';
+        el.style.top = top + 'px';
+    }
+
+    hideMissingTip() {
+        if (this.missingTipEl) this.missingTipEl.style.display = 'none';
+    }
+
+    // All missing graphics on the map, grouped by category and deduped by key:
+    // [{ id, items: [{ name, key, foundKey }] }] in category order, names sorted per the UI language.
+    // foundKey = a same-named graphic in the category's current folder (moved/reorganised), else null.
+    collectMissingAssets() {
+        const byCat = {}; // id -> Map(key -> item)
+        const add = (key) => {
+            if (!key || !this.isUnresolvedUserKey(key)) return;
+            const cat = this.plugin.getCategoryForKey(key);
+            if (!cat) return;
+            const m = byCat[cat.id] || (byCat[cat.id] = new Map());
+            if (!m.has(key)) m.set(key, { name: this.assetLabelForKey(key), key, foundKey: this.findCurrentPathKey(key, cat.id) });
+        };
+        for (const h of Object.values(this.data.hexes)) { add(h.symbol); add(h.texture); }
+        const out = [];
+        for (const cat of USER_ASSET_CATEGORIES) {
+            if (!byCat[cat.id]) continue;
+            const items = [...byCat[cat.id].values()].sort((a, b) => a.name.localeCompare(b.name, currentLanguage));
+            out.push({ id: cat.id, items });
         }
+        return out;
+    }
+
+    // A currently-registered graphic in the same category with the same filename (basename): the
+    // graphic was kept but its folder was reorganised, so the old path no longer resolves. Returns
+    // its new key, or null. Match is by basename only, so a file moved between subfolders is found.
+    findCurrentPathKey(key, catId) {
+        const registry = this.plugin.getRegistry(catId);
+        if (!registry || !registry.assets) return null;
+        const base = this.assetLabelForKey(key).split('/').pop();
+        for (const asset of registry.assets.values()) {
+            if (asset.key !== key && asset.label === base) return asset.key;
+        }
+        return null;
+    }
+
+    // Repoints missing graphics that were found again under a new path to their new key, across all
+    // hexes and tool-history slots. `remaps` is a Map(oldKey -> newKey). Explicit user action (the
+    // "apply new paths" button), never automatic. Undoable in one step; persisted.
+    applyAssetRemaps(remaps) {
+        if (!remaps || remaps.size === 0) return 0;
+        this.pushHistory(); // snapshot map + tool history first, so one undo reverts the remap
+        let changed = 0;
+        for (const h of Object.values(this.data.hexes)) {
+            if (h.symbol && remaps.has(h.symbol)) { h.symbol = remaps.get(h.symbol); changed++; }
+            if (h.texture && remaps.has(h.texture)) { h.texture = remaps.get(h.texture); changed++; }
+        }
+        for (const g of Object.keys(this.toolHistory)) {
+            for (const e of this.toolHistory[g]) {
+                if (e.variant && remaps.has(e.variant)) { e.variant = remaps.get(e.variant); changed++; }
+                if (e.texture && remaps.has(e.texture)) { e.texture = remaps.get(e.texture); changed++; }
+            }
+        }
+        if (!changed) { this.history.pop(); return 0; }
+        this._assetWarnSig = null; // force the warning bar to re-evaluate
+        this.renderToolHistory();
+        // Decode the newly-referenced graphics, then redraw so they replace the placeholders.
+        this.plugin.ensureUserAssets(this.plugin.collectUsedAssetKeys(this.data)).then(() => this.render());
+        this.render();
+        this.requestSave();
+        return changed;
+    }
+
+    // A tool-history slot that points at a missing user graphic (a symbol variant or a hex texture).
+    historyEntryMissing(entry) {
+        if (!entry) return false;
+        if (entry.variant && this.isUnresolvedUserKey(entry.variant)) return true;
+        if (entry.texture && this.isUnresolvedUserKey(entry.texture)) return true;
+        return false;
+    }
+
+    // Permanently removes every missing (unresolvable) user graphic: drops the reference from all
+    // hexes and from the tool-history slots, so the warnings disappear. A hex left with nothing is
+    // deleted. Undoable in one step during the session (the snapshot carries the tool history too);
+    // irreversible once the map is saved and the app is closed.
+    discardMissingAssets() {
+        this.pushHistory(); // snapshot map + tool history first, so a single undo brings it all back
+        let changed = false;
+
+        for (const [key, h] of Object.entries(this.data.hexes)) {
+            let hit = false;
+            if (h.symbol && this.isUnresolvedUserKey(h.symbol)) { delete h.symbol; delete h.symbolColor; hit = true; }
+            if (h.texture && this.isUnresolvedUserKey(h.texture)) { delete h.texture; hit = true; }
+            if (!hit) continue;
+            changed = true;
+            if (!h.symbol && !h.color && !h.texture && !h.backgroundColor) delete this.data.hexes[key];
+        }
+
+        for (const g of Object.keys(this.toolHistory)) {
+            const list = this.toolHistory[g] || [];
+            const kept = list.filter(e => !this.historyEntryMissing(e));
+            if (kept.length !== list.length) { this.toolHistory[g] = kept; changed = true; }
+        }
+
+        if (!changed) { this.history.pop(); return; } // nothing missing -> drop the unused snapshot
+
+        this._assetWarnSig = null; // force the warning bar to re-evaluate
+        this.renderToolHistory();
+        this.render();
+        this.requestSave();
     }
 
     // One warning line. The template carries {name} (the category) and {settings}
-    // (a clickable link opening the plugin settings). Built as DOM so the link works.
+    // (a button opening the plugin settings, styled like the discard button). Built as DOM.
     buildAssetWarningLine(lineEl, name) {
         const withName = t('notice.assetsMissing').replace('{name}', name);
         const parts = withName.split('{settings}');
         lineEl.appendText(parts[0]);
         if (parts.length > 1) {
-            const link = lineEl.createEl('a', { text: t('tooltip.settings') });
-            link.style.cssText = 'color: #fff; text-decoration: underline; font-weight: 700; cursor: pointer;';
+            const link = lineEl.createEl('button', { text: t('tooltip.settings'), attr: { style: this.warningBarButtonStyle() } });
             link.onclick = (e) => {
                 e.preventDefault();
                 if (this.app.setting && this.app.setting.open) {
@@ -12918,6 +13256,7 @@ class HexCartographerView extends ItemView {
         this.clearDecodeTimer();
         if (this.resizeObserver) this.resizeObserver.disconnect();
         if (this.historyPreviewEl) { this.historyPreviewEl.remove(); this.historyPreviewEl = null; } // body-appended overlay
+        if (this.missingTipEl) { this.missingTipEl.remove(); this.missingTipEl = null; } // body-appended overlay
         if (this.saveTimeout) { clearTimeout(this.saveTimeout); this.saveTimeout = null; }
         // Only write when there is something unsaved (drawing, or a zoom/pan change — those
         // mark _dirty too, so the per-device viewport still persists). Closing a map you only
@@ -13128,6 +13467,82 @@ class MigrationNoticeModal extends Modal {
         contentEl.createEl('p', { text: t('migrate.intro'), attr: { style: 'margin-top: 0;' } });
         const ul = contentEl.createEl('ul', { attr: { style: 'margin: 4px 0 0 0;' } });
         for (const c of this.categories) ul.createEl('li', { text: t('migrate.' + c) });
+        const row = contentEl.createDiv({ attr: { style: 'display: flex; justify-content: center; margin-top: 12px;' } });
+        const ok = row.createEl('button', { text: t('modal.ok'), cls: 'mod-cta' });
+        ok.onclick = () => this.close();
+    }
+
+    onClose() { this.contentEl.empty(); }
+}
+
+// Confirm dialog before discarding all missing graphics. Warns that this is irreversible once the
+// app is closed (only an in-session undo brings it back). onConfirm runs on OK; Cancel just closes.
+class DiscardAssetsModal extends Modal {
+    constructor(app, onConfirm) {
+        super(app);
+        this.onConfirm = onConfirm;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        this.titleEl.setText(t('discardAssets.title'));
+        contentEl.createEl('p', { text: t('discardAssets.message'), attr: { style: 'margin-top: 0;' } });
+        const row = contentEl.createDiv({ attr: { style: 'display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;' } });
+        const cancel = row.createEl('button', { text: t('modal.cancel') });
+        cancel.onclick = () => this.close();
+        const ok = row.createEl('button', { text: t('modal.ok'), cls: 'mod-warning' });
+        ok.onclick = () => { this.close(); if (this.onConfirm) this.onConfirm(); };
+    }
+
+    onClose() { this.contentEl.empty(); }
+}
+
+// Lists every missing graphic, grouped by category (heading per category, files below). OK closes.
+// groups = [{ id, names: [...] }]; empty groups show a "nothing missing" line.
+class MissingAssetsModal extends Modal {
+    constructor(app, groups, onApplyRemaps, onDiscard) {
+        super(app);
+        this.groups = groups || [];
+        this.onApplyRemaps = onApplyRemaps;
+        this.onDiscard = onDiscard;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        // No modal title — start directly with the list. Text is a touch smaller than the default.
+        if (this.groups.length === 0) {
+            contentEl.createEl('p', { text: t('missingList.none'), attr: { style: 'margin-top: 0; font-size: 13px;' } });
+        } else {
+            this.groups.forEach((g, idx) => {
+                contentEl.createEl('div', {
+                    text: t('missingList.heading').replace('{name}', t('assetName.' + g.id)),
+                    attr: { style: `margin: ${idx === 0 ? '0' : '12px'} 0 4px 0; font-weight: 700; font-size: 15px;` },
+                });
+                const ul = contentEl.createEl('ul', { attr: { style: 'margin: 0; font-size: 13px;' } });
+                for (const it of g.items) {
+                    const li = ul.createEl('li');
+                    li.appendText(it.name);
+                    // A same-named graphic exists in the current folder -> mark it as re-findable.
+                    if (it.foundKey) li.createSpan({ text: ' → ' + t('missingList.found'), attr: { style: 'color: var(--text-success); font-weight: 600;' } });
+                }
+            });
+        }
+        // Any found graphics -> offer to repoint the map to their new paths (explicit, never automatic).
+        const remaps = new Map();
+        for (const g of this.groups) for (const it of g.items) if (it.foundKey) remaps.set(it.key, it.foundKey);
+
+        const row = contentEl.createDiv({ attr: { style: 'display: flex; gap: 8px; align-items: center; margin-top: 12px;' } });
+        // Discard sits apart on the left (destructive); OK and apply on the right.
+        if (this.onDiscard) {
+            const discard = row.createEl('button', { text: t('assetWarning.discard'), cls: 'mod-warning', attr: { title: t('assetWarning.discardTip'), style: 'margin-right: auto;' } });
+            discard.onclick = () => { this.close(); this.onDiscard(); };
+        }
+        const ok = row.createEl('button', { text: t('modal.ok'), cls: remaps.size ? '' : 'mod-cta' });
+        ok.onclick = () => this.close();
+        if (remaps.size > 0) {
+            const apply = row.createEl('button', { text: t('missingList.apply'), cls: 'mod-cta' });
+            apply.onclick = () => { this.close(); if (this.onApplyRemaps) this.onApplyRemaps(remaps); };
+        }
     }
 
     onClose() { this.contentEl.empty(); }
