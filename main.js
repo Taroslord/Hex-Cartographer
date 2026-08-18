@@ -182,11 +182,14 @@ const LONG_PRESS_MS = 350;
 // `labelKey` is the same key as the tool group name, so
 // setting and toolbar tooltip have the same name.
 const USER_ASSET_CATEGORIES = [
+    // Order matches the toolbar: Terrain (textures) · Berge · Vegetation · Gebäude · Extras. Used
+    // for the settings path fields, the missing-graphics list and the warning bar, so all follow the
+    // same order. The `id`s are stored in map files and must never change — only the order here does.
     { id: 'tex',      settingKey: 'userTexturePath',    kind: 'texture' },
-    { id: 'extras',   settingKey: 'userExtrasPath',     kind: 'symbol', group: 'grass',    labelKey: 'tool.extras' },
-    { id: 'veg',      settingKey: 'userVegetationPath', kind: 'symbol', group: 'tree',     labelKey: 'tool.vegetation' },
     { id: 'mountain', settingKey: 'userMountainPath',   kind: 'symbol', group: 'mountain', labelKey: 'tool.mountain' },
+    { id: 'veg',      settingKey: 'userVegetationPath', kind: 'symbol', group: 'tree',     labelKey: 'tool.vegetation' },
     { id: 'building', settingKey: 'userBuildingPath',   kind: 'symbol', group: 'building', labelKey: 'tool.building' },
+    { id: 'extras',   settingKey: 'userExtrasPath',     kind: 'symbol', group: 'grass',    labelKey: 'tool.extras' },
 ];
 const TEXTURE_CATEGORY = 'tex';
 const USER_ASSET_PREFIX = 'user:';
@@ -217,6 +220,42 @@ const SYMBOL_LAYER_BUILDINGS = ['tent', 'house', 'village', 'town', 'castle', 'h
 
 function isUserAssetKey(key) {
     return typeof key === 'string' && key.startsWith(USER_ASSET_PREFIX);
+}
+
+// Format v2: a hex can hold ONE symbol PER stacked slot (each with its own tint colour) plus the
+// terrain base (color/texture). Draw order within the map interleaves these with paths — see
+// drawMapLayers(). `group` is the drawing-tool group that owns the slot.
+const MAP_FORMAT_VERSION = 2;
+const HEX_SYMBOL_SLOTS = [
+    { slot: 'mountain',   color: 'mountainColor',   group: 'mountain' }, // Terrain: Berge
+    { slot: 'vegetation', color: 'vegetationColor', group: 'tree' },     // Terrain: Vegetation
+    { slot: 'building',   color: 'buildingColor',   group: 'building' }, // Gebäude
+    { slot: 'extra',      color: 'extraColor',      group: 'grass' },    // Extras
+];
+const SLOT_BY_GROUP = Object.fromEntries(HEX_SYMBOL_SLOTS.map(s => [s.group, s]));
+
+// A path (river/road) is drawn in one of these layers, interleaved with the terrain symbol slots:
+// 0 = behind Berge, 1 = behind Vegetation, 2 = default (behind Gebäude), 3 = above Gebäude (behind
+// Extras). It never goes behind the terrain base (colour/texture) nor above Extras/text/hex grid.
+const PATH_LAYER_MIN = 0;
+const PATH_LAYER_MAX = 3;
+const PATH_LAYER_DEFAULT = 2;
+const pathLayerOf = (p) => (Number.isInteger(p.pathLayer) ? p.pathLayer : PATH_LAYER_DEFAULT);
+
+// Which slot an old single `hex.symbol` (format v1) belongs to. System symbols by their layer list,
+// user symbols by their category id; anything unknown lands in 'extra'.
+function slotNameForSymbolKey(key, category) {
+    if (isUserAssetKey(key)) {
+        const id = category && category.id;
+        if (id === 'mountain') return 'mountain';
+        if (id === 'veg') return 'vegetation';
+        if (id === 'building') return 'building';
+        return 'extra'; // 'extras'
+    }
+    if (SYMBOL_LAYER_TERRAIN.includes(key)) return 'mountain';
+    if (SYMBOL_LAYER_VEGETATION.includes(key)) return 'vegetation';
+    if (SYMBOL_LAYER_BUILDINGS.includes(key)) return 'building';
+    return 'extra';
 }
 
 // Arbitrary opaque RGB color as #rrggbb.
@@ -285,8 +324,9 @@ const TRANSLATIONS = {
         // Tool-Gruppen
         'tool.extras': 'Extras',
         'tool.vegetation': 'Vegetation',
-        'tool.mountain': 'Berg',
+        'tool.mountain': 'Berge',
         'tool.building': 'Gebäude',
+        'tool.terrain': 'Terrain',
 
         // Varianten — Extras
         'variant.question': 'Fragezeichen',
@@ -327,7 +367,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': 'Edit-Modus\nKlick: Werkzeuge ein-/ausblenden',
         'tooltip.hexOrientation': 'Waben Ausrichtung ändern\nKlick: Waben um 90° drehen',
         'tooltip.colorPicker': 'Aktuelle Farbe\nKlick: Farbwähler öffnen',
-        'tooltip.hexColor': 'Waben\nKlick: Waben einfärben\nRechtsklick in Karte: Löschen',
         'tooltip.fill': 'Fülleimer\nKlick: Zusammenhängende Fläche füllen\nErneut klicken: Fülleimer ausschalten',
         'tooltip.text': 'Text-Werkzeug\nKlick auf Karte: Neuen Text erstellen\nKlick auf Text: Text bearbeiten/verschieben\nRechtsklick in Karte auf Text: Text löschen',
         'tooltip.projection': 'Projektion',
@@ -361,7 +400,8 @@ const TRANSLATIONS = {
         'tooltip.color': 'Farbe',
         'tooltip.palette': 'Farbpalette\nKlick: Farbe als aktuelle Farbe übernehmen\nRechtsklick: Palettenfarbe ändern',
         'tooltip.toolGroup': '{name}\nKlick: Zeichnen\nRechtsklick: Variante wählen\nRechtsklick in Karte: Löschen',
-        'tooltip.toolGroupVariant': '{label}\nKlick: Zeichnen\nRechtsklick: Variante wählen\nRechtsklick in Karte: Löschen',
+        'tooltip.toolGroupVariant': '{group}: {label}\nKlick: Zeichnen\nRechtsklick: Variante wählen\nRechtsklick in Karte: Löschen',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\nKlick: Zeichnen\nRechtsklick in Karte: Löschen',
 
         // Tooltips — Musterwerkzeug
         'tooltip.pattern': 'Muster-Werkzeug\nKlick: Mit aufgenommenem Muster zeichnen\nRechtsklick in Karte: Löschen\nDoppelklick Radierer: Zusammenhängendes Muster löschen',
@@ -380,6 +420,7 @@ const TRANSLATIONS = {
         'migrate.title': 'Altes Kartenformat',
         'migrate.intro': 'Folgendes wurde migriert, bitte ggf. kontrollieren:',
         'migrate.roads': 'Wege',
+        'migrate.symbols': 'Symbole',
 
         // Tooltips — Grenzen
         'tooltip.border': 'Grenz-Werkzeug\nKlick: Grenzwaben zeichnen\nRechtsklick in Karte: Löschen\nDoppelklick Radierer: Zusammenhängende Grenze löschen',
@@ -393,6 +434,9 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Dichte',
         'input.dashDensity': 'Dichte: Unterbrechungen pro Wabe (1–20)',
         'option.endpoint': 'Endpunkt',
+        'option.pathOrder': 'Ebene',
+        'tooltip.pathUp': 'Nach oben',
+        'tooltip.pathDown': 'Nach unten',
         'endpoint.edge': 'Kante',
         'endpoint.center': 'Zentrum',
 
@@ -511,7 +555,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': '{n} Grafiken gefunden.',
         'settings.userAssetsNotFound': 'Ordner nicht gefunden oder ohne unterstützte Grafiken.',
         'settings.userAssetsTruncated': 'Nur die ersten {max} werden geladen.',
-        'settings.userTexturePath': 'Ordner für Waben-Texturen',
+        'settings.userTexturePath': 'Ordner für Terrain-Texturen',
         'settings.userTexturePathDesc': 'Ordner in Ihrem Vault. Leer lassen, um nur Farben zu verwenden.',
         'settings.userSymbolPathFor': 'Ordner für Symbole: {name}',
         'settings.userSymbolPathDesc': 'Ordner in Ihrem Vault. Leer lassen, um nur die mitgelieferten Symbole zu verwenden.',
@@ -524,6 +568,8 @@ const TRANSLATIONS = {
         'assetWarning.list': 'Auflisten',
         'assetWarning.listTip': 'Alle fehlenden Grafiken auflisten',
         'assetWarning.missingFile': 'Fehlt: {name}',
+        'assetWarning.missingMore': 'Mehr mit Auflisten.',
+        'compat.notice': 'Neues Kartenformat – bearbeiten erst ab Plugin-Version 2.',
         'missingList.title': 'Fehlende Grafiken',
         'missingList.heading': '{name} fehlen',
         'missingList.none': 'Keine fehlenden Grafiken.',
@@ -532,7 +578,7 @@ const TRANSLATIONS = {
         'assetWarning.discardTip': 'Alle fehlenden Grafiken endgültig entfernen (von der Karte und aus der Verlaufsleiste)',
         'discardAssets.title': 'Fehlende Grafiken verwerfen?',
         'discardAssets.message': 'Alle fehlenden Grafiken werden von der Karte und aus dem Verlauf entfernt. Nach dem Verlassen der App ist dies nicht wiederherstellbar – nur ein Rückgängig (Undo) während der Sitzung kann den Schritt zurücknehmen.',
-        'assetName.tex': 'Waben-Texturen',
+        'assetName.tex': 'Terrain-Texturen',
         'assetName.extras': 'Extra-Symbole',
         'assetName.veg': 'Vegetations-Symbole',
         'assetName.mountain': 'Berg-Symbole',
@@ -592,6 +638,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': 'Bestehenden Fluss/Weg auswählen und bearbeiten. Liegen beide auf einer Wabe, leuchten Fluss- und Weg-Button auf — Klick auf das entsprechende Symbol setzt den Edit-Modus.',
         'guide.paths.width': 'Breite der Flüsse/Wege über die Eingabefelder mit einem Wert anpassen.',
         'guide.paths.dashes': 'Abstand zwischen den Strichen in % der Wabenlänge (0 % durchgehend, 100 % Punkte). Nur Wege; Flüsse sind nie gestrichelt.',
+        'guide.paths.order': 'Ausgewählten Weg/Fluss über die Ebenen nach oben/unten schieben — z. B. hinter Vegetation oder Berge. Nie über Extras, Text oder Wabenrahmen und nie hinter die Farb-/Textur-Basis. Parallel laufende Wege und Flüsse werden immer nebeneinander gezeichnet.',
         'guide.borders': 'Grenzen',
         'guide.borders.draw': 'Grenzregion zeichnen durch Klicken oder Ziehen auf Waben.',
         'guide.borders.pick': 'Bestehende Grenze zum Bearbeiten auswählen.',
@@ -647,6 +694,7 @@ const TRANSLATIONS = {
         'tool.vegetation': 'Vegetation',
         'tool.mountain': 'Mountain',
         'tool.building': 'Building',
+        'tool.terrain': 'Terrain',
 
         // Variants — Extras
         'variant.question': 'Question Mark',
@@ -687,7 +735,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': 'Edit Mode\nClick: Show/hide tools',
         'tooltip.hexOrientation': 'Hex Orientation\nClick: Rotate hexes 90°',
         'tooltip.colorPicker': 'Current Color\nClick: Pick any color from the map',
-        'tooltip.hexColor': 'Hexes\nClick: Color hexes\nRight-click on map: Delete',
         'tooltip.fill': 'Fill Bucket\nClick: Fill connected area\nClick again: Turn off fill',
         'tooltip.text': 'Text Tool\nClick on map: Create new text\nClick on text: Edit/move text\nRight-click on map text: Delete text',
         'tooltip.projection': 'Projection',
@@ -721,7 +768,8 @@ const TRANSLATIONS = {
         'tooltip.color': 'Color',
         'tooltip.palette': 'Color Palette\nClick: Use as current color\nRight-click: Change palette color',
         'tooltip.toolGroup': '{name}\nClick: Draw\nRight-click: Choose variant\nRight-click on map: Delete',
-        'tooltip.toolGroupVariant': '{label}\nClick: Draw\nRight-click: Choose variant\nRight-click on map: Delete',
+        'tooltip.toolGroupVariant': '{group}: {label}\nClick: Draw\nRight-click: Choose variant\nRight-click on map: Delete',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\nClick: Draw\nRight-click on map: Delete',
 
         // Tooltips — Pattern tool
         'tooltip.pattern': 'Pattern Tool\nClick: Draw with picked pattern\nRight-click on map: Delete\nDouble-click Eraser: Delete connected pattern',
@@ -740,6 +788,7 @@ const TRANSLATIONS = {
         'migrate.title': 'Old map format',
         'migrate.intro': 'The following was migrated, please double-check:',
         'migrate.roads': 'Roads',
+        'migrate.symbols': 'Symbols',
 
         // Tooltips — Borders
         'tooltip.border': 'Border Tool\nClick: Draw border hexes\nRight-click on map: Delete\nDouble-click Eraser: Delete connected border',
@@ -753,6 +802,9 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Density',
         'input.dashDensity': 'Density: interruptions per hex (1–20)',
         'option.endpoint': 'Endpoint',
+        'option.pathOrder': 'Layer',
+        'tooltip.pathUp': 'Move up',
+        'tooltip.pathDown': 'Move down',
         'endpoint.edge': 'Edge',
         'endpoint.center': 'Center',
 
@@ -871,7 +923,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': '{n} graphics found.',
         'settings.userAssetsNotFound': 'Folder not found or contains no supported graphics.',
         'settings.userAssetsTruncated': 'Only the first {max} are loaded.',
-        'settings.userTexturePath': 'Hex texture folder',
+        'settings.userTexturePath': 'Terrain texture folder',
         'settings.userTexturePathDesc': 'Folder in your vault. Leave empty to use colors only.',
         'settings.userSymbolPathFor': 'Symbol folder: {name}',
         'settings.userSymbolPathDesc': 'Folder in your vault. Leave empty to use the built-in symbols only.',
@@ -884,6 +936,8 @@ const TRANSLATIONS = {
         'assetWarning.list': 'List',
         'assetWarning.listTip': 'List all missing graphics',
         'assetWarning.missingFile': 'Missing: {name}',
+        'assetWarning.missingMore': 'More via List.',
+        'compat.notice': 'New map format – edit only with plugin version 2 or newer.',
         'missingList.title': 'Missing graphics',
         'missingList.heading': '{name} missing',
         'missingList.none': 'No missing graphics.',
@@ -892,7 +946,7 @@ const TRANSLATIONS = {
         'assetWarning.discardTip': 'Permanently remove all missing graphics (from the map and the history row)',
         'discardAssets.title': 'Discard missing graphics?',
         'discardAssets.message': 'All missing graphics will be removed from the map and from the history. This cannot be undone after you leave the app — only an undo during the session can restore this step.',
-        'assetName.tex': 'Hex textures',
+        'assetName.tex': 'Terrain textures',
         'assetName.extras': 'Extra symbols',
         'assetName.veg': 'Vegetation symbols',
         'assetName.mountain': 'Mountain symbols',
@@ -952,6 +1006,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': 'Select an existing river/road to edit. If both overlap, the river and road buttons highlight — click the corresponding icon to set the edit mode.',
         'guide.paths.width': 'Adjust river/road width via the input fields.',
         'guide.paths.dashes': 'Dash gap in % of the hex length (0 % solid, 100 % dots). Roads only; rivers are never dashed.',
+        'guide.paths.order': 'Move the selected road/river up/down through the layers — e.g. behind vegetation or mountains. Never above extras, text or the hex grid, and never behind the colour/texture base. Parallel roads and rivers are always drawn side by side.',
         'guide.borders': 'Borders',
         'guide.borders.draw': 'Draw border region by clicking or dragging on hexes.',
         'guide.borders.pick': 'Select an existing border to edit.',
@@ -1006,6 +1061,7 @@ const TRANSLATIONS = {
         'tool.vegetation': '植被',
         'tool.mountain': '山脉',
         'tool.building': '建筑',
+        'tool.terrain': '地形',
         'variant.question': '问号',
         'variant.exclamation': '感叹号',
         'variant.cross': '十字',
@@ -1039,7 +1095,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': '编辑模式\n点击：显示/隐藏工具',
         'tooltip.hexOrientation': '六边形方向\n点击：旋转六边形90°',
         'tooltip.colorPicker': '当前颜色\n点击：打开颜色选择器',
-        'tooltip.hexColor': '六角格\n点击：为六角格着色\n右键地图：删除',
         'tooltip.fill': '填充工具\n点击：填充相连区域\n再次点击：关闭填充工具',
         'tooltip.text': '文本工具\n点击地图：创建新文本\n点击文本：编辑/移动文本\n右键地图文本：删除文本',
         'tooltip.projection': '投影',
@@ -1073,7 +1128,8 @@ const TRANSLATIONS = {
         'tooltip.color': '颜色',
         'tooltip.palette': '调色板\n点击：设为当前颜色\n右键点击：更改调色板颜色',
         'tooltip.toolGroup': '{name}\n点击：绘制\n右键点击：选择变体\n右键地图：删除',
-        'tooltip.toolGroupVariant': '{label}\n点击：绘制\n右键点击：选择变体\n右键地图：删除',
+        'tooltip.toolGroupVariant': '{group}: {label}\n点击：绘制\n右键点击：选择变体\n右键地图：删除',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\n点击：绘制\n右键地图：删除',
         'tooltip.pattern': '图案工具\n点击：使用已采集的图案绘制\n右键地图：删除\n双击橡皮擦：删除相连图案',
         'tooltip.patternPicker': '采集图案\n点击：将六角格作为图案采集',
         'tooltip.river': '河流工具\n点击：设置/移动路径点\n双击端点：关闭河流（仅无分支时）\n右键地图：删除路段\n双击橡皮擦：删除整条河流',
@@ -1088,6 +1144,7 @@ const TRANSLATIONS = {
         'migrate.title': '旧地图格式',
         'migrate.intro': '已迁移以下内容，请检查：',
         'migrate.roads': '道路',
+        'migrate.symbols': '符号',
         'tooltip.border': '边界工具\n点击：绘制边界六角格\n右键地图：删除\n双击橡皮擦：删除相连边界',
         'tooltip.borderPicker': '采集边界颜色\n点击：选择已有边界进行编辑',
         'tooltip.borderFinish': '完成\n点击：完成当前边界',
@@ -1099,6 +1156,9 @@ const TRANSLATIONS = {
         'option.dashDensity': '密度',
         'input.dashDensity': '密度：每格的中断数量（1–20）',
         'option.endpoint': '端点',
+        'option.pathOrder': '层级',
+        'tooltip.pathUp': '上移',
+        'tooltip.pathDown': '下移',
         'endpoint.edge': '边缘',
         'endpoint.center': '中心',
         'notice.fileCreateError': '创建文件时出错：{error}',
@@ -1209,7 +1269,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': '找到 {n} 个图形。',
         'settings.userAssetsNotFound': '未找到文件夹，或其中没有支持的图形。',
         'settings.userAssetsTruncated': '仅加载前 {max} 个。',
-        'settings.userTexturePath': '六边形纹理文件夹',
+        'settings.userTexturePath': '地形纹理文件夹',
         'settings.userTexturePathDesc': '库中的文件夹。留空则仅使用颜色。',
         'settings.userSymbolPathFor': '符号文件夹：{name}',
         'settings.userSymbolPathDesc': '库中的文件夹。留空则仅使用内置符号。',
@@ -1222,6 +1282,8 @@ const TRANSLATIONS = {
         'assetWarning.list': '列出',
         'assetWarning.listTip': '列出所有缺失的图形',
         'assetWarning.missingFile': '缺失：{name}',
+        'assetWarning.missingMore': '更多请用“列出”。',
+        'compat.notice': '新地图格式——请使用插件 2 及以上版本编辑。',
         'missingList.title': '缺失的图形',
         'missingList.heading': '{name}缺失',
         'missingList.none': '没有缺失的图形。',
@@ -1230,7 +1292,7 @@ const TRANSLATIONS = {
         'assetWarning.discardTip': '永久移除所有缺失的图形（从地图和历史栏中）',
         'discardAssets.title': '丢弃缺失的图形？',
         'discardAssets.message': '所有缺失的图形将从地图和历史记录中移除。退出应用后将无法恢复——只有在本次会话中撤销才能还原此步骤。',
-        'assetName.tex': '六边形纹理',
+        'assetName.tex': '地形纹理',
         'assetName.extras': '额外符号',
         'assetName.veg': '植被符号',
         'assetName.mountain': '山脉符号',
@@ -1288,6 +1350,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': '选择并编辑已有的河流/道路。若两者重叠，河流和道路按钮会高亮——点击对应图标以设置编辑模式。',
         'guide.paths.width': '通过输入框调整河流/道路的宽度值。',
         'guide.paths.dashes': '虚线间隙，占六角格长度的百分比（0 % 实线，100 % 圆点）。仅道路；河流从不使用虚线。',
+        'guide.paths.order': '将所选道路/河流在图层间上移/下移——例如置于植被或山脉之后。绝不会高于额外符号、文字或六角格边框，也不会低于颜色/纹理底层。平行的道路与河流始终并排绘制。',
         'guide.borders': '边界',
         'guide.borders.draw': '点击或拖动六角格绘制边界区域。',
         'guide.borders.pick': '选择已有边界进行编辑。',
@@ -1338,6 +1401,7 @@ const TRANSLATIONS = {
         'tool.vegetation': 'Растительность',
         'tool.mountain': 'Горы',
         'tool.building': 'Здания',
+        'tool.terrain': 'Местность',
         'variant.question': 'Вопросительный знак',
         'variant.exclamation': 'Восклицательный знак',
         'variant.cross': 'Крест',
@@ -1371,7 +1435,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': 'Режим редактирования\nКлик: Показать/скрыть инструменты',
         'tooltip.hexOrientation': 'Ориентация шестиугольников\nКлик: Повернуть на 90°',
         'tooltip.colorPicker': 'Текущий цвет\nКлик: Открыть выбор цвета',
-        'tooltip.hexColor': 'Соты\nКлик: Окрасить соты\nПравый клик на карте: Удалить',
         'tooltip.fill': 'Заливка\nКлик: Залить связанную область\nПовторный клик: Отключить заливку',
         'tooltip.text': 'Текстовый инструмент\nКлик по карте: Создать новый текст\nКлик по тексту: Редактировать/переместить текст\nПравый клик по тексту на карте: Удалить текст',
         'tooltip.projection': 'Проекция',
@@ -1405,7 +1468,8 @@ const TRANSLATIONS = {
         'tooltip.color': 'Цвет',
         'tooltip.palette': 'Палитра цветов\nКлик: Использовать как текущий цвет\nПравый клик: Изменить цвет палитры',
         'tooltip.toolGroup': '{name}\nКлик: Рисовать\nПравый клик: Выбрать вариант\nПравый клик на карте: Удалить',
-        'tooltip.toolGroupVariant': '{label}\nКлик: Рисовать\nПравый клик: Выбрать вариант\nПравый клик на карте: Удалить',
+        'tooltip.toolGroupVariant': '{group}: {label}\nКлик: Рисовать\nПравый клик: Выбрать вариант\nПравый клик на карте: Удалить',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\nКлик: Рисовать\nПравый клик на карте: Удалить',
         'tooltip.pattern': 'Инструмент «Шаблон»\nКлик: Рисовать выбранным шаблоном\nПравый клик на карте: Удалить\nДвойной клик ластиком: Удалить связанный шаблон',
         'tooltip.patternPicker': 'Захватить шаблон\nКлик: Скопировать соту как шаблон',
         'tooltip.river': 'Инструмент «Река»\nКлик: Установить/переместить путевые точки\nДвойной клик по конечной точке: Замкнуть реку (только без ответвлений)\nПравый клик на карте: Удалить сегмент\nДвойной клик ластиком: Удалить всю реку',
@@ -1420,6 +1484,7 @@ const TRANSLATIONS = {
         'migrate.title': 'Старый формат карты',
         'migrate.intro': 'Следующее было перенесено, проверьте:',
         'migrate.roads': 'Дороги',
+        'migrate.symbols': 'Символы',
         'tooltip.border': 'Инструмент «Граница»\nКлик: Рисовать граничные соты\nПравый клик на карте: Удалить\nДвойной клик ластиком: Удалить связанную границу',
         'tooltip.borderPicker': 'Захватить цвет границы\nКлик: Выбрать существующую границу для редактирования',
         'tooltip.borderFinish': 'Завершить\nКлик: Завершить текущую границу',
@@ -1431,6 +1496,9 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Плотность',
         'input.dashDensity': 'Плотность: разрывов на соту (1–20)',
         'option.endpoint': 'Конец',
+        'option.pathOrder': 'Слой',
+        'tooltip.pathUp': 'Выше',
+        'tooltip.pathDown': 'Ниже',
         'endpoint.edge': 'Край',
         'endpoint.center': 'Центр',
         'notice.fileCreateError': 'Ошибка при создании файла: {error}',
@@ -1541,7 +1609,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': 'Найдено графики: {n}.',
         'settings.userAssetsNotFound': 'Папка не найдена или не содержит поддерживаемой графики.',
         'settings.userAssetsTruncated': 'Загружаются только первые {max}.',
-        'settings.userTexturePath': 'Папка текстур сот',
+        'settings.userTexturePath': 'Папка текстур ландшафта',
         'settings.userTexturePathDesc': 'Папка в вашем хранилище. Оставьте пустым, чтобы использовать только цвета.',
         'settings.userSymbolPathFor': 'Папка символов: {name}',
         'settings.userSymbolPathDesc': 'Папка в вашем хранилище. Оставьте пустым, чтобы использовать только встроенные символы.',
@@ -1554,6 +1622,8 @@ const TRANSLATIONS = {
         'assetWarning.list': 'Список',
         'assetWarning.listTip': 'Показать все отсутствующие изображения',
         'assetWarning.missingFile': 'Отсутствует: {name}',
+        'assetWarning.missingMore': 'Ещё — через «Список».',
+        'compat.notice': 'Новый формат карты — редактируйте только в плагине версии 2 или новее.',
         'missingList.title': 'Отсутствующие изображения',
         'missingList.heading': '{name} отсутствуют',
         'missingList.none': 'Нет отсутствующих изображений.',
@@ -1562,7 +1632,7 @@ const TRANSLATIONS = {
         'assetWarning.discardTip': 'Безвозвратно удалить все отсутствующие изображения (с карты и из панели истории)',
         'discardAssets.title': 'Отбросить отсутствующие изображения?',
         'discardAssets.message': 'Все отсутствующие изображения будут удалены с карты и из истории. После выхода из приложения это нельзя будет отменить — восстановить этот шаг можно только отменой (undo) в течение сеанса.',
-        'assetName.tex': 'Текстуры сот',
+        'assetName.tex': 'Текстуры ландшафта',
         'assetName.extras': 'Дополнительные символы',
         'assetName.veg': 'Символы растительности',
         'assetName.mountain': 'Символы гор',
@@ -1620,6 +1690,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': 'Выбрать и редактировать существующую реку/дорогу. При совпадении подсвечиваются кнопки реки и дороги — нажмите на соответствующий значок, чтобы задать режим редактирования.',
         'guide.paths.width': 'Настроить ширину рек/дорог через поля ввода.',
         'guide.paths.dashes': 'Зазор между штрихами в % от длины соты (0 % сплошная, 100 % точки). Только дороги; реки никогда не штрихуются.',
+        'guide.paths.order': 'Переместить выбранную дорогу/реку вверх/вниз по слоям — например, за растительность или горы. Никогда выше дополнительных символов, текста или сетки сот и никогда за цветовую/текстурную основу. Параллельные дороги и реки всегда рисуются рядом.',
         'guide.borders': 'Границы',
         'guide.borders.draw': 'Рисовать область границы нажатием или перетаскиванием по сотам.',
         'guide.borders.pick': 'Выбрать существующую границу для редактирования.',
@@ -1670,6 +1741,7 @@ const TRANSLATIONS = {
         'tool.vegetation': '植生',
         'tool.mountain': '山',
         'tool.building': '建物',
+        'tool.terrain': '地形',
         'variant.question': '疑問符',
         'variant.exclamation': '感嘆符',
         'variant.cross': '十字',
@@ -1703,7 +1775,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': '編集モード\nクリック：ツールの表示/非表示',
         'tooltip.hexOrientation': '六角形の向き\nクリック：六角形を90°回転',
         'tooltip.colorPicker': '現在の色\nクリック：カラーピッカーを開く',
-        'tooltip.hexColor': 'ヘックス\nクリック：ヘックスを着色\nマップ上で右クリック：削除',
         'tooltip.fill': '塗りつぶし\nクリック：つながった領域を塗りつぶす\n再度クリック：塗りつぶしをオフ',
         'tooltip.text': 'テキストツール\nマップをクリック：新しいテキストを作成\nテキストをクリック：テキストを編集/移動\nマップ上のテキストを右クリック：テキスト削除',
         'tooltip.projection': '投影',
@@ -1737,7 +1808,8 @@ const TRANSLATIONS = {
         'tooltip.color': '色',
         'tooltip.palette': 'カラーパレット\nクリック：現在の色として使用\n右クリック：パレットの色を変更',
         'tooltip.toolGroup': '{name}\nクリック：描画\n右クリック：バリエーションを選択\nマップ上で右クリック：削除',
-        'tooltip.toolGroupVariant': '{label}\nクリック：描画\n右クリック：バリエーションを選択\nマップ上で右クリック：削除',
+        'tooltip.toolGroupVariant': '{group}: {label}\nクリック：描画\n右クリック：バリエーションを選択\nマップ上で右クリック：削除',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\nクリック：描画\nマップ上で右クリック：削除',
         'tooltip.pattern': 'パターンツール\nクリック：取得したパターンで描画\nマップ上で右クリック：削除\nダブルクリック消しゴム：つながったパターンを削除',
         'tooltip.patternPicker': 'パターンを取得\nクリック：ヘックスをパターンとして取得',
         'tooltip.river': '川ツール\nクリック：経由点を設置/移動\n端点ダブルクリック：川を閉じる（分岐なしの場合のみ）\nマップ上で右クリック：区間を削除\nダブルクリック消しゴム：川全体を削除',
@@ -1752,6 +1824,7 @@ const TRANSLATIONS = {
         'migrate.title': '古いマップ形式',
         'migrate.intro': '以下が移行されました。ご確認ください：',
         'migrate.roads': '道',
+        'migrate.symbols': 'シンボル',
         'tooltip.border': '境界ツール\nクリック：境界ヘックスを描画\nマップ上で右クリック：削除\nダブルクリック消しゴム：つながった境界を削除',
         'tooltip.borderPicker': '境界色を取得\nクリック：既存の境界を選択して編集',
         'tooltip.borderFinish': '完了\nクリック：現在の境界を確定',
@@ -1763,6 +1836,9 @@ const TRANSLATIONS = {
         'option.dashDensity': '密度',
         'input.dashDensity': '密度：ヘックスあたりの区切り数（1–20）',
         'option.endpoint': '端点',
+        'option.pathOrder': 'レイヤー',
+        'tooltip.pathUp': '上へ',
+        'tooltip.pathDown': '下へ',
         'endpoint.edge': '辺',
         'endpoint.center': '中心',
         'notice.fileCreateError': 'ファイル作成エラー：{error}',
@@ -1873,7 +1949,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': '{n} 個の画像が見つかりました。',
         'settings.userAssetsNotFound': 'フォルダが見つからないか、対応する画像がありません。',
         'settings.userAssetsTruncated': '最初の {max} 個のみ読み込まれます。',
-        'settings.userTexturePath': 'ヘックステクスチャのフォルダ',
+        'settings.userTexturePath': '地形テクスチャのフォルダ',
         'settings.userTexturePathDesc': '保管庫内のフォルダー。空欄にすると色のみを使用します。',
         'settings.userSymbolPathFor': 'シンボルのフォルダ: {name}',
         'settings.userSymbolPathDesc': '保管庫内のフォルダー。空欄にすると内蔵シンボルのみを使用します。',
@@ -1886,6 +1962,8 @@ const TRANSLATIONS = {
         'assetWarning.list': '一覧',
         'assetWarning.listTip': '欠落しているグラフィックをすべて一覧表示',
         'assetWarning.missingFile': '欠落: {name}',
+        'assetWarning.missingMore': '「一覧」で続きを表示。',
+        'compat.notice': '新しいマップ形式 – プラグイン v2 以降で編集してください。',
         'missingList.title': '欠落しているグラフィック',
         'missingList.heading': '{name}が欠落しています',
         'missingList.none': '欠落しているグラフィックはありません。',
@@ -1894,7 +1972,7 @@ const TRANSLATIONS = {
         'assetWarning.discardTip': '欠落しているグラフィックをすべて完全に削除します（マップと履歴バーから）',
         'discardAssets.title': '欠落しているグラフィックを破棄しますか？',
         'discardAssets.message': '欠落しているすべてのグラフィックがマップと履歴から削除されます。アプリを終了すると元に戻せません。この操作を取り消せるのは、セッション中の取り消し（Undo）のみです。',
-        'assetName.tex': 'ヘクスのテクスチャ',
+        'assetName.tex': '地形テクスチャ',
         'assetName.extras': '追加シンボル',
         'assetName.veg': '植生シンボル',
         'assetName.mountain': '山のシンボル',
@@ -1952,6 +2030,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': '既存の川/道を選択して編集。両方が重なる場合、川と道のボタンが光ります — 対応するアイコンをクリックして編集モードを設定。',
         'guide.paths.width': '入力フィールドで川/道の幅を調整。',
         'guide.paths.dashes': '破線の間隔（ヘックス長に対する%、0 % 実線、100 % 点）。道のみ。川は破線になりません。',
+        'guide.paths.order': '選択した道/川をレイヤー間で上下に移動 — 例えば植生や山の背面へ。追加シンボル・テキスト・ヘックス枠より前には出ず、色/テクスチャの基盤より後ろにも行きません。並行する道と川は常に横並びで描画されます。',
         'guide.borders': '境界',
         'guide.borders.draw': 'ヘックスをクリックまたはドラッグして境界領域を描画。',
         'guide.borders.pick': '既存の境界を選択して編集。',
@@ -2002,6 +2081,7 @@ const TRANSLATIONS = {
         'tool.vegetation': 'Végétation',
         'tool.mountain': 'Montagne',
         'tool.building': 'Bâtiment',
+        'tool.terrain': 'Terrain',
         'variant.question': 'Point d\'interrogation',
         'variant.exclamation': 'Point d\'exclamation',
         'variant.cross': 'Croix',
@@ -2035,7 +2115,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': 'Mode édition\nClic : Afficher/masquer les outils',
         'tooltip.hexOrientation': 'Orientation des hexagones\nClic : Rotation de 90°',
         'tooltip.colorPicker': 'Couleur actuelle\nClic : Ouvrir le sélecteur de couleur',
-        'tooltip.hexColor': 'Hexagones\nClic : Colorier les hexagones\nClic droit sur la carte : Supprimer',
         'tooltip.fill': 'Pot de peinture\nClic : Remplir une zone contiguë\nCliquer à nouveau : Désactiver le pot de peinture',
         'tooltip.text': 'Outil texte\nClic sur la carte : Créer un nouveau texte\nClic sur un texte : Modifier/déplacer le texte\nClic droit sur texte de la carte : Supprimer le texte',
         'tooltip.projection': 'Projection',
@@ -2069,7 +2148,8 @@ const TRANSLATIONS = {
         'tooltip.color': 'Couleur',
         'tooltip.palette': 'Palette de couleurs\nClic : Utiliser comme couleur actuelle\nClic droit : Modifier la couleur de la palette',
         'tooltip.toolGroup': '{name}\nClic : Dessiner\nClic droit : Choisir une variante\nClic droit sur la carte : Supprimer',
-        'tooltip.toolGroupVariant': '{label}\nClic : Dessiner\nClic droit : Choisir une variante\nClic droit sur la carte : Supprimer',
+        'tooltip.toolGroupVariant': '{group}: {label}\nClic : Dessiner\nClic droit : Choisir une variante\nClic droit sur la carte : Supprimer',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\nClic : Dessiner\nClic droit sur la carte : Supprimer',
         'tooltip.pattern': 'Outil motif\nClic : Dessiner avec le motif capturé\nClic droit sur la carte : Supprimer\nDouble-clic gomme : Effacer le motif contigu',
         'tooltip.patternPicker': 'Capturer un motif\nClic : Capturer un hexagone comme motif',
         'tooltip.river': 'Outil rivière\nClic : Placer/déplacer des points de passage\nDouble-clic point final : Fermer la rivière (uniquement sans embranchements)\nClic droit sur la carte : Supprimer un segment\nDouble-clic gomme : Supprimer toute la rivière',
@@ -2084,6 +2164,7 @@ const TRANSLATIONS = {
         'migrate.title': 'Ancien format de carte',
         'migrate.intro': 'Les éléments suivants ont été migrés, veuillez vérifier :',
         'migrate.roads': 'Routes',
+        'migrate.symbols': 'Symboles',
         'tooltip.border': 'Outil frontière\nClic : Dessiner des hexagones de frontière\nClic droit sur la carte : Supprimer\nDouble-clic gomme : Supprimer la frontière contiguë',
         'tooltip.borderPicker': 'Capturer la couleur de frontière\nClic : Sélectionner une frontière existante pour la modifier',
         'tooltip.borderFinish': 'Terminer\nClic : Finaliser la frontière en cours',
@@ -2095,6 +2176,9 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Densité',
         'input.dashDensity': 'Densité : interruptions par hexagone (1–20)',
         'option.endpoint': 'Extrémité',
+        'option.pathOrder': 'Calque',
+        'tooltip.pathUp': 'Monter',
+        'tooltip.pathDown': 'Descendre',
         'endpoint.edge': 'Bord',
         'endpoint.center': 'Centre',
         'notice.fileCreateError': 'Erreur lors de la création du fichier : {error}',
@@ -2205,7 +2289,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': '{n} graphiques trouvés.',
         'settings.userAssetsNotFound': 'Dossier introuvable ou sans graphiques pris en charge.',
         'settings.userAssetsTruncated': 'Seuls les {max} premiers sont chargés.',
-        'settings.userTexturePath': 'Dossier des textures d\'hexagone',
+        'settings.userTexturePath': 'Dossier des textures de terrain',
         'settings.userTexturePathDesc': 'Dossier dans votre coffre. Laissez vide pour n\'utiliser que des couleurs.',
         'settings.userSymbolPathFor': 'Dossier des symboles : {name}',
         'settings.userSymbolPathDesc': 'Dossier dans votre coffre. Laissez vide pour n\'utiliser que les symboles fournis.',
@@ -2218,6 +2302,8 @@ const TRANSLATIONS = {
         'assetWarning.list': 'Lister',
         'assetWarning.listTip': 'Lister tous les graphiques manquants',
         'assetWarning.missingFile': 'Manquant : {name}',
+        'assetWarning.missingMore': 'Plus via Lister.',
+        'compat.notice': 'Nouveau format de carte – à modifier uniquement avec le plugin version 2 ou plus.',
         'missingList.title': 'Graphiques manquants',
         'missingList.heading': '{name} manquants',
         'missingList.none': 'Aucun graphique manquant.',
@@ -2226,7 +2312,7 @@ const TRANSLATIONS = {
         'assetWarning.discardTip': 'Supprimer définitivement tous les graphiques manquants (de la carte et de la barre d’historique)',
         'discardAssets.title': 'Supprimer les graphiques manquants ?',
         'discardAssets.message': 'Tous les graphiques manquants seront retirés de la carte et de l’historique. Cette action est irréversible après la fermeture de l’application — seule une annulation (undo) pendant la session peut rétablir cette étape.',
-        'assetName.tex': 'Textures d\'hexagones',
+        'assetName.tex': 'Textures de terrain',
         'assetName.extras': 'Symboles supplémentaires',
         'assetName.veg': 'Symboles de végétation',
         'assetName.mountain': 'Symboles de montagne',
@@ -2284,6 +2370,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': 'Sélectionner et modifier une rivière/un chemin existant. Si les deux se chevauchent, les boutons rivière et chemin s\'illuminent — cliquez sur l\'icône correspondante pour définir le mode d\'édition.',
         'guide.paths.width': 'Ajuster la largeur des rivières/chemins via les champs de saisie.',
         'guide.paths.dashes': 'Espace entre les tirets en % de la longueur de l\'hexagone (0 % continu, 100 % points). Routes uniquement ; les rivières ne sont jamais en pointillés.',
+        'guide.paths.order': 'Déplacer la route/rivière sélectionnée vers le haut/bas dans les calques — p. ex. derrière la végétation ou les montagnes. Jamais au-dessus des extras, du texte ou de la grille, ni derrière la base couleur/texture. Les routes et rivières parallèles sont toujours dessinées côte à côte.',
         'guide.borders': 'Frontières',
         'guide.borders.draw': 'Dessiner une région de frontière en cliquant ou en glissant sur les hexagones.',
         'guide.borders.pick': 'Sélectionner une frontière existante pour la modifier.',
@@ -2334,6 +2421,7 @@ const TRANSLATIONS = {
         'tool.vegetation': 'Vegetação',
         'tool.mountain': 'Montanha',
         'tool.building': 'Edifício',
+        'tool.terrain': 'Terreno',
         'variant.question': 'Ponto de interrogação',
         'variant.exclamation': 'Ponto de exclamação',
         'variant.cross': 'Cruz',
@@ -2367,7 +2455,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': 'Modo de edição\nClique: Mostrar/ocultar ferramentas',
         'tooltip.hexOrientation': 'Orientação dos hexágonos\nClique: Girar hexágonos 90°',
         'tooltip.colorPicker': 'Cor atual\nClique: Abrir seletor de cor',
-        'tooltip.hexColor': 'Hexágonos\nClique: Colorir hexágonos\nClique direito no mapa: Excluir',
         'tooltip.fill': 'Balde de tinta\nClique: Preencher área contígua\nClicar novamente: Desativar balde de tinta',
         'tooltip.text': 'Ferramenta de texto\nClique no mapa: Criar novo texto\nClique no texto: Editar/mover texto\nClique direito em texto no mapa: Excluir texto',
         'tooltip.projection': 'Projeção',
@@ -2401,7 +2488,8 @@ const TRANSLATIONS = {
         'tooltip.color': 'Cor',
         'tooltip.palette': 'Paleta de cores\nClique: Usar como cor atual\nClique direito: Alterar cor da paleta',
         'tooltip.toolGroup': '{name}\nClique: Desenhar\nClique direito: Escolher variante\nClique direito no mapa: Excluir',
-        'tooltip.toolGroupVariant': '{label}\nClique: Desenhar\nClique direito: Escolher variante\nClique direito no mapa: Excluir',
+        'tooltip.toolGroupVariant': '{group}: {label}\nClique: Desenhar\nClique direito: Escolher variante\nClique direito no mapa: Excluir',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\nClique: Desenhar\nClique direito no mapa: Excluir',
         'tooltip.pattern': 'Ferramenta de padrão\nClique: Desenhar com o padrão capturado\nClique direito no mapa: Excluir\nDuplo clique borracha: Apagar padrão contíguo',
         'tooltip.patternPicker': 'Capturar padrão\nClique: Capturar hexágono como padrão',
         'tooltip.river': 'Ferramenta de rio\nClique: Colocar/mover pontos de passagem\nDuplo clique ponto final: Fechar rio (apenas sem ramificações)\nClique direito no mapa: Excluir segmento\nDuplo clique borracha: Excluir rio inteiro',
@@ -2416,6 +2504,7 @@ const TRANSLATIONS = {
         'migrate.title': 'Formato de mapa antigo',
         'migrate.intro': 'O seguinte foi migrado, verifique:',
         'migrate.roads': 'Estradas',
+        'migrate.symbols': 'Símbolos',
         'tooltip.border': 'Ferramenta de fronteira\nClique: Desenhar hexágonos de fronteira\nClique direito no mapa: Excluir\nDuplo clique borracha: Apagar fronteira contígua',
         'tooltip.borderPicker': 'Capturar cor da fronteira\nClique: Selecionar fronteira existente para editar',
         'tooltip.borderFinish': 'Finalizar\nClique: Concluir a fronteira atual',
@@ -2427,6 +2516,9 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Densidade',
         'input.dashDensity': 'Densidade: interrupções por hexágono (1–20)',
         'option.endpoint': 'Extremidade',
+        'option.pathOrder': 'Camada',
+        'tooltip.pathUp': 'Mover para cima',
+        'tooltip.pathDown': 'Mover para baixo',
         'endpoint.edge': 'Borda',
         'endpoint.center': 'Centro',
         'notice.fileCreateError': 'Erro ao criar o arquivo: {error}',
@@ -2537,7 +2629,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': '{n} gráficos encontrados.',
         'settings.userAssetsNotFound': 'Pasta não encontrada ou sem gráficos suportados.',
         'settings.userAssetsTruncated': 'Apenas os primeiros {max} são carregados.',
-        'settings.userTexturePath': 'Pasta de texturas de hexágono',
+        'settings.userTexturePath': 'Pasta de texturas de terreno',
         'settings.userTexturePathDesc': 'Pasta no seu cofre. Deixe vazio para usar apenas cores.',
         'settings.userSymbolPathFor': 'Pasta de símbolos: {name}',
         'settings.userSymbolPathDesc': 'Pasta no seu cofre. Deixe vazio para usar apenas os símbolos incluídos.',
@@ -2551,6 +2643,8 @@ const TRANSLATIONS = {
         'assetWarning.list': 'Listar',
         'assetWarning.listTip': 'Listar todos os gráficos ausentes',
         'assetWarning.missingFile': 'Ausente: {name}',
+        'assetWarning.missingMore': 'Mais em Listar.',
+        'compat.notice': 'Novo formato de mapa – edite apenas com o plugin versão 2 ou superior.',
         'missingList.title': 'Gráficos ausentes',
         'missingList.heading': '{name} ausentes',
         'missingList.none': 'Nenhum gráfico ausente.',
@@ -2558,7 +2652,7 @@ const TRANSLATIONS = {
         'missingList.apply': 'Aplicar novos caminhos',
         'discardAssets.title': 'Descartar gráficos ausentes?',
         'discardAssets.message': 'Todos os gráficos ausentes serão removidos do mapa e do histórico. Isso não pode ser desfeito depois de sair do aplicativo — apenas um desfazer (undo) durante a sessão pode restaurar esta etapa.',
-        'assetName.tex': 'Texturas de hexágonos',
+        'assetName.tex': 'Texturas de terreno',
         'assetName.extras': 'Símbolos extra',
         'assetName.veg': 'Símbolos de vegetação',
         'assetName.mountain': 'Símbolos de montanha',
@@ -2616,6 +2710,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': 'Selecionar e editar rio/caminho existente. Se ambos se sobrepõem, os botões rio e caminho acendem — clique no ícone correspondente para definir o modo de edição.',
         'guide.paths.width': 'Ajustar a largura dos rios/caminhos pelos campos de entrada.',
         'guide.paths.dashes': 'Espaço entre traços em % do comprimento do hexágono (0 % contínuo, 100 % pontos). Apenas estradas; rios nunca são tracejados.',
+        'guide.paths.order': 'Mover a estrada/rio selecionado para cima/baixo pelas camadas — p. ex. atrás de vegetação ou montanhas. Nunca acima de extras, texto ou grade de hexágonos, nem atrás da base de cor/textura. Estradas e rios paralelos são sempre desenhados lado a lado.',
         'guide.borders': 'Fronteiras',
         'guide.borders.draw': 'Desenhar região de fronteira clicando ou arrastando sobre hexágonos.',
         'guide.borders.pick': 'Selecionar fronteira existente para editar.',
@@ -2666,6 +2761,7 @@ const TRANSLATIONS = {
         'tool.vegetation': '식생',
         'tool.mountain': '산',
         'tool.building': '건물',
+        'tool.terrain': '지형',
         'variant.question': '물음표',
         'variant.exclamation': '느낌표',
         'variant.cross': '십자',
@@ -2699,7 +2795,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': '편집 모드\n클릭: 도구 표시/숨기기',
         'tooltip.hexOrientation': '육각형 방향\n클릭: 육각형 90° 회전',
         'tooltip.colorPicker': '현재 색상\n클릭: 색상 선택기 열기',
-        'tooltip.hexColor': '헥스 셀\n클릭: 헥스 셀 색칠하기\n지도에서 우클릭: 삭제',
         'tooltip.fill': '채우기 도구\n클릭: 인접한 영역 채우기\n다시 클릭: 채우기 도구 끄기',
         'tooltip.text': '텍스트 도구\n지도 클릭: 새 텍스트 만들기\n텍스트 클릭: 텍스트 편집/이동\n지도에서 텍스트 우클릭: 텍스트 삭제',
         'tooltip.projection': '투영',
@@ -2733,7 +2828,8 @@ const TRANSLATIONS = {
         'tooltip.color': '색상',
         'tooltip.palette': '색상 팔레트\n클릭: 현재 색상으로 사용\n우클릭: 팔레트 색상 변경',
         'tooltip.toolGroup': '{name}\n클릭: 그리기\n우클릭: 변형 선택\n지도에서 우클릭: 삭제',
-        'tooltip.toolGroupVariant': '{label}\n클릭: 그리기\n우클릭: 변형 선택\n지도에서 우클릭: 삭제',
+        'tooltip.toolGroupVariant': '{group}: {label}\n클릭: 그리기\n우클릭: 변형 선택\n지도에서 우클릭: 삭제',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\n클릭: 그리기\n지도에서 우클릭: 삭제',
         'tooltip.pattern': '패턴 도구\n클릭: 캡처한 패턴으로 그리기\n지도에서 우클릭: 삭제\n더블 클릭 지우개: 인접한 패턴 지우기',
         'tooltip.patternPicker': '패턴 캡처\n클릭: 헥스 셀을 패턴으로 캡처',
         'tooltip.river': '강 도구\n클릭: 경유점 배치/이동\n끝점 더블 클릭: 강 닫기 (분기 없는 경우만)\n지도에서 우클릭: 구간 삭제\n더블 클릭 지우개: 전체 강 삭제',
@@ -2748,6 +2844,7 @@ const TRANSLATIONS = {
         'migrate.title': '이전 지도 형식',
         'migrate.intro': '다음 항목이 마이그레이션되었습니다. 확인해 주세요:',
         'migrate.roads': '도로',
+        'migrate.symbols': '기호',
         'tooltip.border': '경계 도구\n클릭: 경계 헥스 셀 그리기\n지도에서 우클릭: 삭제\n더블 클릭 지우개: 인접한 경계 지우기',
         'tooltip.borderPicker': '경계 색상 캡처\n클릭: 기존 경계를 선택하여 편집',
         'tooltip.borderFinish': '완료\n클릭: 현재 경계 완성',
@@ -2759,6 +2856,9 @@ const TRANSLATIONS = {
         'option.dashDensity': '밀도',
         'input.dashDensity': '밀도: 헥스당 끊김 수 (1–20)',
         'option.endpoint': '끝점',
+        'option.pathOrder': '레이어',
+        'tooltip.pathUp': '위로',
+        'tooltip.pathDown': '아래로',
         'endpoint.edge': '가장자리',
         'endpoint.center': '중심',
         'notice.fileCreateError': '파일 생성 오류: {error}',
@@ -2869,7 +2969,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': '그래픽 {n}개를 찾았습니다.',
         'settings.userAssetsNotFound': '폴더를 찾을 수 없거나 지원되는 그래픽이 없습니다.',
         'settings.userAssetsTruncated': '처음 {max}개만 불러옵니다.',
-        'settings.userTexturePath': '헥스 텍스처 폴더',
+        'settings.userTexturePath': '지형 텍스처 폴더',
         'settings.userTexturePathDesc': '보관함 안의 폴더. 비워 두면 색상만 사용합니다.',
         'settings.userSymbolPathFor': '심볼 폴더: {name}',
         'settings.userSymbolPathDesc': '보관함 안의 폴더. 비워 두면 기본 제공 심볼만 사용합니다.',
@@ -2882,6 +2982,8 @@ const TRANSLATIONS = {
         'assetWarning.list': '목록',
         'assetWarning.listTip': '누락된 모든 그래픽 나열',
         'assetWarning.missingFile': '누락: {name}',
+        'assetWarning.missingMore': '자세히는 목록에서.',
+        'compat.notice': '새 지도 형식 – 플러그인 버전 2 이상에서만 편집하세요.',
         'missingList.title': '누락된 그래픽',
         'missingList.heading': '{name} 누락',
         'missingList.none': '누락된 그래픽이 없습니다.',
@@ -2890,7 +2992,7 @@ const TRANSLATIONS = {
         'assetWarning.discardTip': '누락된 모든 그래픽을 영구적으로 제거합니다(지도 및 기록 표시줄에서)',
         'discardAssets.title': '누락된 그래픽을 버릴까요?',
         'discardAssets.message': '누락된 모든 그래픽이 지도와 기록에서 제거됩니다. 앱을 종료한 후에는 복구할 수 없으며, 세션 중 실행 취소(undo)로만 이 단계를 되돌릴 수 있습니다.',
-        'assetName.tex': '헥스 텍스처',
+        'assetName.tex': '지형 텍스처',
         'assetName.extras': '추가 기호',
         'assetName.veg': '식생 기호',
         'assetName.mountain': '산 기호',
@@ -2948,6 +3050,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': '기존 강/길을 선택하여 편집합니다. 둘 다 겹치면 강/길 버튼이 강조됩니다 — 해당 아이콘을 클릭하여 편집 모드를 설정합니다.',
         'guide.paths.width': '입력 필드를 통해 강/길의 너비를 조정합니다.',
         'guide.paths.dashes': '헥스 길이에 대한 대시 간격 %(0 % 실선, 100 % 점). 도로만 해당하며, 강은 절대 점선이 아닙니다.',
+        'guide.paths.order': '선택한 도로/강을 레이어 사이에서 위/아래로 이동합니다 — 예: 식생이나 산 뒤로. 엑스트라, 텍스트, 헥스 격자보다 위로는 가지 않으며 색/텍스처 기반보다 뒤로도 가지 않습니다. 나란히 흐르는 도로와 강은 항상 옆으로 나란히 그려집니다.',
         'guide.borders': '경계',
         'guide.borders.draw': '헥스 셀을 클릭하거나 드래그하여 경계 영역을 그립니다.',
         'guide.borders.pick': '기존 경계를 선택하여 편집합니다.',
@@ -2998,6 +3101,7 @@ const TRANSLATIONS = {
         'tool.vegetation': 'Vegetación',
         'tool.mountain': 'Montaña',
         'tool.building': 'Edificio',
+        'tool.terrain': 'Terreno',
         'variant.question': 'Signo de interrogación',
         'variant.exclamation': 'Signo de exclamación',
         'variant.cross': 'Cruz',
@@ -3031,7 +3135,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': 'Modo edición\nClic: Mostrar/ocultar herramientas',
         'tooltip.hexOrientation': 'Orientación de hexágonos\nClic: Rotar hexágonos 90°',
         'tooltip.colorPicker': 'Color actual\nClic: Abrir selector de color',
-        'tooltip.hexColor': 'Celdas\nClic: Colorear celdas\nClic derecho en mapa: Eliminar',
         'tooltip.fill': 'Cubo de relleno\nClic: Rellenar área contigua\nClic de nuevo: Desactivar cubo de relleno',
         'tooltip.text': 'Herramienta de texto\nClic en mapa: Crear nuevo texto\nClic en texto: Editar/mover texto\nClic derecho en texto del mapa: Eliminar texto',
         'tooltip.projection': 'Proyección',
@@ -3065,7 +3168,8 @@ const TRANSLATIONS = {
         'tooltip.color': 'Color',
         'tooltip.palette': 'Paleta de colores\nClic: Usar como color actual\nClic derecho: Cambiar color de paleta',
         'tooltip.toolGroup': '{name}\nClic: Dibujar\nClic derecho: Elegir variante\nClic derecho en mapa: Eliminar',
-        'tooltip.toolGroupVariant': '{label}\nClic: Dibujar\nClic derecho: Elegir variante\nClic derecho en mapa: Eliminar',
+        'tooltip.toolGroupVariant': '{group}: {label}\nClic: Dibujar\nClic derecho: Elegir variante\nClic derecho en mapa: Eliminar',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\nClic: Dibujar\nClic derecho en mapa: Eliminar',
         'tooltip.pattern': 'Herramienta de patrón\nClic: Dibujar con patrón capturado\nClic derecho en mapa: Eliminar\nDoble clic borrador: Borrar patrón contiguo',
         'tooltip.patternPicker': 'Capturar patrón\nClic: Usar celda como patrón',
         'tooltip.river': 'Herramienta de río\nClic: Colocar/mover puntos de ruta\nDoble clic punto final: Cerrar río (solo sin ramificaciones)\nClic derecho en mapa: Borrar segmento\nDoble clic borrador: Borrar río completo',
@@ -3080,6 +3184,7 @@ const TRANSLATIONS = {
         'migrate.title': 'Formato de mapa antiguo',
         'migrate.intro': 'Se migró lo siguiente, por favor revísalo:',
         'migrate.roads': 'Caminos',
+        'migrate.symbols': 'Símbolos',
         'tooltip.border': 'Herramienta de frontera\nClic: Dibujar celdas de frontera\nClic derecho en mapa: Eliminar\nDoble clic borrador: Borrar frontera contigua',
         'tooltip.borderPicker': 'Capturar color de frontera\nClic: Seleccionar frontera existente para editar',
         'tooltip.borderFinish': 'Finalizar\nClic: Completar frontera actual',
@@ -3091,6 +3196,9 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Densidad',
         'input.dashDensity': 'Densidad: interrupciones por hexágono (1–20)',
         'option.endpoint': 'Extremo',
+        'option.pathOrder': 'Capa',
+        'tooltip.pathUp': 'Subir',
+        'tooltip.pathDown': 'Bajar',
         'endpoint.edge': 'Borde',
         'endpoint.center': 'Centro',
         'notice.fileCreateError': 'Error al crear el archivo: {error}',
@@ -3201,7 +3309,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': '{n} gráficos encontrados.',
         'settings.userAssetsNotFound': 'Carpeta no encontrada o sin gráficos compatibles.',
         'settings.userAssetsTruncated': 'Solo se cargan los primeros {max}.',
-        'settings.userTexturePath': 'Carpeta de texturas de hexágono',
+        'settings.userTexturePath': 'Carpeta de texturas de terreno',
         'settings.userTexturePathDesc': 'Carpeta en su almacén. Déjelo vacío para usar solo colores.',
         'settings.userSymbolPathFor': 'Carpeta de símbolos: {name}',
         'settings.userSymbolPathDesc': 'Carpeta en su almacén. Déjelo vacío para usar solo los símbolos incluidos.',
@@ -3215,6 +3323,8 @@ const TRANSLATIONS = {
         'assetWarning.list': 'Listar',
         'assetWarning.listTip': 'Listar todos los gráficos faltantes',
         'assetWarning.missingFile': 'Falta: {name}',
+        'assetWarning.missingMore': 'Más en Listar.',
+        'compat.notice': 'Nuevo formato de mapa: edítalo solo con el plugin versión 2 o superior.',
         'missingList.title': 'Gráficos faltantes',
         'missingList.heading': '{name} faltan',
         'missingList.none': 'No faltan gráficos.',
@@ -3222,7 +3332,7 @@ const TRANSLATIONS = {
         'missingList.apply': 'Aplicar nuevas rutas',
         'discardAssets.title': '¿Descartar los gráficos faltantes?',
         'discardAssets.message': 'Todos los gráficos faltantes se eliminarán del mapa y del historial. Esto no se puede deshacer después de salir de la aplicación: solo deshacer (undo) durante la sesión puede restaurar este paso.',
-        'assetName.tex': 'Texturas de hexágonos',
+        'assetName.tex': 'Texturas de terreno',
         'assetName.extras': 'Símbolos adicionales',
         'assetName.veg': 'Símbolos de vegetación',
         'assetName.mountain': 'Símbolos de montaña',
@@ -3280,6 +3390,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': 'Seleccionar y editar río/camino existente. Si ambos coinciden, los botones río y camino se iluminan — clic en el icono correspondiente establece el modo de edición.',
         'guide.paths.width': 'Ajustar el ancho de ríos/caminos mediante los campos de entrada.',
         'guide.paths.dashes': 'Hueco entre trazos en % de la longitud del hexágono (0 % continuo, 100 % puntos). Solo caminos; los ríos nunca son discontinuos.',
+        'guide.paths.order': 'Mover el camino/río seleccionado hacia arriba/abajo entre las capas — p. ej. detrás de vegetación o montañas. Nunca por encima de extras, texto o la rejilla, ni detrás de la base de color/textura. Los caminos y ríos paralelos siempre se dibujan uno al lado del otro.',
         'guide.borders': 'Fronteras',
         'guide.borders.draw': 'Dibujar región fronteriza haciendo clic o arrastrando sobre celdas.',
         'guide.borders.pick': 'Seleccionar frontera existente para editar.',
@@ -3330,6 +3441,7 @@ const TRANSLATIONS = {
         'tool.vegetation': 'Roślinność',
         'tool.mountain': 'Góra',
         'tool.building': 'Budynek',
+        'tool.terrain': 'Teren',
         'variant.question': 'Znak zapytania',
         'variant.exclamation': 'Wykrzyknik',
         'variant.cross': 'Krzyż',
@@ -3363,7 +3475,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': 'Tryb edycji\nKliknij: Pokaż/ukryj narzędzia',
         'tooltip.hexOrientation': 'Orientacja sześciokątów\nKliknij: Obróć sześciokąty o 90°',
         'tooltip.colorPicker': 'Aktualny kolor\nKliknij: Otwórz wybór koloru',
-        'tooltip.hexColor': 'Komórki\nKliknij: Pokoloruj komórki\nPrawy klik na mapie: Usuń',
         'tooltip.fill': 'Wiadro wypełnienia\nKliknij: Wypełnij przyległy obszar\nKliknij ponownie: Wyłącz wiadro wypełnienia',
         'tooltip.text': 'Narzędzie tekstowe\nKliknij na mapę: Utwórz nowy tekst\nKliknij na tekst: Edytuj/przesuń tekst\nPrawy klik na tekst na mapie: Usuń tekst',
         'tooltip.projection': 'Projekcja',
@@ -3397,7 +3508,8 @@ const TRANSLATIONS = {
         'tooltip.color': 'Kolor',
         'tooltip.palette': 'Paleta kolorów\nKliknij: Użyj jako aktualny kolor\nPrawy przycisk: Zmień kolor palety',
         'tooltip.toolGroup': '{name}\nKliknij: Rysuj\nPrawy przycisk: Wybierz wariant\nPrawy klik na mapie: Usuń',
-        'tooltip.toolGroupVariant': '{label}\nKliknij: Rysuj\nPrawy przycisk: Wybierz wariant\nPrawy klik na mapie: Usuń',
+        'tooltip.toolGroupVariant': '{group}: {label}\nKliknij: Rysuj\nPrawy przycisk: Wybierz wariant\nPrawy klik na mapie: Usuń',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\nKliknij: Rysuj\nPrawy klik na mapie: Usuń',
         'tooltip.pattern': 'Narzędzie wzoru\nKliknij: Rysuj pobranym wzorem\nPrawy klik na mapie: Usuń\nPodwójne kliknięcie gumką: Usuń przyległy wzór',
         'tooltip.patternPicker': 'Pobierz wzór\nKliknij: Użyj komórki jako wzoru',
         'tooltip.river': 'Narzędzie rzeki\nKliknij: Ustaw/przesuń punkty trasy\nPodwójne kliknięcie punktu końcowego: Zamknij rzekę (tylko bez rozgałęzień)\nPrawy klik na mapie: Usuń odcinek\nPodwójne kliknięcie gumką: Usuń całą rzekę',
@@ -3412,6 +3524,7 @@ const TRANSLATIONS = {
         'migrate.title': 'Stary format mapy',
         'migrate.intro': 'Zmigrowano poniższe, sprawdź:',
         'migrate.roads': 'Drogi',
+        'migrate.symbols': 'Symbole',
         'tooltip.border': 'Narzędzie granicy\nKliknij: Rysuj komórki graniczne\nPrawy klik na mapie: Usuń\nPodwójne kliknięcie gumką: Usuń przyległą granicę',
         'tooltip.borderPicker': 'Pobierz kolor granicy\nKliknij: Wybierz istniejącą granicę do edycji',
         'tooltip.borderFinish': 'Zakończ\nKliknij: Zakończ bieżącą granicę',
@@ -3423,6 +3536,9 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Gęstość',
         'input.dashDensity': 'Gęstość: przerwy na sześciokąt (1–20)',
         'option.endpoint': 'Koniec',
+        'option.pathOrder': 'Warstwa',
+        'tooltip.pathUp': 'W górę',
+        'tooltip.pathDown': 'W dół',
         'endpoint.edge': 'Krawędź',
         'endpoint.center': 'Środek',
         'notice.fileCreateError': 'Błąd podczas tworzenia pliku: {error}',
@@ -3533,7 +3649,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': 'Znaleziono grafik: {n}.',
         'settings.userAssetsNotFound': 'Nie znaleziono folderu lub nie zawiera obsługiwanej grafiki.',
         'settings.userAssetsTruncated': 'Ładowanych jest tylko pierwszych {max}.',
-        'settings.userTexturePath': 'Folder tekstur komórek',
+        'settings.userTexturePath': 'Folder tekstur terenu',
         'settings.userTexturePathDesc': 'Folder w sejfie. Pozostaw puste, aby używać tylko kolorów.',
         'settings.userSymbolPathFor': 'Folder symboli: {name}',
         'settings.userSymbolPathDesc': 'Folder w sejfie. Pozostaw puste, aby używać tylko wbudowanych symboli.',
@@ -3546,6 +3662,8 @@ const TRANSLATIONS = {
         'assetWarning.list': 'Lista',
         'assetWarning.listTip': 'Wyświetl wszystkie brakujące grafiki',
         'assetWarning.missingFile': 'Brak: {name}',
+        'assetWarning.missingMore': 'Więcej w „Lista".',
+        'compat.notice': 'Nowy format mapy – edytuj tylko we wtyczce w wersji 2 lub nowszej.',
         'missingList.title': 'Brakujące grafiki',
         'missingList.heading': 'Brakujące: {name}',
         'missingList.none': 'Brak brakujących grafik.',
@@ -3554,7 +3672,7 @@ const TRANSLATIONS = {
         'assetWarning.discardTip': 'Trwale usuń wszystkie brakujące grafiki (z mapy i paska historii)',
         'discardAssets.title': 'Odrzucić brakujące grafiki?',
         'discardAssets.message': 'Wszystkie brakujące grafiki zostaną usunięte z mapy i z historii. Po zamknięciu aplikacji nie można tego cofnąć — tylko cofnięcie (undo) w trakcie sesji może przywrócić ten krok.',
-        'assetName.tex': 'Tekstury sześciokątów',
+        'assetName.tex': 'Tekstury terenu',
         'assetName.extras': 'Dodatkowe symbole',
         'assetName.veg': 'Symbole roślinności',
         'assetName.mountain': 'Symbole gór',
@@ -3612,6 +3730,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': 'Wybierz i edytuj istniejącą rzekę/drogę. Jeśli oba się pokrywają, przyciski rzeka i droga podświetlą się — kliknij odpowiednią ikonę, aby ustawić tryb edycji.',
         'guide.paths.width': 'Dostosuj szerokość rzek/dróg za pomocą pól wartości.',
         'guide.paths.dashes': 'Przerwa między kreskami w % długości sześciokąta (0 % ciągła, 100 % kropki). Tylko drogi; rzeki nigdy nie są kreskowane.',
+        'guide.paths.order': 'Przesuń wybraną drogę/rzekę w górę/dół przez warstwy — np. za roślinność lub góry. Nigdy nad dodatki, tekst lub siatkę sześciokątów, ani za bazę koloru/tekstury. Równoległe drogi i rzeki są zawsze rysowane obok siebie.',
         'guide.borders': 'Granice',
         'guide.borders.draw': 'Rysuj region graniczny klikając lub przeciągając po komórkach.',
         'guide.borders.pick': 'Wybierz istniejącą granicę do edycji.',
@@ -3662,6 +3781,7 @@ const TRANSLATIONS = {
         'tool.vegetation': 'Vegetazione',
         'tool.mountain': 'Montagna',
         'tool.building': 'Edificio',
+        'tool.terrain': 'Terreno',
         'variant.question': 'Punto interrogativo',
         'variant.exclamation': 'Punto esclamativo',
         'variant.cross': 'Croce',
@@ -3695,7 +3815,6 @@ const TRANSLATIONS = {
         'tooltip.editMode': 'Modalità modifica\nClic: Mostra/nascondi strumenti',
         'tooltip.hexOrientation': 'Orientamento esagoni\nClic: Ruota esagoni di 90°',
         'tooltip.colorPicker': 'Colore attuale\nClic: Apri selettore colore',
-        'tooltip.hexColor': 'Celle\nClic: Colora celle\nClic destro sulla mappa: Elimina',
         'tooltip.fill': 'Secchio di riempimento\nClic: Riempi area contigua\nClic di nuovo: Disattiva secchio di riempimento',
         'tooltip.text': 'Strumento testo\nClic sulla mappa: Crea nuovo testo\nClic sul testo: Modifica/sposta testo\nClic destro su testo nella mappa: Elimina testo',
         'tooltip.projection': 'Proiezione',
@@ -3729,7 +3848,8 @@ const TRANSLATIONS = {
         'tooltip.color': 'Colore',
         'tooltip.palette': 'Tavolozza colori\nClic: Usa come colore attuale\nClic destro: Cambia colore tavolozza',
         'tooltip.toolGroup': '{name}\nClic: Disegna\nClic destro: Scegli variante\nClic destro sulla mappa: Elimina',
-        'tooltip.toolGroupVariant': '{label}\nClic: Disegna\nClic destro: Scegli variante\nClic destro sulla mappa: Elimina',
+        'tooltip.toolGroupVariant': '{group}: {label}\nClic: Disegna\nClic destro: Scegli variante\nClic destro sulla mappa: Elimina',
+        'tooltip.toolGroupNoVariant': '{group}: {label}\nClic: Disegna\nClic destro sulla mappa: Elimina',
         'tooltip.pattern': 'Strumento motivo\nClic: Disegna con motivo acquisito\nClic destro sulla mappa: Elimina\nDoppio clic gomma: Cancella motivo contiguo',
         'tooltip.patternPicker': 'Acquisisci motivo\nClic: Usa cella come motivo',
         'tooltip.river': 'Strumento fiume\nClic: Posiziona/sposta punti di percorso\nDoppio clic punto finale: Chiudi fiume (solo senza diramazioni)\nClic destro sulla mappa: Cancella segmento\nDoppio clic gomma: Cancella intero fiume',
@@ -3744,6 +3864,7 @@ const TRANSLATIONS = {
         'migrate.title': 'Vecchio formato mappa',
         'migrate.intro': 'Quanto segue è stato migrato, controlla:',
         'migrate.roads': 'Strade',
+        'migrate.symbols': 'Simboli',
         'tooltip.border': 'Strumento confine\nClic: Disegna celle di confine\nClic destro sulla mappa: Elimina\nDoppio clic gomma: Cancella confine contiguo',
         'tooltip.borderPicker': 'Acquisisci colore confine\nClic: Seleziona confine esistente per modificare',
         'tooltip.borderFinish': 'Completa\nClic: Completa confine corrente',
@@ -3755,6 +3876,9 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Densità',
         'input.dashDensity': 'Densità: interruzioni per esagono (1–20)',
         'option.endpoint': 'Estremità',
+        'option.pathOrder': 'Livello',
+        'tooltip.pathUp': 'Su',
+        'tooltip.pathDown': 'Giù',
         'endpoint.edge': 'Bordo',
         'endpoint.center': 'Centro',
         'notice.fileCreateError': 'Errore nella creazione del file: {error}',
@@ -3865,7 +3989,7 @@ const TRANSLATIONS = {
         'settings.userAssetsFound': '{n} grafiche trovate.',
         'settings.userAssetsNotFound': 'Cartella non trovata o senza grafiche supportate.',
         'settings.userAssetsTruncated': 'Vengono caricate solo le prime {max}.',
-        'settings.userTexturePath': 'Cartella texture esagoni',
+        'settings.userTexturePath': 'Cartella texture terreno',
         'settings.userTexturePathDesc': 'Cartella nel vault. Lasciare vuoto per usare solo i colori.',
         'settings.userSymbolPathFor': 'Cartella simboli: {name}',
         'settings.userSymbolPathDesc': 'Cartella nel vault. Lasciare vuoto per usare solo i simboli inclusi.',
@@ -3878,6 +4002,8 @@ const TRANSLATIONS = {
         'assetWarning.list': 'Elenca',
         'assetWarning.listTip': 'Elenca tutte le grafiche mancanti',
         'assetWarning.missingFile': 'Mancante: {name}',
+        'assetWarning.missingMore': 'Altro con Elenca.',
+        'compat.notice': 'Nuovo formato mappa – modificalo solo con il plugin versione 2 o successiva.',
         'missingList.title': 'Grafiche mancanti',
         'missingList.heading': '{name} mancanti',
         'missingList.none': 'Nessuna grafica mancante.',
@@ -3886,7 +4012,7 @@ const TRANSLATIONS = {
         'assetWarning.discardTip': 'Rimuovi definitivamente tutte le grafiche mancanti (dalla mappa e dalla barra della cronologia)',
         'discardAssets.title': 'Scartare le grafiche mancanti?',
         'discardAssets.message': 'Tutte le grafiche mancanti verranno rimosse dalla mappa e dalla cronologia. Questa operazione non è reversibile dopo aver chiuso l’app: solo un annullamento (undo) durante la sessione può ripristinare questo passaggio.',
-        'assetName.tex': 'Texture degli esagoni',
+        'assetName.tex': 'Texture terreno',
         'assetName.extras': 'Simboli extra',
         'assetName.veg': 'Simboli di vegetazione',
         'assetName.mountain': 'Simboli di montagna',
@@ -3944,6 +4070,7 @@ const TRANSLATIONS = {
         'guide.paths.pick': 'Seleziona e modifica fiume/strada esistente. Se entrambi si sovrappongono, i pulsanti fiume e strada si illuminano — clic sull\'icona corrispondente imposta la modalità di modifica.',
         'guide.paths.width': 'Regola la larghezza di fiumi/strade tramite i campi di input.',
         'guide.paths.dashes': 'Spazio tra i tratti in % della lunghezza dell\'esagono (0 % continuo, 100 % punti). Solo strade; i fiumi non sono mai tratteggiati.',
+        'guide.paths.order': 'Sposta la strada/il fiume selezionato su/giù tra i livelli — ad es. dietro vegetazione o montagne. Mai sopra extra, testo o griglia, né dietro la base di colore/texture. Strade e fiumi paralleli sono sempre disegnati affiancati.',
         'guide.borders': 'Confini',
         'guide.borders.draw': 'Disegna regione di confine cliccando o trascinando sulle celle.',
         'guide.borders.pick': 'Seleziona confine esistente per modificare.',
@@ -5309,7 +5436,7 @@ class HexCartographerPlugin extends Plugin {
         if (!data || !data.hexes) return keys;
         for (const hex of Object.values(data.hexes)) {
             if (isUserAssetKey(hex.texture)) keys.push(hex.texture);
-            if (isUserAssetKey(hex.symbol)) keys.push(hex.symbol);
+            for (const sd of HEX_SYMBOL_SLOTS) if (isUserAssetKey(hex[sd.slot])) keys.push(hex[sd.slot]);
         }
         return keys;
     }
@@ -6163,6 +6290,29 @@ class HexCartographerView extends ItemView {
             for (const river of newData.rivers) { if (river) delete river.dashes; }
             if (migratedRoads) (this._pendingMigrations = this._pendingMigrations || []).push('roads');
 
+            // Migrate legacy single-symbol hexes (format v1) to per-slot symbols (v2): each hex.symbol
+            // moves into the slot for its type; the terrain base (color/texture) is untouched.
+            let migratedSymbols = false;
+            if (newData.hexes && typeof newData.hexes === 'object') {
+                for (const h of Object.values(newData.hexes)) {
+                    if (!h || !('symbol' in h)) continue;
+                    const sym = h.symbol;
+                    if (sym) {
+                        const slot = slotNameForSymbolKey(sym, this.plugin.getCategoryForKey(sym));
+                        const sd = HEX_SYMBOL_SLOTS.find(s => s.slot === slot);
+                        if (sd && !h[sd.slot]) { h[sd.slot] = sym; if (h.symbolColor !== undefined) h[sd.color] = h.symbolColor; }
+                        migratedSymbols = true;
+                    }
+                    delete h.symbol;
+                    delete h.symbolColor;
+                }
+            }
+            if (migratedSymbols) (this._pendingMigrations = this._pendingMigrations || []).push('symbols');
+
+            // Drop the backward-compat notice text: from v2 on the plugin manages it itself (written
+            // on save, ignored here). Only older versions (< v2) ever render it.
+            if (Array.isArray(newData.texts)) newData.texts = newData.texts.filter(txt => !(txt && txt.sys === 'compat'));
+
             // Sanitize: remove viewport properties and corrupted coordinates
             const VIEWPORT_KEYS = ['offX', 'offY', 'zoom', 'viewportSaved'];
 
@@ -6795,7 +6945,7 @@ class HexCartographerView extends ItemView {
         // its slots, so the user can browse across them quickly).
         this.toolHistoryRow.addEventListener('pointerleave', () => this.hideHistoryPreview());
 
-        const hexColorBtn = this.createToolButton(clusterTools, { icon: 'hexagon', title: t('tooltip.hexColor'), dataset: { toolGroup: 'hexcolor' } });
+        const hexColorBtn = this.createToolButton(clusterTools, { icon: 'hexagon', title: this.terrainTooltip(), dataset: { toolGroup: 'hexcolor' } });
         hexColorBtn.onclick = () => {
             const needsRender = this.currentToolGroup === 'pattern' || this.borderSettings.pickedHex;
             this.exitPathEditMode();
@@ -6822,10 +6972,15 @@ class HexCartographerView extends ItemView {
         };
         this.addLongPress(hexColorBtn, () => this.showHexTextureMenu(hexColorBtn));
 
-        this.createToolGroupButton(clusterTools, 'grass');
-        this.createToolGroupButton(clusterTools, 'tree');
-        this.createToolGroupButton(clusterTools, 'mountain');
-        this.createToolGroupButton(clusterTools, 'building');
+        // Grouped by draw order so the user sees what belongs together and in which order it is
+        // drawn: Terrain (Wabenfarbe/Textur above + Berge + Vegetation) | Geb\u00E4ude | Extras. Each
+        // group is set off by a vertical separator inside the tool row.
+        this.createToolGroupButton(clusterTools, 'mountain'); // Berge
+        this.createToolGroupButton(clusterTools, 'tree');     // Vegetation
+        clusterTools.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
+        this.createToolGroupButton(clusterTools, 'building'); // Geb\u00E4ude
+        clusterTools.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
+        this.createToolGroupButton(clusterTools, 'grass');    // Extras
 
         editContent.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
 
@@ -7825,6 +7980,26 @@ class HexCartographerView extends ItemView {
             this.render();
             this.requestSave();
         };
+
+        // Move the selected path one layer up / down through the terrain-symbol stack. Perceived as
+        // "layer": arrow-up-to-line = up (toward the front), arrow-down-to-line = down (toward the
+        // back). Each button disables at its limit (top / bottom) and while no path is edited.
+        this.pathOrderUnit = this.createOptionUnit('option.pathOrder');
+        const orderBtnStyle = `height: ${TOOLBAR_INPUT_HEIGHT}; padding: 2px 8px; box-sizing: border-box; cursor: pointer;`;
+        const upBtn = this.pathOrderUnit.createEl('button', { cls: 'hex-option-btn', attr: { title: t('tooltip.pathUp'), style: orderBtnStyle } });
+        setIcon(upBtn, 'arrow-up-to-line');
+        upBtn.onclick = () => this.movePathLayer(1);
+        const downBtn = this.pathOrderUnit.createEl('button', { cls: 'hex-option-btn', attr: { title: t('tooltip.pathDown'), style: orderBtnStyle } });
+        setIcon(downBtn, 'arrow-down-to-line');
+        downBtn.onclick = () => this.movePathLayer(-1);
+        this._syncPathOrderBtns = () => {
+            const a = this.activePath();
+            const cur = a ? pathLayerOf(a) : null;
+            const set = (b, on) => { b.disabled = !on; b.style.opacity = on ? '1' : '0.4'; };
+            set(upBtn, !!a && cur < PATH_LAYER_MAX);
+            set(downBtn, !!a && cur > PATH_LAYER_MIN);
+        };
+        this._syncPathOrderBtns();
     }
 
     handleWaypointClick(path, settings, clickedIdx) {
@@ -8222,6 +8397,7 @@ class HexCartographerView extends ItemView {
         if (this.pathDashesUnit) this.pathDashesUnit.style.display = road ? '' : 'none'; // roads only; rivers never dashed
         if (this.pathDensityUnit) this.pathDensityUnit.style.display = road ? '' : 'none';
         if (this.pathEndpointUnit) this.pathEndpointUnit.style.display = (river || road) ? '' : 'none'; // roads AND rivers
+        if (this.pathOrderUnit) this.pathOrderUnit.style.display = (river || road) ? '' : 'none'; // front/back, roads AND rivers
         if (this.borderWidthUnit) this.borderWidthUnit.style.display = border ? '' : 'none';
         if (this.borderDashesUnit) this.borderDashesUnit.style.display = border ? '' : 'none';
         for (const u of [this.projLoadUnit, this.projDeleteUnit, this.projSepBeforeTransparency, this.projOpacityUnit, this.projScaleUnit, this.projRotationUnit, this.projSepBeforeReset, this.projIconGroup]) {
@@ -8257,6 +8433,22 @@ class HexCartographerView extends ItemView {
         return this.containerEl.querySelector('.hex-toolbar');
     }
 
+    // Terrain has real variants to pick (a right-click choice beyond plain "colour") only when a
+    // texture folder with graphics is configured. Otherwise its tooltip omits the "choose variant"
+    // line — only "Farbe" is available.
+    hasTerrainVariants() {
+        const reg = this.plugin.getRegistry(TEXTURE_CATEGORY);
+        return !!(reg && reg.assets && reg.assets.size > 0);
+    }
+
+    // Tooltip template + fields for the Terrain (hex colour) tool: group name "Terrain", the chosen
+    // texture (or "Farbe") as the variant, and the variant line only when textures exist.
+    terrainTooltip() {
+        const name = this.hexTexture ? this.assetLabelForKey(this.hexTexture) : t('tooltip.color');
+        const key = this.hasTerrainVariants() ? 'tooltip.toolGroupVariant' : 'tooltip.toolGroupNoVariant';
+        return t(key, { group: t('tool.terrain'), label: name });
+    }
+
     updateToolbarState(toolbar) {
         // Always refresh the FULL toolbar. Several callers pass a sub-container (the tool cluster
         // row, editContent, a path/border sub-toolbar); without this, buttons OUTSIDE that
@@ -8284,6 +8476,7 @@ class HexCartographerView extends ItemView {
         if (this.pathDashesInput) this.pathDashesInput.value = (this.pathGapPercent || 0).toString();
         if (this.pathDensityInput) this.pathDensityInput.value = (this.pathDashDensity || 1).toString();
         if (this._syncEndpointBtn) this._syncEndpointBtn();
+        if (this._syncPathOrderBtns) this._syncPathOrderBtns();
 
         const activePathSettings = this.currentToolGroup === 'river' ? this.riverSettings : this.roadSettings;
         if (this.pathPickerBtn) {
@@ -8334,9 +8527,10 @@ class HexCartographerView extends ItemView {
             const isActive = this.currentToolGroup === groupId;
             btn.classList.toggle('active', isActive);
 
+            // Tooltip: group name on top, the selected variant's name below (then the action hints).
             const label = this.variantLabelFor(config, config.currentVariant);
             if (label) {
-                btn.setAttribute('title', t('tooltip.toolGroupVariant', { label }));
+                btn.setAttribute('title', t('tooltip.toolGroupVariant', { group: config.name, label }));
             }
 
             const baseBg = config.backgroundEnabled ? config.backgroundColor : BUTTON_BG_DEFAULT;
@@ -8360,6 +8554,9 @@ class HexCartographerView extends ItemView {
                     if (!isActive && !this.hexTexture) {
                         btn.style.background = symbolPreviewBg(this.hexColorColor, BUTTON_BG_DEFAULT);
                     }
+                    // Same tooltip template as the symbol tools ("Terrain: <variant>"); the variant
+                    // line is dropped when no textures exist (only "Farbe" available).
+                    btn.setAttribute('title', this.terrainTooltip());
                 }
             }
         });
@@ -8642,6 +8839,18 @@ class HexCartographerView extends ItemView {
         const asset = this.plugin.getUserAsset(key);
         if (asset && asset.label) return asset.label;
         return key.slice(key.indexOf(':', USER_ASSET_PREFIX.length) + 1);
+    }
+
+    // Display name for a MISSING graphic: the category's root folder name plus the stored path
+    // relative to it (incl. any subfolder), e.g. "Terrain/Grass/cw_gras_02" or
+    // "Vegetation/cw_forest_conifer_03". Always derived from the KEY (+ the configured root folder),
+    // never from asset.label — otherwise a present-but-undecodable (failed) graphic would show only
+    // its basename while a fully-missing one shows the subfolder, so the same situation could appear
+    // with or without a path.
+    missingAssetLabel(key) {
+        const rel = key.slice(key.indexOf(':', USER_ASSET_PREFIX.length) + 1);
+        const reg = this.plugin.getRegistryForKey && this.plugin.getRegistryForKey(key);
+        return (reg && reg.rootName) ? `${reg.rootName}/${rel}` : rel;
     }
 
 
@@ -10315,14 +10524,22 @@ class HexCartographerView extends ItemView {
         return this.isUnresolvedUserKey(symbol) ? null : symbol;
     }
 
-    // Pattern tool reproduces the picked hex 1:1, INCLUDING missing user graphics
-    // (painted as if present). Unlike applyTexture/paintableSymbol, unresolved
-    // symbol/texture keys are kept, so painting spreads them and later filling treats
-    // the new hexes like the source. Only the pattern tool does this.
+    // All drawable graphics of a hex (terrain base + every symbol slot), for the pattern/stamp tool.
+    hexGraphicsSnapshot(h) {
+        const snap = { color: h.color, texture: h.texture };
+        for (const sd of HEX_SYMBOL_SLOTS) { snap[sd.slot] = h[sd.slot]; snap[sd.color] = h[sd.color]; }
+        return snap;
+    }
+
+    // Pattern tool reproduces the picked hex 1:1, INCLUDING missing user graphics (painted as if
+    // present) across every slot. Unresolved keys are kept so painting spreads them and later
+    // filling treats the new hexes like the source. Only the pattern tool does this.
     applyPatternGraphics(h, p) {
-        h.symbolColor = p.symbolColor;
-        if (p.symbol) h.symbol = p.symbol; else delete h.symbol;
         if (p.texture) h.texture = p.texture; else delete h.texture;
+        for (const sd of HEX_SYMBOL_SLOTS) {
+            if (p[sd.slot]) { h[sd.slot] = p[sd.slot]; h[sd.color] = p[sd.color]; }
+            else { delete h[sd.slot]; delete h[sd.color]; }
+        }
     }
 
     paintHex(hex) {
@@ -10335,7 +10552,7 @@ class HexCartographerView extends ItemView {
         }
 
         if (this.currentToolGroup === 'pattern' && this.patternData) {
-            h.color = this.patternData.backgroundColor || this.patternData.color;
+            if (this.patternData.color) h.color = this.patternData.color; else delete h.color;
             this.applyPatternGraphics(h, this.patternData);
             return;
         }
@@ -10348,15 +10565,15 @@ class HexCartographerView extends ItemView {
             return;
         }
 
-        if (this.currentToolGroup && this.toolConfigs[this.currentToolGroup]) {
+        if (this.currentToolGroup && SLOT_BY_GROUP[this.currentToolGroup]) {
             const config = this.toolConfigs[this.currentToolGroup];
-            h.symbol = this.paintableSymbol(config.currentVariant);
-            h.symbolColor = this.masterColor;
+            const sd = SLOT_BY_GROUP[this.currentToolGroup];
+            const sym = this.paintableSymbol(config.currentVariant);
+            // Write only this tool's slot; other slots on the hex stay (symbols now stack). No
+            // per-symbol background — the terrain base (hexcolor tool) is the only fill.
+            if (sym) { h[sd.slot] = sym; h[sd.color] = this.masterColor; }
+            else { delete h[sd.slot]; delete h[sd.color]; }
             config.symbolColor = this.masterColor;
-
-            if (config.backgroundEnabled) {
-                h.color = config.backgroundColor;
-            }
         }
         else if (this.currentToolGroup === null) {
             h.color = this.colorPalette[this.activeColorSlot];
@@ -10377,9 +10594,10 @@ class HexCartographerView extends ItemView {
                 const region = this.data.borders.find(r => r.hexes.some(b => b.q === hex.q && b.r === hex.r));
                 this.lastErasedHex = region ? { q: hex.q, r: hex.r, type: 'border', regionId: region.id, timestamp: Date.now() } : null;
             } else if (tg === 'pattern' && preData) {
-                this.lastErasedHex = { q: hex.q, r: hex.r, type: 'pattern', pattern: { color: preData.color, symbol: preData.symbol, symbolColor: preData.symbolColor }, timestamp: Date.now() };
-            } else if (tg && this.toolConfigs[tg] && preData && preData.symbol) {
-                this.lastErasedHex = { q: hex.q, r: hex.r, type: 'symbol', symbol: preData.symbol, timestamp: Date.now() };
+                this.lastErasedHex = { q: hex.q, r: hex.r, type: 'pattern', pattern: this.hexGraphicsSnapshot(preData), timestamp: Date.now() };
+            } else if (tg && SLOT_BY_GROUP[tg] && preData && preData[SLOT_BY_GROUP[tg].slot]) {
+                const sd = SLOT_BY_GROUP[tg];
+                this.lastErasedHex = { q: hex.q, r: hex.r, type: 'symbol', slot: sd.slot, colorKey: sd.color, symbol: preData[sd.slot], timestamp: Date.now() };
             } else if ((tg === 'hexcolor' || tg === null) && preData && (preData.color || preData.texture)) {
                 this.lastErasedHex = { q: hex.q, r: hex.r, type: 'color', color: preData.color, texture: preData.texture, toolGroup: tg, timestamp: Date.now() };
             } else if (tg === 'river' || tg === 'road') {
@@ -10426,7 +10644,7 @@ class HexCartographerView extends ItemView {
             if (h) {
                 delete h.color;
                 delete h.texture;
-                if (!h.symbol) delete this.data.hexes[key];
+                if (!this.hexHasContent(h)) delete this.data.hexes[key];
             }
         } else if (this.currentToolGroup === 'pattern') {
             const key = `${hex.q}_${hex.r}`;
@@ -10436,26 +10654,19 @@ class HexCartographerView extends ItemView {
             const h = this.data.hexes[key];
 
             if (h) {
-                if (this.currentToolGroup && this.toolConfigs[this.currentToolGroup]) {
-                    const config = this.toolConfigs[this.currentToolGroup];
-                    if (h.symbol) {
-                        delete h.symbol;
-                        delete h.symbolColor;
-                        if (config.backgroundEnabled) {
-                            delete h.color;
-                        }
-                        if (!h.symbol && !h.color) {
-                            delete this.data.hexes[key];
-                        }
+                if (this.currentToolGroup && SLOT_BY_GROUP[this.currentToolGroup]) {
+                    const sd = SLOT_BY_GROUP[this.currentToolGroup];
+                    if (h[sd.slot]) {
+                        delete h[sd.slot];
+                        delete h[sd.color];
+                        if (!this.hexHasContent(h)) delete this.data.hexes[key];
                     }
                 } else if (this.currentToolGroup === null) {
                     if (h.color || h.backgroundColor || h.texture) {
                         delete h.color;
                         delete h.backgroundColor;
                         delete h.texture;
-                        if (!h.symbol) {
-                            delete this.data.hexes[key];
-                        }
+                        if (!this.hexHasContent(h)) delete this.data.hexes[key];
                     }
                 }
             }
@@ -10469,7 +10680,7 @@ class HexCartographerView extends ItemView {
         if (last.q !== hex.q || last.r !== hex.r) return;
 
         if (last.type === 'symbol') {
-            this.floodEraseSymbol(hex, last.symbol);
+            this.floodEraseSymbol(hex, last.symbol, last.slot, last.colorKey);
         } else if (last.type === 'color') {
             this.floodEraseColor(hex, last.color, last.texture);
         } else if (last.type === 'pattern') {
@@ -10483,7 +10694,7 @@ class HexCartographerView extends ItemView {
         this.lastErasedHex = null;
     }
 
-    floodEraseSymbol(startHex, targetSymbol) {
+    floodEraseSymbol(startHex, targetSymbol, slot, colorKey) {
         const visited = new Set();
         const queue = this.getHexNeighbors(startHex);
 
@@ -10494,11 +10705,11 @@ class HexCartographerView extends ItemView {
             visited.add(key);
 
             const hexData = this.data.hexes[key];
-            if (!hexData || hexData.symbol !== targetSymbol) continue;
+            if (!hexData || hexData[slot] !== targetSymbol) continue;
 
-            delete hexData.symbol;
-            delete hexData.symbolColor;
-            if (!hexData.color && !hexData.texture) {
+            delete hexData[slot];
+            delete hexData[colorKey];
+            if (!this.hexHasContent(hexData)) {
                 delete this.data.hexes[key];
             }
 
@@ -10524,7 +10735,7 @@ class HexCartographerView extends ItemView {
 
             delete hexData.color;
             delete hexData.texture;
-            if (!hexData.symbol) {
+            if (!this.hexHasContent(hexData)) {
                 delete this.data.hexes[key];
             }
 
@@ -10594,12 +10805,13 @@ class HexCartographerView extends ItemView {
     }
 
     hexMatchesPattern(hex, pattern) {
-        const hexColor = hex.backgroundColor || hex.color;
-        const patternColor = pattern.backgroundColor || pattern.color;
-        return hexColor === patternColor &&
-               hex.symbol === pattern.symbol &&
-               hex.symbolColor === pattern.symbolColor &&
-               (hex.texture || null) === (pattern.texture || null);
+        if ((hex.color || null) !== (pattern.color || null)) return false;
+        if ((hex.texture || null) !== (pattern.texture || null)) return false;
+        for (const sd of HEX_SYMBOL_SLOTS) {
+            if ((hex[sd.slot] || null) !== (pattern[sd.slot] || null)) return false;
+            if ((hex[sd.color] || null) !== (pattern[sd.color] || null)) return false;
+        }
+        return true;
     }
 
     // Returns true if the fill changed the map, false if nothing happened (e.g. an open,
@@ -10614,9 +10826,7 @@ class HexCartographerView extends ItemView {
         }
 
         if (this.currentToolGroup === 'pattern' && this.patternData) {
-            const targetColor = startData.color;
-            const targetSymbol = startData.symbol;
-            this.floodFillPattern(startHex, targetColor, targetSymbol, startData.texture);
+            this.floodFillPattern(startHex, this.hexGraphicsSnapshot(startData));
         }
         else if (this.currentToolGroup === 'hexcolor') {
             this.floodFillColor(startHex, startData.color, this.masterColor, startData.texture, this.hexTexture);
@@ -10626,12 +10836,9 @@ class HexCartographerView extends ItemView {
             const newColor = this.colorPalette[this.activeColorSlot];
             this.floodFillColor(startHex, startData.color, newColor, startData.texture);
         }
-        else if (this.toolConfigs[this.currentToolGroup]) {
-            const config = this.toolConfigs[this.currentToolGroup];
-            const targetSymbol = startData ? startData.symbol : null;
-            const targetColor = startData ? startData.color : null;
-            const targetTexture = startData ? startData.texture : null;
-            this.floodFillSymbol(startHex, targetSymbol, targetColor, config.backgroundEnabled, targetTexture);
+        else if (SLOT_BY_GROUP[this.currentToolGroup]) {
+            const sd = SLOT_BY_GROUP[this.currentToolGroup];
+            this.floodFillSymbol(startHex, startData ? startData[sd.slot] : null, startData ? startData.color : null, startData ? startData.texture : null);
         }
         return true; // recolor/symbol fill on an existing hex
     }
@@ -10678,11 +10885,14 @@ class HexCartographerView extends ItemView {
     // Without a target symbol the area is defined by color AND texture — same rule
     // as floodFillColor. Textured hexes usually share the color underneath, so
     // ignoring the texture would fill across texture borders.
-    floodFillSymbol(startHex, targetSymbol, targetColor, applyBackground, targetTexture) {
+    // Fills the active symbol tool's slot. With a target symbol the region is contiguous hexes that
+    // hold the SAME symbol in that slot; without one it is the empty-of-that-slot area defined by
+    // color AND texture (so it does not spill across texture borders). Other slots stay untouched.
+    floodFillSymbol(startHex, targetSymbol, targetColor, targetTexture) {
         const config = this.toolConfigs[this.currentToolGroup];
+        const sd = SLOT_BY_GROUP[this.currentToolGroup];
         const newSymbol = this.paintableSymbol(config.currentVariant);
         const newSymbolColor = config.symbolColor;
-        const newBgColor = config.backgroundColor;
 
         const visited = new Set();
         const queue = [startHex];
@@ -10695,7 +10905,7 @@ class HexCartographerView extends ItemView {
             visited.add(key);
 
             const hexData = this.data.hexes[key];
-            const currentSymbol = hexData ? hexData.symbol : null;
+            const currentSymbol = hexData ? hexData[sd.slot] : null;
             const currentColor = hexData ? hexData.color : null;
             const currentTexture = hexData ? (hexData.texture || null) : null;
 
@@ -10706,30 +10916,18 @@ class HexCartographerView extends ItemView {
                 if (currentTexture !== (targetTexture || null)) continue;
             }
 
-            if (!hexData) {
-                this.data.hexes[key] = {
-                    q: hex.q,
-                    r: hex.r,
-                    symbol: newSymbol,
-                    symbolColor: newSymbolColor
-                };
-                if (applyBackground) {
-                    this.data.hexes[key].color = newBgColor;
-                }
-            } else {
-                hexData.symbol = newSymbol;
-                hexData.symbolColor = newSymbolColor;
-                if (applyBackground) {
-                    hexData.color = newBgColor;
-                }
-            }
+            const target = hexData || (this.data.hexes[key] = { q: hex.q, r: hex.r });
+            if (newSymbol) { target[sd.slot] = newSymbol; target[sd.color] = newSymbolColor; }
+            else { delete target[sd.slot]; delete target[sd.color]; }
 
             const neighbors = this.getHexNeighbors(hex);
             neighbors.forEach(n => queue.push(n));
         }
     }
 
-    floodFillPattern(startHex, targetColor, targetSymbol, targetTexture) {
+    // targetSnap = the graphics snapshot of the start hex; the region is contiguous hexes with the
+    // exact same graphics, each replaced by the pattern.
+    floodFillPattern(startHex, targetSnap) {
         const visited = new Set();
         const queue = [startHex];
 
@@ -10741,15 +10939,10 @@ class HexCartographerView extends ItemView {
             visited.add(key);
 
             const hexData = this.data.hexes[key];
-            const currentColor = hexData ? hexData.color : null;
-            const currentSymbol = hexData ? hexData.symbol : null;
-            const currentTexture = hexData ? (hexData.texture || null) : null;
-
-            if (currentColor !== targetColor || currentSymbol !== targetSymbol) continue;
-            if (currentTexture !== (targetTexture || null)) continue;
+            if (!this.hexMatchesPattern(hexData || {}, targetSnap)) continue;
 
             const target = hexData || (this.data.hexes[key] = { q: hex.q, r: hex.r });
-            target.color = this.patternData.color;
+            if (this.patternData.color) target.color = this.patternData.color; else delete target.color;
             this.applyPatternGraphics(target, this.patternData);
 
             const neighbors = this.getHexNeighbors(hex);
@@ -10820,15 +11013,9 @@ class HexCartographerView extends ItemView {
             if (hexData) continue;
 
             if (this.currentToolGroup === 'pattern' && this.patternData) {
-                this.data.hexes[key] = {
-                    q: hex.q,
-                    r: hex.r,
-                    color: this.patternData.color,
-                    symbol: this.paintableSymbol(this.patternData.symbol),
-                    symbolColor: this.patternData.symbolColor,
-                    backgroundColor: this.patternData.backgroundColor
-                };
-                this.applyTexture(this.data.hexes[key], this.patternData.texture);
+                const nh = this.data.hexes[key] = { q: hex.q, r: hex.r };
+                if (this.patternData.color) nh.color = this.patternData.color;
+                this.applyPatternGraphics(nh, this.patternData);
             } else if (this.currentToolGroup === 'hexcolor') {
                 this.data.hexes[key] = {
                     q: hex.q,
@@ -10842,17 +11029,12 @@ class HexCartographerView extends ItemView {
                     r: hex.r,
                     color: this.colorPalette[this.activeColorSlot]
                 };
-            } else if (this.toolConfigs[this.currentToolGroup]) {
+            } else if (SLOT_BY_GROUP[this.currentToolGroup]) {
                 const config = this.toolConfigs[this.currentToolGroup];
-                this.data.hexes[key] = {
-                    q: hex.q,
-                    r: hex.r,
-                    symbol: config.currentVariant,
-                    symbolColor: config.symbolColor
-                };
-                if (config.backgroundEnabled) {
-                    this.data.hexes[key].color = config.backgroundColor;
-                }
+                const sd = SLOT_BY_GROUP[this.currentToolGroup];
+                const nh = this.data.hexes[key] = { q: hex.q, r: hex.r };
+                const sym = this.paintableSymbol(config.currentVariant);
+                if (sym) { nh[sd.slot] = sym; nh[sd.color] = config.symbolColor; }
             }
 
             filled++;
@@ -10897,6 +11079,9 @@ class HexCartographerView extends ItemView {
         this.renderTexts();
         this.renderHexNumbering();
         this.updateAssetWarningBar();
+        // Enable/disable the front/back arrows to match the current edit state — updateToolbarState
+        // only runs on tool switch, but a path becomes editable mid-draw (after two waypoints).
+        if (this._syncPathOrderBtns) this._syncPathOrderBtns();
     }
 
     // ===== Projection: an optional reference image overlaid on the map for tracing =====
@@ -11516,12 +11701,8 @@ class HexCartographerView extends ItemView {
 
         const missing = new Set();
         for (const h of Object.values(this.data.hexes)) {
-            if (h.symbol && this.isUnresolvedUserKey(h.symbol)) {
-                const cat = this.plugin.getCategoryForKey(h.symbol);
-                if (cat) missing.add(cat.id);
-            }
-            if (h.texture && this.isUnresolvedUserKey(h.texture)) {
-                const cat = this.plugin.getCategoryForKey(h.texture);
+            for (const key of this.missingAssetsOnHex(h)) {
+                const cat = this.plugin.getCategoryForKey(key);
                 if (cat) missing.add(cat.id);
             }
         }
@@ -11591,18 +11772,19 @@ class HexCartographerView extends ItemView {
         ).open();
     }
 
-    // Tooltip for a hovered hex whose graphic is missing ("Fehlt: <name>"), else null. Only while
-    // the error icons are shown, so the tip matches what is visible on the map. The stored key has
-    // no file extension, so the name is shown without one.
+    // Tooltip for a hovered hex whose graphics are missing: up to three "Fehlt: <name>" lines and,
+    // if more are missing, a "Mehr mit Auflisten." line. Null when nothing is missing. Only while
+    // the error icons are shown. Stored keys have no file extension, so names show without one.
     missingAssetTipAt(worldX, worldY) {
         if (!this.errorIconsVisible()) return null;
         const hex = this.pixelToHex(worldX, worldY);
         const h = this.data.hexes[`${hex.q}_${hex.r}`];
         if (!h) return null;
-        const key = (h.symbol && this.isUnresolvedUserKey(h.symbol)) ? h.symbol
-            : (h.texture && this.isUnresolvedUserKey(h.texture)) ? h.texture : null;
-        if (!key) return null;
-        return t('assetWarning.missingFile').replace('{name}', this.assetLabelForKey(key));
+        const keys = this.missingAssetsOnHex(h);
+        if (!keys.length) return null;
+        const lines = keys.slice(0, 3).map(k => t('assetWarning.missingFile').replace('{name}', this.missingAssetLabel(k)));
+        if (keys.length > 3) lines.push(t('assetWarning.missingMore'));
+        return lines.join('\n');
     }
 
     // Custom tooltip for the missing-graphic hover: a small pill near the cursor. Replaces the
@@ -11612,7 +11794,7 @@ class HexCartographerView extends ItemView {
     ensureMissingTipEl() {
         if (this.missingTipEl) return this.missingTipEl;
         const el = this.containerEl.ownerDocument.body.createDiv({ cls: 'hex-missing-tip' });
-        el.style.cssText = 'position: fixed; z-index: 9999; pointer-events: none; display: none; background: var(--text-error); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);';
+        el.style.cssText = 'position: fixed; z-index: 9999; pointer-events: none; display: none; background: var(--text-error); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; white-space: pre; line-height: 1.35; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);';
         this.missingTipEl = el;
         return el;
     }
@@ -11650,9 +11832,9 @@ class HexCartographerView extends ItemView {
             const cat = this.plugin.getCategoryForKey(key);
             if (!cat) return;
             const m = byCat[cat.id] || (byCat[cat.id] = new Map());
-            if (!m.has(key)) m.set(key, { name: this.assetLabelForKey(key), key, foundKey: this.findCurrentPathKey(key, cat.id) });
+            if (!m.has(key)) m.set(key, { name: this.missingAssetLabel(key), key, foundKey: this.findCurrentPathKey(key, cat.id) });
         };
-        for (const h of Object.values(this.data.hexes)) { add(h.symbol); add(h.texture); }
+        for (const h of Object.values(this.data.hexes)) { for (const key of this.missingAssetsOnHex(h)) add(key); }
         const out = [];
         for (const cat of USER_ASSET_CATEGORIES) {
             if (!byCat[cat.id]) continue;
@@ -11668,7 +11850,7 @@ class HexCartographerView extends ItemView {
     findCurrentPathKey(key, catId) {
         const registry = this.plugin.getRegistry(catId);
         if (!registry || !registry.assets) return null;
-        const base = this.assetLabelForKey(key).split('/').pop();
+        const base = this.missingAssetLabel(key).split('/').pop();
         for (const asset of registry.assets.values()) {
             if (asset.key !== key && asset.label === base) return asset.key;
         }
@@ -11683,8 +11865,8 @@ class HexCartographerView extends ItemView {
         this.pushHistory(); // snapshot map + tool history first, so one undo reverts the remap
         let changed = 0;
         for (const h of Object.values(this.data.hexes)) {
-            if (h.symbol && remaps.has(h.symbol)) { h.symbol = remaps.get(h.symbol); changed++; }
             if (h.texture && remaps.has(h.texture)) { h.texture = remaps.get(h.texture); changed++; }
+            for (const sd of HEX_SYMBOL_SLOTS) if (h[sd.slot] && remaps.has(h[sd.slot])) { h[sd.slot] = remaps.get(h[sd.slot]); changed++; }
         }
         for (const g of Object.keys(this.toolHistory)) {
             for (const e of this.toolHistory[g]) {
@@ -11720,11 +11902,11 @@ class HexCartographerView extends ItemView {
 
         for (const [key, h] of Object.entries(this.data.hexes)) {
             let hit = false;
-            if (h.symbol && this.isUnresolvedUserKey(h.symbol)) { delete h.symbol; delete h.symbolColor; hit = true; }
             if (h.texture && this.isUnresolvedUserKey(h.texture)) { delete h.texture; hit = true; }
+            for (const sd of HEX_SYMBOL_SLOTS) if (h[sd.slot] && this.isUnresolvedUserKey(h[sd.slot])) { delete h[sd.slot]; delete h[sd.color]; hit = true; }
             if (!hit) continue;
             changed = true;
-            if (!h.symbol && !h.color && !h.texture && !h.backgroundColor) delete this.data.hexes[key];
+            if (!this.hexHasContent(h)) delete this.data.hexes[key];
         }
 
         for (const g of Object.keys(this.toolHistory)) {
@@ -12341,10 +12523,8 @@ class HexCartographerView extends ItemView {
         if (this.isAssetPending(asset)) return; // loaded on demand, then redrawn
 
         if (!asset || asset.failed) {
-            // Any unresolvable user graphic (missing folder path OR missing file):
-            // a small folder icon. The red status bar names what is missing. Hidden
-            // on export and when the per-map "hide hints" toggle is on.
-            if (this.errorIconsVisible()) this.drawFolderIcon(pos, Math.min(box.w, box.h) * 0.35);
+            // Unresolvable user graphic (missing folder path OR missing file): draw nothing here.
+            // A single collection icon + count badge per hex is drawn later (drawMissingAssetIcons).
             return;
         }
 
@@ -12436,14 +12616,70 @@ class HexCartographerView extends ItemView {
         // System symbols always have embedded SVG data (SVG_SYMBOL_DATA) -> no procedural fallback.
     }
 
-    // symbols === null draws the user symbols (everything with the user: prefix).
-    drawSymbolLayerOnCtx(symbols) {
-        let hexes = Object.values(this.data.hexes).filter(h =>
-            h.symbol && (symbols ? symbols.includes(h.symbol) : isUserAssetKey(h.symbol)));
-        // User symbols that may overhang (clip off) need a stable overlap order (back-to-front,
-        // left-to-right) so neighbouring graphics layer consistently instead of z-fighting.
-        if (symbols === null && this.plugin.settings.clipUserGraphics === false) hexes = this.sortForOverlap(hexes);
-        for (const h of hexes) this.drawSymbolAt(h.symbol, this.hexToPixel(h), h.symbolColor);
+    // Symbol slots present on a hex, in draw order: [{ slot, color, group, symbol, symbolColor }].
+    hexSymbolSlots(h) {
+        const out = [];
+        for (const sd of HEX_SYMBOL_SLOTS) if (h[sd.slot]) out.push({ slot: sd.slot, color: sd.color, group: sd.group, symbol: h[sd.slot], symbolColor: h[sd.color] });
+        return out;
+    }
+
+    // Whether a hex still holds anything (terrain base or any symbol slot). Empty hexes are removed.
+    hexHasContent(h) {
+        return !!(h && (h.color || h.texture || HEX_SYMBOL_SLOTS.some(sd => h[sd.slot])));
+    }
+
+    // Unresolved user graphics on a hex (missing texture + missing symbol slots), as key list.
+    missingAssetsOnHex(h) {
+        const out = [];
+        if (h.texture && this.isUnresolvedUserKey(h.texture)) out.push(h.texture);
+        for (const sd of HEX_SYMBOL_SLOTS) if (h[sd.slot] && this.isUnresolvedUserKey(h[sd.slot])) out.push(h[sd.slot]);
+        return out;
+    }
+
+    // Draws one slot across all hexes that have it. User graphics that may overhang (clip off) get a
+    // stable overlap order so neighbours layer consistently instead of z-fighting.
+    drawSymbolSlot(slotName) {
+        const sd = HEX_SYMBOL_SLOTS.find(s => s.slot === slotName);
+        let hexes = Object.values(this.data.hexes).filter(h => h[sd.slot]);
+        if (this.plugin.settings.clipUserGraphics === false) hexes = this.sortForOverlap(hexes);
+        for (const h of hexes) this.drawSymbolAt(h[sd.slot], this.hexToPixel(h), h[sd.color]);
+    }
+
+    // One collection error icon per hex with missing graphics, plus a count badge (top-right) when
+    // more than one is missing — regardless of which slots they came from.
+    drawMissingAssetIcons() {
+        if (!this.errorIconsVisible()) return;
+        const box = this.hexBounds(this.data.gridSize);
+        const size = Math.min(box.w, box.h) * 0.35;
+        for (const h of Object.values(this.data.hexes)) {
+            const n = this.missingAssetsOnHex(h).length;
+            if (!n) continue;
+            const pos = this.hexToPixel(h);
+            this.drawFolderIcon(pos, size);
+            if (n > 1) this.drawCountBadge(pos, size, n);
+        }
+    }
+
+    // Small red count badge at the icon's top-right (WhatsApp-style), showing how many graphics are
+    // missing on the hex.
+    drawCountBadge(pos, iconSize, count) {
+        const cx = pos.x + iconSize * 0.55, cy = pos.y - iconSize * 0.55;
+        const r = Math.max(6, iconSize * 0.34);
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = '#e02424';
+        ctx.fill();
+        ctx.lineWidth = Math.max(1, r * 0.18);
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${Math.round(r * 1.3)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(count), cx, cy + r * 0.05);
+        ctx.restore();
     }
 
     // Order for overlapping user graphics: top-to-bottom then left-to-right (by screen position;
@@ -12466,14 +12702,21 @@ class HexCartographerView extends ItemView {
         if (projBg) this.drawProjection();
         Object.values(this.data.hexes).forEach(h => this.drawHexBase(h));
         if (!projBg) this.drawProjection();
-        this.drawSymbolLayerOnCtx(SYMBOL_LAYER_VEGETATION);
-        this.drawSymbolLayerOnCtx(SYMBOL_LAYER_TERRAIN);
+        // Draw order (bottom -> top). Paths (Wege & Flüsse) are interleaved between the terrain and
+        // symbol slots by their per-path layer: 0 behind Berge, 1 behind Vegetation, 2 behind Gebäude
+        // (default), 3 above Gebäude (behind Extras). Missing-graphic icons on top, borders last
+        // (under the hex grid drawn in render()). Parallel river+road are always drawn side by side
+        // (see buildOverlapMap) — independent of the layer.
         this.buildOverlapMap();
-        this.drawRivers();
-        this.drawRoads();
-        this.drawSymbolLayerOnCtx(SYMBOL_LAYER_EXTRAS);
-        this.drawSymbolLayerOnCtx(SYMBOL_LAYER_BUILDINGS);
-        this.drawSymbolLayerOnCtx(null); // User symbols on top, just before the borders
+        this.drawPathsInLayer(0);
+        this.drawSymbolSlot('mountain');
+        this.drawPathsInLayer(1);
+        this.drawSymbolSlot('vegetation');
+        this.drawPathsInLayer(2);
+        this.drawSymbolSlot('building');
+        this.drawPathsInLayer(3);
+        this.drawSymbolSlot('extra');
+        this.drawMissingAssetIcons();
         this.drawBorders();
     }
 
@@ -12546,12 +12789,9 @@ class HexCartographerView extends ItemView {
                 const dh = ih * scale;
                 this.ctx.drawImage(img, pos.x - dw / 2, pos.y - dh / 2, dw, dh);
             }
-        } else if (this.errorIconsVisible()) {
-            // Unresolvable user texture: a small folder icon over the hex color that
-            // was picked when drawing (so different textures stay distinguishable).
-            // Hidden on export and when the per-map "hide hints" toggle is on.
-            this.drawFolderIcon(pos, Math.min(box.w, box.h) * 0.275);
         }
+        // A missing texture draws nothing here (the hex color remains); one collection error icon +
+        // count badge per hex is drawn later (drawMissingAssetIcons).
 
         this.ctx.restore();
     }
@@ -12695,24 +12935,39 @@ class HexCartographerView extends ItemView {
         if (this.data.roads) this.data.roads.forEach(r => addSegments(r, 'road'));
     }
 
-    drawRivers() {
-        if (!this.data.rivers) return;
-        this.data.rivers.forEach(river => {
-            if (!river.waypoints || river.waypoints.length === 0) return;
-            if (river.waypoints.length >= 2) {
-                this.drawPathChains(river, true, 'river');
-            }
-        });
+    // Draws the rivers + roads that sit in the given layer (rivers under roads, array order). The
+    // side-by-side offset for parallel river+road is applied in drawPathChains regardless of layer.
+    drawPathsInLayer(layer) {
+        (this.data.rivers || []).forEach(p => { if (p.waypoints && p.waypoints.length >= 2 && pathLayerOf(p) === layer) this.drawPathChains(p, true, 'river'); });
+        (this.data.roads || []).forEach(p => { if (p.waypoints && p.waypoints.length >= 2 && pathLayerOf(p) === layer) this.drawPathChains(p, false, 'road'); });
     }
 
-    drawRoads() {
-        if (!this.data.roads) return;
-        this.data.roads.forEach(road => {
-            if (!road.waypoints || road.waypoints.length === 0) return;
-            if (road.waypoints.length >= 2) {
-                this.drawPathChains(road, false, 'road');
-            }
-        });
+    // The active path (the river/road currently in edit mode), or null. Used by the layer up/down
+    // buttons, which only act on the path being edited.
+    activePath() {
+        if (this.riverSettings.editMode) {
+            const r = (this.data.rivers || []).find(p => p.id === this.riverSettings.activeRiverId);
+            if (r) return r;
+        }
+        if (this.roadSettings.editMode) {
+            const r = (this.data.roads || []).find(p => p.id === this.roadSettings.activeRoadId);
+            if (r) return r;
+        }
+        return null;
+    }
+
+    // Moves the active path one layer up (delta +1) or down (delta -1) through the terrain/symbol
+    // stack, clamped to [PATH_LAYER_MIN, PATH_LAYER_MAX]. Undoable in one step; no-op at the limit.
+    movePathLayer(delta) {
+        const active = this.activePath();
+        if (!active) return;
+        const cur = pathLayerOf(active);
+        const next = Math.max(PATH_LAYER_MIN, Math.min(PATH_LAYER_MAX, cur + delta));
+        if (next === cur) return;
+        this.pushHistory();
+        active.pathLayer = next;
+        this.render();
+        this.requestSave();
     }
 
     drawPathWaypoints() {
@@ -12789,6 +13044,8 @@ class HexCartographerView extends ItemView {
                 segments.forEach(seg => {
                     const key = this._segKey(seg.from, seg.to);
                     const info = this.overlapMap[key];
+                    // Parallel river + road on the same edge ALWAYS run side by side (never overlap),
+                    // independent of their draw layer — an important readability feature.
                     if (info && info.hasRiver && info.hasRoad) {
                         const isCanonical = seg.from.q < seg.to.q || (seg.from.q === seg.to.q && seg.from.r < seg.to.r);
                         const typeSign = pathType === 'river' ? 1 : -1;
@@ -12971,6 +13228,19 @@ class HexCartographerView extends ItemView {
         return JSON.stringify(rest);
     }
 
+    // Backward-compat notice written into the saved texts (never kept in memory): older plugin
+    // versions (< v2) cannot read the per-slot symbols, so they at least show this text. v2+ strips
+    // it on load and re-adds it here. Placed at the map's content center, styled like a normal text.
+    compatNoticeText() {
+        const b = this.getHexBounds();
+        let x = 0, y = 0;
+        if (b) {
+            const mid = this.hexToPixel({ q: (b.minQ + b.maxQ) / 2, r: (b.minR + b.maxR) / 2 });
+            x = mid.x; y = mid.y;
+        }
+        return { sys: 'compat', text: t('compat.notice'), x, y, size: 20, color: '#c0392b', align: 'center' };
+    }
+
     async saveData() {
         // Refuse to write data that belongs to a different map. A debounced save can
         // fire after the user switched files, and in fast-load mode the view (and its
@@ -13060,6 +13330,10 @@ class HexCartographerView extends ItemView {
                 this.data.editor = me;
                 this.data.lastModified = Date.now();
                 const toSave = stripViewportKeys(this.data); // viewport is device-local (localStorage)
+                // Mark the new format and append the compat notice so < v2 plugins warn the user
+                // (v2 strips it on load). Kept out of this.data so it is never rendered here.
+                toSave.formatVersion = MAP_FORMAT_VERSION;
+                toSave.texts = [...(this.data.texts || []), this.compatNoticeText()];
                 // One line per hex/element: short lines (no editor freeze) + merge-safe (see
                 // serializeMapMultiline). Small objects stay compact.
                 const jsonData = serializeMapMultiline(toSave);
@@ -15118,6 +15392,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 ['mouse-pointer', 'guide.paths.pick'],
                 ['text-cursor-input', 'guide.paths.width'],
                 ['text-cursor-input', 'guide.paths.dashes'],
+                ['arrow-down-to-line', 'guide.paths.order'],
             ]],
             ['borders', [
                 ['shield', 'guide.borders.draw'],
