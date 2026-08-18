@@ -434,11 +434,14 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Dichte',
         'input.dashDensity': 'Dichte: Unterbrechungen pro Wabe (1–20)',
         'option.endpoint': 'Endpunkt',
+        'option.taper': 'Zulauf',
         'option.pathOrder': 'Ebene',
         'tooltip.pathUp': 'Nach oben',
         'tooltip.pathDown': 'Nach unten',
         'endpoint.edge': 'Kante',
         'endpoint.center': 'Zentrum',
+        'taper.point': 'Spitz',
+        'taper.round': 'Rund',
 
         // Notices
         'notice.fileCreateError': 'Fehler beim Erstellen der Datei: {error}',
@@ -639,6 +642,7 @@ const TRANSLATIONS = {
         'guide.paths.width': 'Breite der Flüsse/Wege über die Eingabefelder mit einem Wert anpassen.',
         'guide.paths.dashes': 'Abstand zwischen den Strichen in % der Wabenlänge (0 % durchgehend, 100 % Punkte). Nur Wege; Flüsse sind nie gestrichelt.',
         'guide.paths.order': 'Ausgewählten Weg/Fluss über die Ebenen nach oben/unten schieben — z. B. hinter Vegetation oder Berge. Nie über Extras, Text oder Wabenrahmen und nie hinter die Farb-/Textur-Basis. Parallel laufende Wege und Flüsse werden immer nebeneinander gezeichnet.',
+        'guide.paths.endpoint': 'Endpunkt eines Wegs/Flusses anklicken (Ring), dann pro Ende festlegen: Endpunkt (Kante/Zentrum) und bei Flüssen den Zulauf (spitz/rund).',
         'guide.borders': 'Grenzen',
         'guide.borders.draw': 'Grenzregion zeichnen durch Klicken oder Ziehen auf Waben.',
         'guide.borders.pick': 'Bestehende Grenze zum Bearbeiten auswählen.',
@@ -802,11 +806,14 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Density',
         'input.dashDensity': 'Density: interruptions per hex (1–20)',
         'option.endpoint': 'Endpoint',
+        'option.taper': 'Taper',
         'option.pathOrder': 'Layer',
         'tooltip.pathUp': 'Move up',
         'tooltip.pathDown': 'Move down',
         'endpoint.edge': 'Edge',
         'endpoint.center': 'Center',
+        'taper.point': 'Pointed',
+        'taper.round': 'Round',
 
         // Notices
         'notice.fileCreateError': 'Error creating file: {error}',
@@ -1007,6 +1014,7 @@ const TRANSLATIONS = {
         'guide.paths.width': 'Adjust river/road width via the input fields.',
         'guide.paths.dashes': 'Dash gap in % of the hex length (0 % solid, 100 % dots). Roads only; rivers are never dashed.',
         'guide.paths.order': 'Move the selected road/river up/down through the layers — e.g. behind vegetation or mountains. Never above extras, text or the hex grid, and never behind the colour/texture base. Parallel roads and rivers are always drawn side by side.',
+        'guide.paths.endpoint': 'Click a road/river endpoint (ring), then set per end: endpoint (edge/centre) and, for rivers, the taper (pointed/round).',
         'guide.borders': 'Borders',
         'guide.borders.draw': 'Draw border region by clicking or dragging on hexes.',
         'guide.borders.pick': 'Select an existing border to edit.',
@@ -1156,11 +1164,14 @@ const TRANSLATIONS = {
         'option.dashDensity': '密度',
         'input.dashDensity': '密度：每格的中断数量（1–20）',
         'option.endpoint': '端点',
+        'option.taper': '收尾',
         'option.pathOrder': '层级',
         'tooltip.pathUp': '上移',
         'tooltip.pathDown': '下移',
         'endpoint.edge': '边缘',
         'endpoint.center': '中心',
+        'taper.point': '尖',
+        'taper.round': '圆',
         'notice.fileCreateError': '创建文件时出错：{error}',
         'notice.nothingToUndo': '没有可撤销的操作',
         'notice.mapRecovered': '地图无法保存（同步冲突），已作为“{name}”恢复。',
@@ -1351,6 +1362,7 @@ const TRANSLATIONS = {
         'guide.paths.width': '通过输入框调整河流/道路的宽度值。',
         'guide.paths.dashes': '虚线间隙，占六角格长度的百分比（0 % 实线，100 % 圆点）。仅道路；河流从不使用虚线。',
         'guide.paths.order': '将所选道路/河流在图层间上移/下移——例如置于植被或山脉之后。绝不会高于额外符号、文字或六角格边框，也不会低于颜色/纹理底层。平行的道路与河流始终并排绘制。',
+        'guide.paths.endpoint': '点击道路/河流的端点（圆环），然后按端设置：端点（边缘/中心），河流还可设收尾（尖/圆）。',
         'guide.borders': '边界',
         'guide.borders.draw': '点击或拖动六角格绘制边界区域。',
         'guide.borders.pick': '选择已有边界进行编辑。',
@@ -1496,11 +1508,14 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Плотность',
         'input.dashDensity': 'Плотность: разрывов на соту (1–20)',
         'option.endpoint': 'Конец',
+        'option.taper': 'Сужение',
         'option.pathOrder': 'Слой',
         'tooltip.pathUp': 'Выше',
         'tooltip.pathDown': 'Ниже',
         'endpoint.edge': 'Край',
         'endpoint.center': 'Центр',
+        'taper.point': 'Острый',
+        'taper.round': 'Круглый',
         'notice.fileCreateError': 'Ошибка при создании файла: {error}',
         'notice.nothingToUndo': 'Нечего отменять',
         'notice.mapRecovered': 'Карту не удалось сохранить (конфликт синхронизации), она восстановлена как «{name}».',
@@ -1691,6 +1706,7 @@ const TRANSLATIONS = {
         'guide.paths.width': 'Настроить ширину рек/дорог через поля ввода.',
         'guide.paths.dashes': 'Зазор между штрихами в % от длины соты (0 % сплошная, 100 % точки). Только дороги; реки никогда не штрихуются.',
         'guide.paths.order': 'Переместить выбранную дорогу/реку вверх/вниз по слоям — например, за растительность или горы. Никогда выше дополнительных символов, текста или сетки сот и никогда за цветовую/текстурную основу. Параллельные дороги и реки всегда рисуются рядом.',
+        'guide.paths.endpoint': 'Щёлкните по концу дороги/реки (кольцо), затем задайте для каждого конца: точку (край/центр) и для рек сужение (острое/круглое).',
         'guide.borders': 'Границы',
         'guide.borders.draw': 'Рисовать область границы нажатием или перетаскиванием по сотам.',
         'guide.borders.pick': 'Выбрать существующую границу для редактирования.',
@@ -1836,11 +1852,14 @@ const TRANSLATIONS = {
         'option.dashDensity': '密度',
         'input.dashDensity': '密度：ヘックスあたりの区切り数（1–20）',
         'option.endpoint': '端点',
+        'option.taper': '先細り',
         'option.pathOrder': 'レイヤー',
         'tooltip.pathUp': '上へ',
         'tooltip.pathDown': '下へ',
         'endpoint.edge': '辺',
         'endpoint.center': '中心',
+        'taper.point': '尖り',
+        'taper.round': '丸',
         'notice.fileCreateError': 'ファイル作成エラー：{error}',
         'notice.nothingToUndo': '元に戻す操作がありません',
         'notice.mapRecovered': 'マップを保存できませんでした（同期の競合）。「{name}」として復旧しました。',
@@ -2031,6 +2050,7 @@ const TRANSLATIONS = {
         'guide.paths.width': '入力フィールドで川/道の幅を調整。',
         'guide.paths.dashes': '破線の間隔（ヘックス長に対する%、0 % 実線、100 % 点）。道のみ。川は破線になりません。',
         'guide.paths.order': '選択した道/川をレイヤー間で上下に移動 — 例えば植生や山の背面へ。追加シンボル・テキスト・ヘックス枠より前には出ず、色/テクスチャの基盤より後ろにも行きません。並行する道と川は常に横並びで描画されます。',
+        'guide.paths.endpoint': '道/川の端点（リング）をクリックし、端ごとに設定：端点（辺/中心）、川では先細り（尖り/丸）。',
         'guide.borders': '境界',
         'guide.borders.draw': 'ヘックスをクリックまたはドラッグして境界領域を描画。',
         'guide.borders.pick': '既存の境界を選択して編集。',
@@ -2176,11 +2196,14 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Densité',
         'input.dashDensity': 'Densité : interruptions par hexagone (1–20)',
         'option.endpoint': 'Extrémité',
+        'option.taper': 'Effilement',
         'option.pathOrder': 'Calque',
         'tooltip.pathUp': 'Monter',
         'tooltip.pathDown': 'Descendre',
         'endpoint.edge': 'Bord',
         'endpoint.center': 'Centre',
+        'taper.point': 'Pointu',
+        'taper.round': 'Arrondi',
         'notice.fileCreateError': 'Erreur lors de la création du fichier : {error}',
         'notice.nothingToUndo': 'Rien à annuler',
         'notice.mapRecovered': 'La carte n’a pas pu être enregistrée (conflit de synchronisation) et a été récupérée sous « {name} ».',
@@ -2371,6 +2394,7 @@ const TRANSLATIONS = {
         'guide.paths.width': 'Ajuster la largeur des rivières/chemins via les champs de saisie.',
         'guide.paths.dashes': 'Espace entre les tirets en % de la longueur de l\'hexagone (0 % continu, 100 % points). Routes uniquement ; les rivières ne sont jamais en pointillés.',
         'guide.paths.order': 'Déplacer la route/rivière sélectionnée vers le haut/bas dans les calques — p. ex. derrière la végétation ou les montagnes. Jamais au-dessus des extras, du texte ou de la grille, ni derrière la base couleur/texture. Les routes et rivières parallèles sont toujours dessinées côte à côte.',
+        'guide.paths.endpoint': 'Cliquez sur une extrémité de route/rivière (anneau), puis réglez par extrémité : le point (bord/centre) et, pour les rivières, l\'effilement (pointu/arrondi).',
         'guide.borders': 'Frontières',
         'guide.borders.draw': 'Dessiner une région de frontière en cliquant ou en glissant sur les hexagones.',
         'guide.borders.pick': 'Sélectionner une frontière existante pour la modifier.',
@@ -2516,11 +2540,14 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Densidade',
         'input.dashDensity': 'Densidade: interrupções por hexágono (1–20)',
         'option.endpoint': 'Extremidade',
+        'option.taper': 'Afinamento',
         'option.pathOrder': 'Camada',
         'tooltip.pathUp': 'Mover para cima',
         'tooltip.pathDown': 'Mover para baixo',
         'endpoint.edge': 'Borda',
         'endpoint.center': 'Centro',
+        'taper.point': 'Pontudo',
+        'taper.round': 'Redondo',
         'notice.fileCreateError': 'Erro ao criar o arquivo: {error}',
         'notice.nothingToUndo': 'Nada para desfazer',
         'notice.mapRecovered': 'O mapa não pôde ser salvo (conflito de sincronização) e foi recuperado como “{name}”.',
@@ -2711,6 +2738,7 @@ const TRANSLATIONS = {
         'guide.paths.width': 'Ajustar a largura dos rios/caminhos pelos campos de entrada.',
         'guide.paths.dashes': 'Espaço entre traços em % do comprimento do hexágono (0 % contínuo, 100 % pontos). Apenas estradas; rios nunca são tracejados.',
         'guide.paths.order': 'Mover a estrada/rio selecionado para cima/baixo pelas camadas — p. ex. atrás de vegetação ou montanhas. Nunca acima de extras, texto ou grade de hexágonos, nem atrás da base de cor/textura. Estradas e rios paralelos são sempre desenhados lado a lado.',
+        'guide.paths.endpoint': 'Clique numa extremidade de estrada/rio (anel), depois defina por extremidade: o ponto (borda/centro) e, para rios, o afinamento (pontudo/redondo).',
         'guide.borders': 'Fronteiras',
         'guide.borders.draw': 'Desenhar região de fronteira clicando ou arrastando sobre hexágonos.',
         'guide.borders.pick': 'Selecionar fronteira existente para editar.',
@@ -2856,11 +2884,14 @@ const TRANSLATIONS = {
         'option.dashDensity': '밀도',
         'input.dashDensity': '밀도: 헥스당 끊김 수 (1–20)',
         'option.endpoint': '끝점',
+        'option.taper': '끝 모양',
         'option.pathOrder': '레이어',
         'tooltip.pathUp': '위로',
         'tooltip.pathDown': '아래로',
         'endpoint.edge': '가장자리',
         'endpoint.center': '중심',
+        'taper.point': '뾰족',
+        'taper.round': '둥글',
         'notice.fileCreateError': '파일 생성 오류: {error}',
         'notice.nothingToUndo': '실행 취소할 항목이 없습니다',
         'notice.mapRecovered': '지도를 저장할 수 없어(동기화 충돌) “{name}”(으)로 복구했습니다.',
@@ -3051,6 +3082,7 @@ const TRANSLATIONS = {
         'guide.paths.width': '입력 필드를 통해 강/길의 너비를 조정합니다.',
         'guide.paths.dashes': '헥스 길이에 대한 대시 간격 %(0 % 실선, 100 % 점). 도로만 해당하며, 강은 절대 점선이 아닙니다.',
         'guide.paths.order': '선택한 도로/강을 레이어 사이에서 위/아래로 이동합니다 — 예: 식생이나 산 뒤로. 엑스트라, 텍스트, 헥스 격자보다 위로는 가지 않으며 색/텍스처 기반보다 뒤로도 가지 않습니다. 나란히 흐르는 도로와 강은 항상 옆으로 나란히 그려집니다.',
+        'guide.paths.endpoint': '도로/강의 끝점(고리)을 클릭한 뒤 끝마다 설정: 끝점(가장자리/중심), 강은 끝 모양(뾰족/둥글).',
         'guide.borders': '경계',
         'guide.borders.draw': '헥스 셀을 클릭하거나 드래그하여 경계 영역을 그립니다.',
         'guide.borders.pick': '기존 경계를 선택하여 편집합니다.',
@@ -3196,11 +3228,14 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Densidad',
         'input.dashDensity': 'Densidad: interrupciones por hexágono (1–20)',
         'option.endpoint': 'Extremo',
+        'option.taper': 'Estrechamiento',
         'option.pathOrder': 'Capa',
         'tooltip.pathUp': 'Subir',
         'tooltip.pathDown': 'Bajar',
         'endpoint.edge': 'Borde',
         'endpoint.center': 'Centro',
+        'taper.point': 'Punta',
+        'taper.round': 'Redondo',
         'notice.fileCreateError': 'Error al crear el archivo: {error}',
         'notice.nothingToUndo': 'Nada que deshacer',
         'notice.mapRecovered': 'El mapa no se pudo guardar (conflicto de sincronización) y se recuperó como «{name}».',
@@ -3391,6 +3426,7 @@ const TRANSLATIONS = {
         'guide.paths.width': 'Ajustar el ancho de ríos/caminos mediante los campos de entrada.',
         'guide.paths.dashes': 'Hueco entre trazos en % de la longitud del hexágono (0 % continuo, 100 % puntos). Solo caminos; los ríos nunca son discontinuos.',
         'guide.paths.order': 'Mover el camino/río seleccionado hacia arriba/abajo entre las capas — p. ej. detrás de vegetación o montañas. Nunca por encima de extras, texto o la rejilla, ni detrás de la base de color/textura. Los caminos y ríos paralelos siempre se dibujan uno al lado del otro.',
+        'guide.paths.endpoint': 'Haz clic en un extremo de camino/río (anillo) y ajusta por extremo: el punto (borde/centro) y, en ríos, el estrechamiento (punta/redondo).',
         'guide.borders': 'Fronteras',
         'guide.borders.draw': 'Dibujar región fronteriza haciendo clic o arrastrando sobre celdas.',
         'guide.borders.pick': 'Seleccionar frontera existente para editar.',
@@ -3536,11 +3572,14 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Gęstość',
         'input.dashDensity': 'Gęstość: przerwy na sześciokąt (1–20)',
         'option.endpoint': 'Koniec',
+        'option.taper': 'Zwężenie',
         'option.pathOrder': 'Warstwa',
         'tooltip.pathUp': 'W górę',
         'tooltip.pathDown': 'W dół',
         'endpoint.edge': 'Krawędź',
         'endpoint.center': 'Środek',
+        'taper.point': 'Ostry',
+        'taper.round': 'Zaokrąglony',
         'notice.fileCreateError': 'Błąd podczas tworzenia pliku: {error}',
         'notice.nothingToUndo': 'Nie ma czego cofnąć',
         'notice.mapRecovered': 'Nie udało się zapisać mapy (konflikt synchronizacji), odzyskano ją jako „{name}”.',
@@ -3731,6 +3770,7 @@ const TRANSLATIONS = {
         'guide.paths.width': 'Dostosuj szerokość rzek/dróg za pomocą pól wartości.',
         'guide.paths.dashes': 'Przerwa między kreskami w % długości sześciokąta (0 % ciągła, 100 % kropki). Tylko drogi; rzeki nigdy nie są kreskowane.',
         'guide.paths.order': 'Przesuń wybraną drogę/rzekę w górę/dół przez warstwy — np. za roślinność lub góry. Nigdy nad dodatki, tekst lub siatkę sześciokątów, ani za bazę koloru/tekstury. Równoległe drogi i rzeki są zawsze rysowane obok siebie.',
+        'guide.paths.endpoint': 'Kliknij koniec drogi/rzeki (pierścień), następnie ustaw dla każdego końca: punkt (krawędź/środek) oraz dla rzek zwężenie (ostre/zaokrąglone).',
         'guide.borders': 'Granice',
         'guide.borders.draw': 'Rysuj region graniczny klikając lub przeciągając po komórkach.',
         'guide.borders.pick': 'Wybierz istniejącą granicę do edycji.',
@@ -3876,11 +3916,14 @@ const TRANSLATIONS = {
         'option.dashDensity': 'Densità',
         'input.dashDensity': 'Densità: interruzioni per esagono (1–20)',
         'option.endpoint': 'Estremità',
+        'option.taper': 'Assottigliamento',
         'option.pathOrder': 'Livello',
         'tooltip.pathUp': 'Su',
         'tooltip.pathDown': 'Giù',
         'endpoint.edge': 'Bordo',
         'endpoint.center': 'Centro',
+        'taper.point': 'Appuntito',
+        'taper.round': 'Arrotondato',
         'notice.fileCreateError': 'Errore nella creazione del file: {error}',
         'notice.nothingToUndo': 'Niente da annullare',
         'notice.mapRecovered': 'Impossibile salvare la mappa (conflitto di sincronizzazione); è stata recuperata come «{name}».',
@@ -4071,6 +4114,7 @@ const TRANSLATIONS = {
         'guide.paths.width': 'Regola la larghezza di fiumi/strade tramite i campi di input.',
         'guide.paths.dashes': 'Spazio tra i tratti in % della lunghezza dell\'esagono (0 % continuo, 100 % punti). Solo strade; i fiumi non sono mai tratteggiati.',
         'guide.paths.order': 'Sposta la strada/il fiume selezionato su/giù tra i livelli — ad es. dietro vegetazione o montagne. Mai sopra extra, testo o griglia, né dietro la base di colore/texture. Strade e fiumi paralleli sono sempre disegnati affiancati.',
+        'guide.paths.endpoint': 'Clicca su un\'estremità di strada/fiume (anello), poi imposta per estremità: il punto (bordo/centro) e, per i fiumi, l\'assottigliamento (appuntito/arrotondato).',
         'guide.borders': 'Confini',
         'guide.borders.draw': 'Disegna regione di confine cliccando o trascinando sulle celle.',
         'guide.borders.pick': 'Seleziona confine esistente per modificare.',
@@ -5574,6 +5618,7 @@ class HexCartographerView extends ItemView {
         this.pathEndInset = PATH_END_INSET;
         this.riverDragIndex = null;
         this.roadDragIndex = null;
+        this.selectedWaypointIdx = null; // index of the clicked end waypoint (for per-endpoint options)
         this.lastWaypointClick = null;
         this.pendingHistory = false;
 
@@ -7960,23 +8005,48 @@ class HexCartographerView extends ItemView {
             this.requestSave();
         };
 
-        // Endpoint: where a path ends/starts — at the hex edge or centre. Roads AND rivers.
-        // A two-state toggle button showing the current mode.
+        // Endpoint (edge/centre) applies to the SELECTED end waypoint of the edited path (roads AND
+        // rivers). Disabled until a free end is clicked. Toggling sets waypoint.endpoint and keeps a
+        // running default (this.pathEndpoint) for new paths.
+        const optBtnStyle = `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px 8px; box-sizing: border-box; cursor: pointer;`;
         this.pathEndpointUnit = this.createOptionUnit('option.endpoint');
-        const endpointBtn = this.pathEndpointUnit.createEl('button', {
-            cls: 'hex-option-btn',
-            attr: { style: `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px 8px; box-sizing: border-box; cursor: pointer;` }
-        });
+        const endpointBtn = this.pathEndpointUnit.createEl('button', { cls: 'hex-option-btn', attr: { style: optBtnStyle } });
         this.pathEndpointBtn = endpointBtn;
-        this._syncEndpointBtn = () => endpointBtn.setText(t(this.pathEndpoint === 'center' ? 'endpoint.center' : 'endpoint.edge'));
+        const endpointModeOf = (wp) => (wp && wp.endpoint) || this.pathEndpoint || 'edge';
+        this._syncEndpointBtn = () => {
+            const wp = this.selectedEndpoint();
+            endpointBtn.disabled = !wp; endpointBtn.style.opacity = wp ? '1' : '0.4';
+            endpointBtn.setText(t(endpointModeOf(wp) === 'center' ? 'endpoint.center' : 'endpoint.edge'));
+        };
         this._syncEndpointBtn();
         endpointBtn.onclick = () => {
-            this.pathEndpoint = this.pathEndpoint === 'center' ? 'edge' : 'center';
+            const wp = this.selectedEndpoint();
+            if (!wp) return;
+            this.pushHistory();
+            const next = endpointModeOf(wp) === 'center' ? 'edge' : 'center';
+            wp.endpoint = next;
+            this.pathEndpoint = next; // running default for new paths
             this._syncEndpointBtn();
-            const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
-            if (river) river.endpoint = this.pathEndpoint;
-            const rd = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
-            if (rd) rd.endpoint = this.pathEndpoint;
+            this.render();
+            this.requestSave();
+        };
+
+        // Taper (pointed/round) — RIVERS only. Toggles waypoint.round on the selected end waypoint.
+        this.pathTaperUnit = this.createOptionUnit('option.taper');
+        const taperBtn = this.pathTaperUnit.createEl('button', { cls: 'hex-option-btn', attr: { style: optBtnStyle } });
+        this.pathTaperBtn = taperBtn;
+        this._syncTaperBtn = () => {
+            const wp = this.selectedEndpoint();
+            taperBtn.disabled = !wp; taperBtn.style.opacity = wp ? '1' : '0.4';
+            taperBtn.setText(t(wp && wp.round === true ? 'taper.round' : 'taper.point'));
+        };
+        this._syncTaperBtn();
+        taperBtn.onclick = () => {
+            const wp = this.selectedEndpoint();
+            if (!wp) return;
+            this.pushHistory();
+            wp.round = !(wp.round === true);
+            this._syncTaperBtn();
             this.render();
             this.requestSave();
         };
@@ -8036,6 +8106,7 @@ class HexCartographerView extends ItemView {
     completePathPick(path, type) {
         this.exitPathEditMode();
         this.pathPickPending = null;
+        this.selectedWaypointIdx = null; // fresh selection when picking a path to edit
         if (path.width > MAX_PATH_WIDTH) path.width = MAX_PATH_WIDTH; // pull legacy over-size down to the hex limit
         if (type === 'river') {
             this.currentToolGroup = 'river';
@@ -8165,6 +8236,7 @@ class HexCartographerView extends ItemView {
 
     exitPathEditMode() {
         let changed = false;
+        this.selectedWaypointIdx = null; // drop the per-endpoint selection when leaving edit mode
         for (const settings of [this.riverSettings, this.roadSettings]) {
             if (settings.editMode) {
                 const isRiver = settings === this.riverSettings;
@@ -8397,6 +8469,7 @@ class HexCartographerView extends ItemView {
         if (this.pathDashesUnit) this.pathDashesUnit.style.display = road ? '' : 'none'; // roads only; rivers never dashed
         if (this.pathDensityUnit) this.pathDensityUnit.style.display = road ? '' : 'none';
         if (this.pathEndpointUnit) this.pathEndpointUnit.style.display = (river || road) ? '' : 'none'; // roads AND rivers
+        if (this.pathTaperUnit) this.pathTaperUnit.style.display = river ? '' : 'none'; // taper is rivers only
         if (this.pathOrderUnit) this.pathOrderUnit.style.display = (river || road) ? '' : 'none'; // front/back, roads AND rivers
         if (this.borderWidthUnit) this.borderWidthUnit.style.display = border ? '' : 'none';
         if (this.borderDashesUnit) this.borderDashesUnit.style.display = border ? '' : 'none';
@@ -8476,6 +8549,7 @@ class HexCartographerView extends ItemView {
         if (this.pathDashesInput) this.pathDashesInput.value = (this.pathGapPercent || 0).toString();
         if (this.pathDensityInput) this.pathDensityInput.value = (this.pathDashDensity || 1).toString();
         if (this._syncEndpointBtn) this._syncEndpointBtn();
+        if (this._syncTaperBtn) this._syncTaperBtn();
         if (this._syncPathOrderBtns) this._syncPathOrderBtns();
 
         const activePathSettings = this.currentToolGroup === 'river' ? this.riverSettings : this.roadSettings;
@@ -10353,6 +10427,10 @@ class HexCartographerView extends ItemView {
                 const dragGroup = [];
                 road.waypoints.forEach((wp, i) => { if (wp.q === hex.q && wp.r === hex.r) dragGroup.push(i); });
                 this.roadDragIndex = { idx: existingIdx, origQ: hex.q, origR: hex.r, group: dragGroup };
+                // Prefer a free-endpoint index on this hex (a coord can repeat at a junction).
+                const ends = this.freeEndpointIndices(road);
+                const endIdx = road.waypoints.findIndex((w, i) => w.q === hex.q && w.r === hex.r && ends.has(i));
+                this.selectedWaypointIdx = endIdx !== -1 ? endIdx : existingIdx;
                 return;
             }
 
@@ -10368,6 +10446,7 @@ class HexCartographerView extends ItemView {
                 if (onSegment) {
                     road.waypoints.splice(i + 1, 0, { q: hex.q, r: hex.r });
                     this.roadSettings.insertAfter = i + 1;
+                    this.selectedWaypointIdx = null; // mid-point insert shifts indices -> drop selection
                     return;
                 }
             }
@@ -10383,6 +10462,7 @@ class HexCartographerView extends ItemView {
             road.waypoints.push({ q: hex.q, r: hex.r });
             this.roadSettings.insertAfter = road.waypoints.length - 1;
         }
+        this.selectedWaypointIdx = this.roadSettings.insertAfter; // auto-select the freshly drawn end
     }
 
     findRiverAtHex(hex) {
@@ -10477,6 +10557,10 @@ class HexCartographerView extends ItemView {
                 const dragGroup = [];
                 river.waypoints.forEach((wp, i) => { if (wp.q === hex.q && wp.r === hex.r) dragGroup.push(i); });
                 this.riverDragIndex = { idx: existingIdx, origQ: hex.q, origR: hex.r, group: dragGroup };
+                // Prefer a free-endpoint index on this hex (a coord can repeat at a junction).
+                const ends = this.freeEndpointIndices(river);
+                const endIdx = river.waypoints.findIndex((w, i) => w.q === hex.q && w.r === hex.r && ends.has(i));
+                this.selectedWaypointIdx = endIdx !== -1 ? endIdx : existingIdx;
                 return;
             }
 
@@ -10492,6 +10576,7 @@ class HexCartographerView extends ItemView {
                 if (onSegment) {
                     river.waypoints.splice(i + 1, 0, { q: hex.q, r: hex.r });
                     this.riverSettings.insertAfter = i + 1;
+                    this.selectedWaypointIdx = null; // mid-point insert shifts indices -> drop selection
                     return;
                 }
             }
@@ -10507,6 +10592,7 @@ class HexCartographerView extends ItemView {
             river.waypoints.push({ q: hex.q, r: hex.r });
             this.riverSettings.insertAfter = river.waypoints.length - 1;
         }
+        this.selectedWaypointIdx = this.riverSettings.insertAfter; // auto-select the freshly drawn end
     }
 
     // texture === null/undefined removes an existing texture instead of keeping it.
@@ -11079,9 +11165,11 @@ class HexCartographerView extends ItemView {
         this.renderTexts();
         this.renderHexNumbering();
         this.updateAssetWarningBar();
-        // Enable/disable the front/back arrows to match the current edit state — updateToolbarState
-        // only runs on tool switch, but a path becomes editable mid-draw (after two waypoints).
+        // Keep the path buttons in sync with the current edit/selection state — updateToolbarState
+        // only runs on tool switch, but a path/endpoint becomes editable mid-draw (waypoint click).
         if (this._syncPathOrderBtns) this._syncPathOrderBtns();
+        if (this._syncEndpointBtn) this._syncEndpointBtn();
+        if (this._syncTaperBtn) this._syncTaperBtn();
     }
 
     // ===== Projection: an optional reference image overlaid on the map for tracing =====
@@ -12956,6 +13044,34 @@ class HexCartographerView extends ItemView {
         return null;
     }
 
+    // Waypoint indices that are FREE chain termini (where per-endpoint endpoint/round apply).
+    // Mirrors drawPathChains' chain building + distinct-chain junction count, on waypoint indices.
+    freeEndpointIndices(path) {
+        const wps = (path && path.waypoints) || [];
+        const chains = []; let cur = [];
+        for (let i = 0; i < wps.length; i++) {
+            if (wps[i].break) cur = [i]; else cur.push(i);
+            if (i === wps.length - 1 || (wps[i + 1] && wps[i + 1].break)) {
+                if (cur.length >= 2) chains.push(cur);
+                if (wps[i + 1] && wps[i + 1].break) cur = [];
+            }
+        }
+        const junction = {};
+        for (const ch of chains) { const keys = new Set(ch.map(i => `${wps[i].q}_${wps[i].r}`)); keys.forEach(k => junction[k] = (junction[k] || 0) + 1); }
+        const ends = new Set();
+        for (const ch of chains) for (const idx of [ch[0], ch[ch.length - 1]]) { if (junction[`${wps[idx].q}_${wps[idx].r}`] === 1) ends.add(idx); }
+        return ends;
+    }
+
+    // The selected free-endpoint waypoint of the active path, or null (for the endpoint/taper buttons).
+    selectedEndpoint() {
+        const path = this.activePath();
+        if (!path || this.selectedWaypointIdx == null) return null;
+        if ((path.waypoints || []).length < 3) return null; // 2-point paths: per-end options greyed out
+        if (!this.freeEndpointIndices(path).has(this.selectedWaypointIdx)) return null;
+        return path.waypoints[this.selectedWaypointIdx] || null;
+    }
+
     // Moves the active path one layer up (delta +1) or down (delta -1) through the terrain/symbol
     // stack, clamped to [PATH_LAYER_MIN, PATH_LAYER_MAX]. Undoable in one step; no-op at the limit.
     movePathLayer(delta) {
@@ -12971,36 +13087,34 @@ class HexCartographerView extends ItemView {
     }
 
     drawPathWaypoints() {
-        if (this.riverSettings.editMode && this.data.rivers) {
-            const river = this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
-            if (river && river.waypoints) {
-                const activeIdx = this.riverSettings.insertAfter;
-                const activeWp = activeIdx !== null ? river.waypoints[activeIdx] : null;
-                river.waypoints.forEach((wp) => {
-                    const isActive = activeWp && wp.q === activeWp.q && wp.r === activeWp.r;
-                    const pos = this.hexToPixel(wp);
+        const draw = (path, settings) => {
+            if (!path || !path.waypoints) return;
+            const ends = this.freeEndpointIndices(path);
+            const activeIdx = settings.insertAfter;
+            const activeWp = activeIdx != null ? path.waypoints[activeIdx] : null;
+            // Blue highlight only when the selection is actually actionable (options not greyed out).
+            const selectedIdx = (path === this.activePath() && this.selectedEndpoint()) ? this.selectedWaypointIdx : null;
+            path.waypoints.forEach((wp, i) => {
+                const pos = this.hexToPixel(wp);
+                // Free endpoints get a ring (they carry the per-end endpoint/taper options); the
+                // selected one is highlighted in accent blue.
+                if (ends.has(i)) {
+                    const selected = i === selectedIdx;
                     this.ctx.beginPath();
-                    this.ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
-                    this.ctx.fillStyle = isActive ? '#FF0000' : '#000000';
-                    this.ctx.fill();
-                });
-            }
-        }
-        if (this.roadSettings.editMode && this.data.roads) {
-            const road = this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
-            if (road && road.waypoints) {
-                const activeIdx = this.roadSettings.insertAfter;
-                const activeWp = activeIdx !== null ? road.waypoints[activeIdx] : null;
-                road.waypoints.forEach((wp) => {
-                    const isActive = activeWp && wp.q === activeWp.q && wp.r === activeWp.r;
-                    const pos = this.hexToPixel(wp);
-                    this.ctx.beginPath();
-                    this.ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
-                    this.ctx.fillStyle = isActive ? '#FF0000' : '#000000';
-                    this.ctx.fill();
-                });
-            }
-        }
+                    this.ctx.arc(pos.x, pos.y, 7, 0, Math.PI * 2);
+                    this.ctx.lineWidth = selected ? 2.5 : 1.5;
+                    this.ctx.strokeStyle = selected ? '#1e90ff' : 'rgba(0, 0, 0, 0.55)';
+                    this.ctx.stroke();
+                }
+                const isActive = activeWp && wp.q === activeWp.q && wp.r === activeWp.r;
+                this.ctx.beginPath();
+                this.ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+                this.ctx.fillStyle = isActive ? '#FF0000' : '#000000';
+                this.ctx.fill();
+            });
+        };
+        if (this.riverSettings.editMode && this.data.rivers) draw(this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId), this.riverSettings);
+        if (this.roadSettings.editMode && this.data.roads) draw(this.data.roads.find(r => r.id === this.roadSettings.activeRoadId), this.roadSettings);
     }
 
     drawPathChains(path, taper = false, pathType = null) {
@@ -13067,8 +13181,11 @@ class HexCartographerView extends ItemView {
             const trimStart = junctionCount[startKey] === 1;
             const trimEnd = junctionCount[endKey] === 1;
 
-            const canTaperStart = taper && trimStart && !startRepeats;
-            const canTaperEnd = taper && trimEnd && !endRepeats;
+            // Per-terminus taper: a free end tapers to a point UNLESS its waypoint is flagged round
+            // (waypoint.round) or the endpoint was dragged onto an earlier point (endRepeats).
+            const startWp = chain[0], endWp = chain[chain.length - 1];
+            const canTaperStart = taper && trimStart && !startRepeats && startWp.round !== true;
+            const canTaperEnd = taper && trimEnd && !endRepeats && endWp.round !== true;
             const canTaper = (canTaperStart || canTaperEnd) && !(pairCount === 1 && trimStart && trimEnd);
             if (canTaper) {
                 // Taper only the last ~2 hex steps (linear, even) so the point looks the same
@@ -13097,8 +13214,13 @@ class HexCartographerView extends ItemView {
             const hasTaper = canTaper;
             const gapPercent = pathType === 'river' ? 0 : (path.gapPercent || 0); // rivers are never dashed
             const dashDensity = pathType === 'river' ? 1 : (path.dashDensity || 1);
-            const endInset = path.endpoint === 'center' ? 0 : (1 - PATH_END_INSET) * 0.5; // 'edge' (default) vs 'center'
-            this.drawWavyLines(segments, path.color, path.width, trimStart, trimEnd, gapPercent, dashDensity, endInset, hasTaper, canTaperEnd);
+            // Per-terminus endpoint: each free end recedes to the hex edge or centre according to its
+            // own waypoint.endpoint, falling back to the path-wide path.endpoint. Folds use the path
+            // default (they are auto turn-arounds, not user-selectable termini).
+            const EDGE_INSET = 0.5; // land exactly on the shared hex edge (midpoint between centres)
+            const insetOf = (wp) => ((wp.endpoint || path.endpoint) === 'center') ? 0 : EDGE_INSET;
+            const insets = { start: insetOf(startWp), end: insetOf(endWp), fold: (path.endpoint === 'center' ? 0 : EDGE_INSET) };
+            this.drawWavyLines(segments, path.color, path.width, trimStart, trimEnd, gapPercent, dashDensity, insets, hasTaper, canTaperEnd);
         });
     }
 
@@ -13115,10 +13237,13 @@ class HexCartographerView extends ItemView {
         this.ctx.lineJoin = "round";
         this.ctx.lineWidth = defaultWidth;
 
+        // Per-terminus inset: a number applies to both ends + folds (back-compat); an object gives
+        // { start, end, fold } separately (0 = ends at the hex centre, 0.5 = exactly on the edge).
+        const ins = typeof endInset === 'number' ? { start: endInset, end: endInset, fold: endInset } : endInset;
+
         const computedLines = lines.map((l, idx) => {
             const fullP1 = this.hexToPixel(l.from), fullP2 = this.hexToPixel(l.to);
             let p1 = { x: fullP1.x, y: fullP1.y }, p2 = { x: fullP2.x, y: fullP2.y };
-            const inset = endInset; // 0 = ends at the hex centre, 0.5 = exactly on the edge
             // A fold (hairpin) is a real visual endpoint too, so it must react to the edge/centre
             // toggle. Detect it by DIRECTION (~180° reversal), not by exact hexes — a folded arm's
             // out- and back-path may round to slightly different intermediate hexes. Both sides of a
@@ -13127,9 +13252,10 @@ class HexCartographerView extends ItemView {
             const reverses = (i, j) => { const a = dirOf(lines[i]), b = dirOf(lines[j]); return a[0] * b[0] + a[1] * b[1] < -0.9; };
             const foldBefore = idx > 0 && reverses(idx - 1, idx);              // reversal at this line's start (tip = p1)
             const foldAfter = idx < lines.length - 1 && reverses(idx, idx + 1); // reversal at this line's end (tip = p2)
-            if (trimStart && idx === 0) p1 = { x: p1.x + (p2.x - p1.x) * inset, y: p1.y + (p2.y - p1.y) * inset };
-            else if (foldBefore) { const s = this.hexToPixel(lines[idx - 1].from); p1 = { x: p1.x + (s.x - p1.x) * inset, y: p1.y + (s.y - p1.y) * inset }; }
-            if ((trimEnd && idx === lines.length - 1) || foldAfter) p2 = { x: p2.x + (p1.x - p2.x) * inset, y: p2.y + (p1.y - p2.y) * inset };
+            if (trimStart && idx === 0) p1 = { x: p1.x + (p2.x - p1.x) * ins.start, y: p1.y + (p2.y - p1.y) * ins.start };
+            else if (foldBefore) { const s = this.hexToPixel(lines[idx - 1].from); p1 = { x: p1.x + (s.x - p1.x) * ins.fold, y: p1.y + (s.y - p1.y) * ins.fold }; }
+            if (trimEnd && idx === lines.length - 1) p2 = { x: p2.x + (p1.x - p2.x) * ins.end, y: p2.y + (p1.y - p2.y) * ins.end };
+            else if (foldAfter) p2 = { x: p2.x + (p1.x - p2.x) * ins.fold, y: p2.y + (p1.y - p2.y) * ins.fold };
             const fdx = fullP2.x - fullP1.x, fdy = fullP2.y - fullP1.y;
             const fullDist = Math.sqrt(fdx * fdx + fdy * fdy);
             if (l.lateralOffset && fullDist > 0) {
@@ -15392,6 +15518,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 ['mouse-pointer', 'guide.paths.pick'],
                 ['text-cursor-input', 'guide.paths.width'],
                 ['text-cursor-input', 'guide.paths.dashes'],
+                ['circle-dot', 'guide.paths.endpoint'],
                 ['arrow-down-to-line', 'guide.paths.order'],
             ]],
             ['borders', [
