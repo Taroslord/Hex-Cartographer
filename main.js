@@ -242,6 +242,26 @@ const PATH_LAYER_MAX = 3;
 const PATH_LAYER_DEFAULT = 2;
 const pathLayerOf = (p) => (Number.isInteger(p.pathLayer) ? p.pathLayer : PATH_LAYER_DEFAULT);
 
+// Route mode: how a path connects its control points. 'center' = through hex centres (classic),
+// 'edge' = along hex borders (corner graph), 'both' = mixed (Phase C). Missing = 'center'.
+const PATH_ROUTE_MODES = ['center', 'edge', 'both'];
+const PATH_ROUTE_DEFAULT = 'center';
+const routeModeOf = (p) => (PATH_ROUTE_MODES.includes(p.routeMode) ? p.routeMode : PATH_ROUTE_DEFAULT);
+
+// Corner (edge) graph. A hex corner is stored in integer "thirds" coords (Q,R): it sits at
+// fractional hex (Q/3, R/3) — the centroid of the 3 hexes meeting there, i.e. the exact corner,
+// so it renders through the same linear hexToPixel. Each hex has 6 corners; corners split into two
+// classes by (Q,R) mod 3: (1,1) = "down", (2,2) = "up", each with its own 3 outgoing edge vectors.
+const HEX_DIRS = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]]; // axial neighbour directions
+const CORNER_OFFSETS = [[2, -1], [1, -2], [-1, -1], [-2, 1], [-1, 2], [1, 1]];
+const VERT_EDGES_DOWN = [[1, -2], [-2, 1], [1, 1]];   // edges leaving a (1,1)-class corner
+const VERT_EDGES_UP = [[-1, 2], [2, -1], [-1, -1]];   // edges leaving a (2,2)-class corner
+const vertKey = (v) => v.Q + '_' + v.R;
+const vertClass = (v) => { const m = (n) => ((n % 3) + 3) % 3; return (m(v.Q) === 2 && m(v.R) === 2) ? 'up' : 'down'; };
+const vertNeighbors = (v) => (vertClass(v) === 'up' ? VERT_EDGES_UP : VERT_EDGES_DOWN).map(([a, b]) => ({ Q: v.Q + a, R: v.R + b }));
+const hexCornerVerts = (hex) => CORNER_OFFSETS.map(([a, b]) => ({ Q: 3 * hex.q + a, R: 3 * hex.r + b }));
+const vertFracHex = (v) => ({ q: v.Q / 3, r: v.R / 3 });
+
 // Which slot an old single `hex.symbol` (format v1) belongs to. System symbols by their layer list,
 // user symbols by their category id; anything unknown lands in 'extra'.
 function slotNameForSymbolKey(key, category) {
@@ -436,6 +456,13 @@ const TRANSLATIONS = {
         'option.endpoint': 'Endpunkt',
         'option.taper': 'Zulauf',
         'option.pathOrder': 'Ebene',
+        'option.route': 'Verlauf',
+        'tip.route': 'Verlauf zwischen den Punkten: durch Zentren, entlang der Kanten oder gemischt. Umschalten wandelt die Kontrollpunkte um.',
+        'tip.endpoint': 'Ob das gewählte Ende in der Waben-Mitte oder am Rand endet. Nur bei Zentrum-Enden aktiv.',
+        'tip.taper': 'Form des Fluss-Endes am gewählten Punkt: spitz oder rund.',
+        'route.center': 'Zentrum',
+        'route.edge': 'Kante',
+        'route.both': 'Beides',
         'tooltip.pathUp': 'Nach oben',
         'tooltip.pathDown': 'Nach unten',
         'endpoint.edge': 'Kante',
@@ -643,6 +670,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': 'Abstand zwischen den Strichen in % der Wabenlänge (0 % durchgehend, 100 % Punkte). Nur Wege; Flüsse sind nie gestrichelt.',
         'guide.paths.order': 'Ausgewählten Weg/Fluss über die Ebenen nach oben/unten schieben — z. B. hinter Vegetation oder Berge. Nie über Extras, Text oder Wabenrahmen und nie hinter die Farb-/Textur-Basis. Parallel laufende Wege und Flüsse werden immer nebeneinander gezeichnet.',
         'guide.paths.endpoint': 'Endpunkt eines Wegs/Flusses anklicken (Ring), dann pro Ende festlegen: Endpunkt (Kante/Zentrum) und bei Flüssen den Zulauf (spitz/rund).',
+        'guide.paths.route': 'Verlauf: legt fest, ob ein Weg/Fluss durch die Waben-Zentren oder entlang der Wabenkanten läuft.',
         'guide.borders': 'Grenzen',
         'guide.borders.draw': 'Grenzregion zeichnen durch Klicken oder Ziehen auf Waben.',
         'guide.borders.pick': 'Bestehende Grenze zum Bearbeiten auswählen.',
@@ -808,6 +836,13 @@ const TRANSLATIONS = {
         'option.endpoint': 'Endpoint',
         'option.taper': 'Taper',
         'option.pathOrder': 'Layer',
+        'option.route': 'Route',
+        'tip.route': 'How the path runs between points: through centres, along edges, or mixed. Switching converts the control points.',
+        'tip.endpoint': 'Whether the selected end stops at the hex centre or the edge. Active only for centre ends.',
+        'tip.taper': 'Shape of the river end at the selected point: pointed or round.',
+        'route.center': 'Center',
+        'route.edge': 'Edge',
+        'route.both': 'Both',
         'tooltip.pathUp': 'Move up',
         'tooltip.pathDown': 'Move down',
         'endpoint.edge': 'Edge',
@@ -1015,6 +1050,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': 'Dash gap in % of the hex length (0 % solid, 100 % dots). Roads only; rivers are never dashed.',
         'guide.paths.order': 'Move the selected road/river up/down through the layers — e.g. behind vegetation or mountains. Never above extras, text or the hex grid, and never behind the colour/texture base. Parallel roads and rivers are always drawn side by side.',
         'guide.paths.endpoint': 'Click a road/river endpoint (ring), then set per end: endpoint (edge/centre) and, for rivers, the taper (pointed/round).',
+        'guide.paths.route': 'Route: whether a road/river runs through hex centres or along hex borders.',
         'guide.borders': 'Borders',
         'guide.borders.draw': 'Draw border region by clicking or dragging on hexes.',
         'guide.borders.pick': 'Select an existing border to edit.',
@@ -1166,6 +1202,13 @@ const TRANSLATIONS = {
         'option.endpoint': '端点',
         'option.taper': '收尾',
         'option.pathOrder': '层级',
+        'option.route': '走向',
+        'tip.route': '路径在点之间的走向：经过中心、沿边界或混合。切换会转换控制点。',
+        'tip.endpoint': '所选端点停在蜂窝中心还是边缘。仅对中心端点有效。',
+        'tip.taper': '所选点处河流末端的形状：尖或圆。',
+        'route.center': '中心',
+        'route.edge': '边',
+        'route.both': '两者',
         'tooltip.pathUp': '上移',
         'tooltip.pathDown': '下移',
         'endpoint.edge': '边缘',
@@ -1363,6 +1406,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': '虚线间隙，占六角格长度的百分比（0 % 实线，100 % 圆点）。仅道路；河流从不使用虚线。',
         'guide.paths.order': '将所选道路/河流在图层间上移/下移——例如置于植被或山脉之后。绝不会高于额外符号、文字或六角格边框，也不会低于颜色/纹理底层。平行的道路与河流始终并排绘制。',
         'guide.paths.endpoint': '点击道路/河流的端点（圆环），然后按端设置：端点（边缘/中心），河流还可设收尾（尖/圆）。',
+        'guide.paths.route': '走向：道路/河流经过蜂窝中心还是沿蜂窝边界。',
         'guide.borders': '边界',
         'guide.borders.draw': '点击或拖动六角格绘制边界区域。',
         'guide.borders.pick': '选择已有边界进行编辑。',
@@ -1510,6 +1554,13 @@ const TRANSLATIONS = {
         'option.endpoint': 'Конец',
         'option.taper': 'Сужение',
         'option.pathOrder': 'Слой',
+        'option.route': 'Ход',
+        'tip.route': 'Как путь идёт между точками: через центры, по краям или смешанно. Переключение преобразует точки.',
+        'tip.endpoint': 'Заканчивается ли выбранный конец в центре соты или на краю. Активно только для центральных концов.',
+        'tip.taper': 'Форма конца реки в выбранной точке: острый или круглый.',
+        'route.center': 'Центр',
+        'route.edge': 'Край',
+        'route.both': 'Оба',
         'tooltip.pathUp': 'Выше',
         'tooltip.pathDown': 'Ниже',
         'endpoint.edge': 'Край',
@@ -1707,6 +1758,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': 'Зазор между штрихами в % от длины соты (0 % сплошная, 100 % точки). Только дороги; реки никогда не штрихуются.',
         'guide.paths.order': 'Переместить выбранную дорогу/реку вверх/вниз по слоям — например, за растительность или горы. Никогда выше дополнительных символов, текста или сетки сот и никогда за цветовую/текстурную основу. Параллельные дороги и реки всегда рисуются рядом.',
         'guide.paths.endpoint': 'Щёлкните по концу дороги/реки (кольцо), затем задайте для каждого конца: точку (край/центр) и для рек сужение (острое/круглое).',
+        'guide.paths.route': 'Ход: идёт ли дорога/река через центры сот или по их границам.',
         'guide.borders': 'Границы',
         'guide.borders.draw': 'Рисовать область границы нажатием или перетаскиванием по сотам.',
         'guide.borders.pick': 'Выбрать существующую границу для редактирования.',
@@ -1854,6 +1906,13 @@ const TRANSLATIONS = {
         'option.endpoint': '端点',
         'option.taper': '先細り',
         'option.pathOrder': 'レイヤー',
+        'option.route': '経路',
+        'tip.route': '点の間の経路：中心を通る・辺に沿う・混合。切り替えると制御点が変換されます。',
+        'tip.endpoint': '選択した端点を中心で終えるか辺で終えるか。中心の端点でのみ有効。',
+        'tip.taper': '選択した点での川の端の形：尖りか丸か。',
+        'route.center': '中心',
+        'route.edge': '辺',
+        'route.both': '両方',
         'tooltip.pathUp': '上へ',
         'tooltip.pathDown': '下へ',
         'endpoint.edge': '辺',
@@ -2051,6 +2110,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': '破線の間隔（ヘックス長に対する%、0 % 実線、100 % 点）。道のみ。川は破線になりません。',
         'guide.paths.order': '選択した道/川をレイヤー間で上下に移動 — 例えば植生や山の背面へ。追加シンボル・テキスト・ヘックス枠より前には出ず、色/テクスチャの基盤より後ろにも行きません。並行する道と川は常に横並びで描画されます。',
         'guide.paths.endpoint': '道/川の端点（リング）をクリックし、端ごとに設定：端点（辺/中心）、川では先細り（尖り/丸）。',
+        'guide.paths.route': '経路：道／川がヘクスの中心を通るか、境界に沿うか。',
         'guide.borders': '境界',
         'guide.borders.draw': 'ヘックスをクリックまたはドラッグして境界領域を描画。',
         'guide.borders.pick': '既存の境界を選択して編集。',
@@ -2198,6 +2258,13 @@ const TRANSLATIONS = {
         'option.endpoint': 'Extrémité',
         'option.taper': 'Effilement',
         'option.pathOrder': 'Calque',
+        'option.route': 'Tracé',
+        'tip.route': 'Tracé entre les points : par les centres, le long des bords ou mixte. Changer convertit les points.',
+        'tip.endpoint': 'Si l\'extrémité choisie se termine au centre de l\'hexagone ou au bord. Active seulement pour les extrémités au centre.',
+        'tip.taper': 'Forme de la fin de la rivière au point choisi : pointue ou arrondie.',
+        'route.center': 'Centre',
+        'route.edge': 'Bord',
+        'route.both': 'Les deux',
         'tooltip.pathUp': 'Monter',
         'tooltip.pathDown': 'Descendre',
         'endpoint.edge': 'Bord',
@@ -2395,6 +2462,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': 'Espace entre les tirets en % de la longueur de l\'hexagone (0 % continu, 100 % points). Routes uniquement ; les rivières ne sont jamais en pointillés.',
         'guide.paths.order': 'Déplacer la route/rivière sélectionnée vers le haut/bas dans les calques — p. ex. derrière la végétation ou les montagnes. Jamais au-dessus des extras, du texte ou de la grille, ni derrière la base couleur/texture. Les routes et rivières parallèles sont toujours dessinées côte à côte.',
         'guide.paths.endpoint': 'Cliquez sur une extrémité de route/rivière (anneau), puis réglez par extrémité : le point (bord/centre) et, pour les rivières, l\'effilement (pointu/arrondi).',
+        'guide.paths.route': 'Tracé : la route/rivière passe par les centres des hexagones ou le long de leurs bords.',
         'guide.borders': 'Frontières',
         'guide.borders.draw': 'Dessiner une région de frontière en cliquant ou en glissant sur les hexagones.',
         'guide.borders.pick': 'Sélectionner une frontière existante pour la modifier.',
@@ -2542,6 +2610,13 @@ const TRANSLATIONS = {
         'option.endpoint': 'Extremidade',
         'option.taper': 'Afinamento',
         'option.pathOrder': 'Camada',
+        'option.route': 'Traçado',
+        'tip.route': 'Como o traçado corre entre pontos: por centros, pelas bordas ou misto. Alternar converte os pontos.',
+        'tip.endpoint': 'Se a extremidade selecionada termina no centro do hexágono ou na borda. Ativa só para extremidades no centro.',
+        'tip.taper': 'Forma do fim do rio no ponto selecionado: pontudo ou redondo.',
+        'route.center': 'Centro',
+        'route.edge': 'Borda',
+        'route.both': 'Ambos',
         'tooltip.pathUp': 'Mover para cima',
         'tooltip.pathDown': 'Mover para baixo',
         'endpoint.edge': 'Borda',
@@ -2739,6 +2814,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': 'Espaço entre traços em % do comprimento do hexágono (0 % contínuo, 100 % pontos). Apenas estradas; rios nunca são tracejados.',
         'guide.paths.order': 'Mover a estrada/rio selecionado para cima/baixo pelas camadas — p. ex. atrás de vegetação ou montanhas. Nunca acima de extras, texto ou grade de hexágonos, nem atrás da base de cor/textura. Estradas e rios paralelos são sempre desenhados lado a lado.',
         'guide.paths.endpoint': 'Clique numa extremidade de estrada/rio (anel), depois defina por extremidade: o ponto (borda/centro) e, para rios, o afinamento (pontudo/redondo).',
+        'guide.paths.route': 'Traçado: se a estrada/rio passa pelos centros dos hexágonos ou ao longo das bordas.',
         'guide.borders': 'Fronteiras',
         'guide.borders.draw': 'Desenhar região de fronteira clicando ou arrastando sobre hexágonos.',
         'guide.borders.pick': 'Selecionar fronteira existente para editar.',
@@ -2886,6 +2962,13 @@ const TRANSLATIONS = {
         'option.endpoint': '끝점',
         'option.taper': '끝 모양',
         'option.pathOrder': '레이어',
+        'option.route': '경로',
+        'tip.route': '점 사이 경로: 중심 통과, 가장자리 따라, 또는 혼합. 전환하면 제어점이 변환됩니다.',
+        'tip.endpoint': '선택한 끝점을 헥스 중심에서 끝낼지 가장자리에서 끝낼지. 중심 끝점에서만 활성화.',
+        'tip.taper': '선택한 점에서 강 끝의 모양: 뾰족하거나 둥글게.',
+        'route.center': '중심',
+        'route.edge': '가장자리',
+        'route.both': '둘 다',
         'tooltip.pathUp': '위로',
         'tooltip.pathDown': '아래로',
         'endpoint.edge': '가장자리',
@@ -3083,6 +3166,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': '헥스 길이에 대한 대시 간격 %(0 % 실선, 100 % 점). 도로만 해당하며, 강은 절대 점선이 아닙니다.',
         'guide.paths.order': '선택한 도로/강을 레이어 사이에서 위/아래로 이동합니다 — 예: 식생이나 산 뒤로. 엑스트라, 텍스트, 헥스 격자보다 위로는 가지 않으며 색/텍스처 기반보다 뒤로도 가지 않습니다. 나란히 흐르는 도로와 강은 항상 옆으로 나란히 그려집니다.',
         'guide.paths.endpoint': '도로/강의 끝점(고리)을 클릭한 뒤 끝마다 설정: 끝점(가장자리/중심), 강은 끝 모양(뾰족/둥글).',
+        'guide.paths.route': '경로: 도로/강이 헥스 중심을 지날지 경계를 따라갈지.',
         'guide.borders': '경계',
         'guide.borders.draw': '헥스 셀을 클릭하거나 드래그하여 경계 영역을 그립니다.',
         'guide.borders.pick': '기존 경계를 선택하여 편집합니다.',
@@ -3230,6 +3314,13 @@ const TRANSLATIONS = {
         'option.endpoint': 'Extremo',
         'option.taper': 'Estrechamiento',
         'option.pathOrder': 'Capa',
+        'option.route': 'Trazado',
+        'tip.route': 'Cómo va el trazado entre puntos: por centros, por bordes o mixto. Cambiar convierte los puntos.',
+        'tip.endpoint': 'Si el extremo seleccionado termina en el centro del hexágono o en el borde. Activo solo para extremos en el centro.',
+        'tip.taper': 'Forma del final del río en el punto seleccionado: puntiagudo o redondo.',
+        'route.center': 'Centro',
+        'route.edge': 'Borde',
+        'route.both': 'Ambos',
         'tooltip.pathUp': 'Subir',
         'tooltip.pathDown': 'Bajar',
         'endpoint.edge': 'Borde',
@@ -3427,6 +3518,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': 'Hueco entre trazos en % de la longitud del hexágono (0 % continuo, 100 % puntos). Solo caminos; los ríos nunca son discontinuos.',
         'guide.paths.order': 'Mover el camino/río seleccionado hacia arriba/abajo entre las capas — p. ej. detrás de vegetación o montañas. Nunca por encima de extras, texto o la rejilla, ni detrás de la base de color/textura. Los caminos y ríos paralelos siempre se dibujan uno al lado del otro.',
         'guide.paths.endpoint': 'Haz clic en un extremo de camino/río (anillo) y ajusta por extremo: el punto (borde/centro) y, en ríos, el estrechamiento (punta/redondo).',
+        'guide.paths.route': 'Trazado: si el camino/río pasa por los centros de los hexágonos o por sus bordes.',
         'guide.borders': 'Fronteras',
         'guide.borders.draw': 'Dibujar región fronteriza haciendo clic o arrastrando sobre celdas.',
         'guide.borders.pick': 'Seleccionar frontera existente para editar.',
@@ -3574,6 +3666,13 @@ const TRANSLATIONS = {
         'option.endpoint': 'Koniec',
         'option.taper': 'Zwężenie',
         'option.pathOrder': 'Warstwa',
+        'option.route': 'Przebieg',
+        'tip.route': 'Jak trasa biegnie między punktami: przez środki, wzdłuż krawędzi lub mieszanie. Przełączenie przekształca punkty.',
+        'tip.endpoint': 'Czy wybrany koniec kończy się w środku heksa czy na krawędzi. Aktywne tylko dla końców w środku.',
+        'tip.taper': 'Kształt końca rzeki w wybranym punkcie: ostry lub zaokrąglony.',
+        'route.center': 'Środek',
+        'route.edge': 'Krawędź',
+        'route.both': 'Oba',
         'tooltip.pathUp': 'W górę',
         'tooltip.pathDown': 'W dół',
         'endpoint.edge': 'Krawędź',
@@ -3771,6 +3870,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': 'Przerwa między kreskami w % długości sześciokąta (0 % ciągła, 100 % kropki). Tylko drogi; rzeki nigdy nie są kreskowane.',
         'guide.paths.order': 'Przesuń wybraną drogę/rzekę w górę/dół przez warstwy — np. za roślinność lub góry. Nigdy nad dodatki, tekst lub siatkę sześciokątów, ani za bazę koloru/tekstury. Równoległe drogi i rzeki są zawsze rysowane obok siebie.',
         'guide.paths.endpoint': 'Kliknij koniec drogi/rzeki (pierścień), następnie ustaw dla każdego końca: punkt (krawędź/środek) oraz dla rzek zwężenie (ostre/zaokrąglone).',
+        'guide.paths.route': 'Przebieg: czy droga/rzeka biegnie przez środki heksów, czy wzdłuż ich krawędzi.',
         'guide.borders': 'Granice',
         'guide.borders.draw': 'Rysuj region graniczny klikając lub przeciągając po komórkach.',
         'guide.borders.pick': 'Wybierz istniejącą granicę do edycji.',
@@ -3918,6 +4018,13 @@ const TRANSLATIONS = {
         'option.endpoint': 'Estremità',
         'option.taper': 'Assottigliamento',
         'option.pathOrder': 'Livello',
+        'option.route': 'Percorso',
+        'tip.route': 'Come corre il tracciato tra i punti: per i centri, lungo i bordi o misto. Cambiare converte i punti.',
+        'tip.endpoint': 'Se l\'estremità scelta termina al centro dell\'esagono o sul bordo. Attiva solo per le estremità al centro.',
+        'tip.taper': 'Forma della fine del fiume nel punto scelto: appuntita o arrotondata.',
+        'route.center': 'Centro',
+        'route.edge': 'Bordo',
+        'route.both': 'Entrambi',
         'tooltip.pathUp': 'Su',
         'tooltip.pathDown': 'Giù',
         'endpoint.edge': 'Bordo',
@@ -4115,6 +4222,7 @@ const TRANSLATIONS = {
         'guide.paths.dashes': 'Spazio tra i tratti in % della lunghezza dell\'esagono (0 % continuo, 100 % punti). Solo strade; i fiumi non sono mai tratteggiati.',
         'guide.paths.order': 'Sposta la strada/il fiume selezionato su/giù tra i livelli — ad es. dietro vegetazione o montagne. Mai sopra extra, testo o griglia, né dietro la base di colore/texture. Strade e fiumi paralleli sono sempre disegnati affiancati.',
         'guide.paths.endpoint': 'Clicca su un\'estremità di strada/fiume (anello), poi imposta per estremità: il punto (bordo/centro) e, per i fiumi, l\'assottigliamento (appuntito/arrotondato).',
+        'guide.paths.route': 'Percorso: se strada/fiume passa per i centri degli esagoni o lungo i bordi.',
         'guide.borders': 'Confini',
         'guide.borders.draw': 'Disegna regione di confine cliccando o trascinando sulle celle.',
         'guide.borders.pick': 'Seleziona confine esistente per modificare.',
@@ -5611,6 +5719,7 @@ class HexCartographerView extends ItemView {
         this.pathGapPercent = DEFAULT_PATH_GAP_PERCENT;
         this.pathDashDensity = DEFAULT_PATH_DASH_DENSITY;
         this.pathEndpoint = 'edge'; // where a path ends/starts: 'edge' (default) or 'center'
+        this.pathRouteMode = PATH_ROUTE_DEFAULT; // running route-mode default for new paths
         this.pathPickMode = false;
         this.pathPickPending = null;
         this.lastToolGroup = null;
@@ -6247,6 +6356,9 @@ class HexCartographerView extends ItemView {
                 if (newData.settings.pathEndpoint !== undefined) {
                     this.pathEndpoint = newData.settings.pathEndpoint;
                 }
+                if (newData.settings.pathRouteMode !== undefined) {
+                    this.pathRouteMode = newData.settings.pathRouteMode;
+                }
                 if (newData.settings.hexColorColor) {
                     this.hexColorColor = newData.settings.hexColorColor;
                 }
@@ -6759,6 +6871,14 @@ class HexCartographerView extends ItemView {
                 font-size: 13px;
                 color: var(--text-muted);
                 white-space: nowrap;
+            }
+            /* Make the whole button tappable on touch: text in the centre must not start a text
+               selection (which swallows the tap), so the centre stays clickable like the edges. */
+            .hex-option-btn {
+                user-select: none;
+                -webkit-user-select: none;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
             }
             .hex-option-controls {
                 display: inline-flex;
@@ -8010,12 +8130,13 @@ class HexCartographerView extends ItemView {
         // running default (this.pathEndpoint) for new paths.
         const optBtnStyle = `height: ${TOOLBAR_INPUT_HEIGHT}; font-size: ${TOOLBAR_INPUT_FONT_SIZE}; padding: 2px 8px; box-sizing: border-box; cursor: pointer;`;
         this.pathEndpointUnit = this.createOptionUnit('option.endpoint');
-        const endpointBtn = this.pathEndpointUnit.createEl('button', { cls: 'hex-option-btn', attr: { style: optBtnStyle } });
+        const endpointBtn = this.pathEndpointUnit.createEl('button', { cls: 'hex-option-btn', attr: { style: optBtnStyle, title: this._wrapTip(t('tip.endpoint')) } });
         this.pathEndpointBtn = endpointBtn;
-        const endpointModeOf = (wp) => (wp && wp.endpoint) || this.pathEndpoint || 'edge';
+        const endpointModeOf = (wp) => (wp && wp.endpoint) || (this.activePath() && this.activePath().endpoint) || 'edge';
         this._syncEndpointBtn = () => {
             const wp = this.selectedEndpoint();
-            endpointBtn.disabled = !wp; endpointBtn.style.opacity = wp ? '1' : '0.4';
+            const on = !!wp && !this.isCornerWp(wp); // centre endpoints only (edge-mode ends are corners)
+            endpointBtn.disabled = !on; endpointBtn.style.opacity = on ? '1' : '0.4';
             endpointBtn.setText(t(endpointModeOf(wp) === 'center' ? 'endpoint.center' : 'endpoint.edge'));
         };
         this._syncEndpointBtn();
@@ -8033,7 +8154,7 @@ class HexCartographerView extends ItemView {
 
         // Taper (pointed/round) — RIVERS only. Toggles waypoint.round on the selected end waypoint.
         this.pathTaperUnit = this.createOptionUnit('option.taper');
-        const taperBtn = this.pathTaperUnit.createEl('button', { cls: 'hex-option-btn', attr: { style: optBtnStyle } });
+        const taperBtn = this.pathTaperUnit.createEl('button', { cls: 'hex-option-btn', attr: { style: optBtnStyle, title: this._wrapTip(t('tip.taper')) } });
         this.pathTaperBtn = taperBtn;
         this._syncTaperBtn = () => {
             const wp = this.selectedEndpoint();
@@ -8047,6 +8168,31 @@ class HexCartographerView extends ItemView {
             this.pushHistory();
             wp.round = !(wp.round === true);
             this._syncTaperBtn();
+            this.render();
+            this.requestSave();
+        };
+
+        // Verlauf (route mode): how the edited path connects its control points — through hex centres
+        // ('Zentrum') or along hex borders ('Kante'). 'Beides' arrives in a later phase. Per path,
+        // undoable; switching clears the endpoint selection (control points change meaning).
+        this.pathRouteUnit = this.createOptionUnit('option.route');
+        const routeBtn = this.pathRouteUnit.createEl('button', { cls: 'hex-option-btn', attr: { style: optBtnStyle, title: this._wrapTip(t('tip.route')) } });
+        this.pathRouteBtn = routeBtn;
+        const routeLabel = { center: 'route.center', edge: 'route.edge', both: 'route.both' };
+        this._syncRouteBtn = () => {
+            const a = this.activePath();
+            routeBtn.disabled = !a; routeBtn.style.opacity = a ? '1' : '0.4';
+            routeBtn.setText(t(routeLabel[a ? routeModeOf(a) : 'center']));
+        };
+        this._syncRouteBtn();
+        routeBtn.onclick = () => {
+            const a = this.activePath();
+            if (!a) return;
+            this.pushHistory();
+            a.routeMode = PATH_ROUTE_MODES[(PATH_ROUTE_MODES.indexOf(routeModeOf(a)) + 1) % PATH_ROUTE_MODES.length]; // cycle Zentrum -> Kante -> Beides
+            this.pathRouteMode = a.routeMode; // running default for new paths
+            this.convertPathNodes(a); // re-snap control points to the new target type
+            this._syncRouteBtn();
             this.render();
             this.requestSave();
         };
@@ -8070,6 +8216,39 @@ class HexCartographerView extends ItemView {
             set(downBtn, !!a && cur > PATH_LAYER_MIN);
         };
         this._syncPathOrderBtns();
+        this._equalizeOptionBtns();
+    }
+
+    // Wrap a tooltip so no line exceeds ~128 chars (and fits the screen width). Native `title`
+    // tooltips honour \n but otherwise render one very long, clipped line.
+    _wrapTip(text) {
+        const w = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1024;
+        const maxChars = Math.max(28, Math.min(128, Math.floor(w / 8)));
+        if (text.length <= maxChars) return text;
+        const lines = []; let line = '';
+        for (const word of text.split(' ')) {
+            if (line && line.length + 1 + word.length > maxChars) { lines.push(line); line = word; }
+            else line = line ? line + ' ' + word : word;
+        }
+        if (line) lines.push(line);
+        return lines.join('\n');
+    }
+
+    // Lock the Endpunkt + Verlauf buttons to one shared width — the widest label either can show in
+    // the current language — so they don't jitter when their mode label changes.
+    _equalizeOptionBtns() {
+        const btns = [this.pathRouteBtn, this.pathEndpointBtn].filter(Boolean);
+        if (btns.length < 2) return;
+        const ctx = this._measureCtx || (this._measureCtx = document.createElement('canvas').getContext('2d'));
+        if (!ctx || !ctx.measureText) return;
+        let ff = 'sans-serif';
+        try { ff = getComputedStyle(btns[0]).fontFamily || ff; } catch (e) { /* unattached -> fallback */ }
+        ctx.font = `${TOOLBAR_INPUT_FONT_SIZE} ${ff}`;
+        const keys = ['route.center', 'route.edge', 'route.both', 'endpoint.edge', 'endpoint.center'];
+        let w = 0;
+        for (const k of keys) w = Math.max(w, ctx.measureText(t(k)).width);
+        const px = (Math.ceil(w) + 22) + 'px'; // padding (2x8) + border + small buffer
+        btns.forEach(b => { b.style.minWidth = px; });
     }
 
     handleWaypointClick(path, settings, clickedIdx) {
@@ -8119,6 +8298,7 @@ class HexCartographerView extends ItemView {
             if (this.riverWidthInput) this.riverWidthInput.value = path.width.toString();
             // Rivers are never dashed -> no gap input to load.
             this.pathEndpoint = path.endpoint || 'edge';
+            this.pathRouteMode = routeModeOf(path);
             if (this._syncEndpointBtn) this._syncEndpointBtn();
             new Notice(t('notice.riverSelected', { id: path.id }));
         } else {
@@ -8135,6 +8315,7 @@ class HexCartographerView extends ItemView {
             this.pathDashDensity = path.dashDensity || 1;
             if (this.pathDensityInput) this.pathDensityInput.value = this.pathDashDensity.toString();
             this.pathEndpoint = path.endpoint || 'edge';
+            this.pathRouteMode = routeModeOf(path);
             if (this._syncEndpointBtn) this._syncEndpointBtn();
             new Notice(t('notice.roadSelected', { id: path.id }));
         }
@@ -8468,6 +8649,7 @@ class HexCartographerView extends ItemView {
         if (this.roadWidthUnit) this.roadWidthUnit.style.display = road ? '' : 'none';
         if (this.pathDashesUnit) this.pathDashesUnit.style.display = road ? '' : 'none'; // roads only; rivers never dashed
         if (this.pathDensityUnit) this.pathDensityUnit.style.display = road ? '' : 'none';
+        if (this.pathRouteUnit) this.pathRouteUnit.style.display = (river || road) ? '' : 'none'; // route mode, roads AND rivers
         if (this.pathEndpointUnit) this.pathEndpointUnit.style.display = (river || road) ? '' : 'none'; // roads AND rivers
         if (this.pathTaperUnit) this.pathTaperUnit.style.display = river ? '' : 'none'; // taper is rivers only
         if (this.pathOrderUnit) this.pathOrderUnit.style.display = (river || road) ? '' : 'none'; // front/back, roads AND rivers
@@ -8548,6 +8730,7 @@ class HexCartographerView extends ItemView {
         if (this.roadWidthInput) this.roadWidthInput.value = this.roadSettings.width.toString();
         if (this.pathDashesInput) this.pathDashesInput.value = (this.pathGapPercent || 0).toString();
         if (this.pathDensityInput) this.pathDensityInput.value = (this.pathDashDensity || 1).toString();
+        if (this._syncRouteBtn) this._syncRouteBtn();
         if (this._syncEndpointBtn) this._syncEndpointBtn();
         if (this._syncTaperBtn) this._syncTaperBtn();
         if (this._syncPathOrderBtns) this._syncPathOrderBtns();
@@ -9336,11 +9519,12 @@ class HexCartographerView extends ItemView {
                 } else if (this.roadDragIndex !== null && this.roadSettings.editMode) {
                     const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
                     if (road) {
-                        const currentHex = this.pixelToHex(world.x, world.y);
+                        const currentHex = this.snapPathHex(road, world.x, world.y);
                         const curQ = road.waypoints[this.roadDragIndex.idx].q;
                         const curR = road.waypoints[this.roadDragIndex.idx].r;
                         if (curQ !== currentHex.q || curR !== currentHex.r) {
                             this.pushHistoryIfNeeded();
+                            this.roadSettings.insertAfter = this.roadDragIndex.idx; // dragged point becomes active
                             this.roadDragIndex.group.forEach(i => {
                                 road.waypoints[i].q = currentHex.q;
                                 road.waypoints[i].r = currentHex.r;
@@ -9351,11 +9535,12 @@ class HexCartographerView extends ItemView {
                 } else if (this.riverDragIndex !== null && this.riverSettings.editMode) {
                     const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
                     if (river) {
-                        const currentHex = this.pixelToHex(world.x, world.y);
+                        const currentHex = this.snapPathHex(river, world.x, world.y);
                         const curQ = river.waypoints[this.riverDragIndex.idx].q;
                         const curR = river.waypoints[this.riverDragIndex.idx].r;
                         if (curQ !== currentHex.q || curR !== currentHex.r) {
                             this.pushHistoryIfNeeded();
+                            this.riverSettings.insertAfter = this.riverDragIndex.idx; // dragged point becomes active
                             this.riverDragIndex.group.forEach(i => {
                                 river.waypoints[i].q = currentHex.q;
                                 river.waypoints[i].r = currentHex.r;
@@ -9832,11 +10017,12 @@ class HexCartographerView extends ItemView {
                     } else if (this.roadDragIndex !== null && this.roadSettings.editMode) {
                         const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
                         if (road) {
-                            const currentHex = this.pixelToHex(world.x, world.y);
+                            const currentHex = this.snapPathHex(road, world.x, world.y);
                             const curQ = road.waypoints[this.roadDragIndex.idx].q;
                             const curR = road.waypoints[this.roadDragIndex.idx].r;
                             if (curQ !== currentHex.q || curR !== currentHex.r) {
                                 this.pushHistoryIfNeeded();
+                                this.roadSettings.insertAfter = this.roadDragIndex.idx; // dragged point becomes active
                                 this.roadDragIndex.group.forEach(i => {
                                     road.waypoints[i].q = currentHex.q;
                                     road.waypoints[i].r = currentHex.r;
@@ -9847,11 +10033,12 @@ class HexCartographerView extends ItemView {
                     } else if (this.riverDragIndex !== null && this.riverSettings.editMode) {
                         const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
                         if (river) {
-                            const currentHex = this.pixelToHex(world.x, world.y);
+                            const currentHex = this.snapPathHex(river, world.x, world.y);
                             const curQ = river.waypoints[this.riverDragIndex.idx].q;
                             const curR = river.waypoints[this.riverDragIndex.idx].r;
                             if (curQ !== currentHex.q || curR !== currentHex.r) {
                                 this.pushHistoryIfNeeded();
+                                this.riverSettings.insertAfter = this.riverDragIndex.idx; // dragged point becomes active
                                 this.riverDragIndex.group.forEach(i => {
                                     river.waypoints[i].q = currentHex.q;
                                     river.waypoints[i].r = currentHex.r;
@@ -10211,6 +10398,89 @@ class HexCartographerView extends ItemView {
         return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2;
     }
 
+    // The corner a control point maps to: its stored vertex, or (legacy/centre point switched to edge
+    // mode) the corner nearest its centre.
+    // Control points are stored as fractional hex coords: a centre has integer q,r, a corner has
+    // "thirds" (q,r are multiples of 1/3). This tells the two apart without an extra field.
+    isCornerWp(wp) { return !Number.isInteger(wp.q) || !Number.isInteger(wp.r); }
+
+    // The corner a control point maps to: reconstructed from its thirds coords, or (a centre routed
+    // in edge mode) the corner nearest its centre.
+    wpVert(wp) {
+        if (this.isCornerWp(wp)) return { Q: Math.round(wp.q * 3), R: Math.round(wp.r * 3) };
+        const p = this.hexToPixel(wp);
+        return this.nearestVertAtPixel(p.x, p.y);
+    }
+
+    // Snap a world pixel to the control-point target for `path`'s route mode: a hex centre
+    // ('center'), the nearest corner ('edge'), or whichever is closer ('both').
+    snapPathHex(path, wx, wy) {
+        const mode = routeModeOf(path);
+        const hex = this.pixelToHex(wx, wy);
+        if (mode === 'center') return { q: hex.q, r: hex.r };
+        const v = this.nearestVertAtPixel(wx, wy);
+        const corner = { q: v.Q / 3, r: v.R / 3 };
+        if (mode === 'edge') return corner;
+        const cp = this.hexToPixel(hex), vp = this.vertPixel(v);
+        const dc = (cp.x - wx) ** 2 + (cp.y - wy) ** 2, dv = (vp.x - wx) ** 2 + (vp.y - wy) ** 2;
+        return dv < dc ? corner : { q: hex.q, r: hex.r };
+    }
+
+    // Re-snap all control points to the new mode's target type (centre <-> corner). 'both' keeps the
+    // mixed nodes. Lossy by design: a corner rounds to its nearest centre and vice versa.
+    convertPathNodes(path) {
+        const mode = routeModeOf(path);
+        if (mode === 'both' || !path.waypoints) return;
+        for (const wp of path.waypoints) {
+            const corner = this.isCornerWp(wp);
+            if (mode === 'center' && corner) {
+                const p = this.hexToPixel(wp);
+                const h = this.pixelToHex(p.x, p.y);
+                wp.q = h.q; wp.r = h.r;
+            } else if (mode === 'edge' && !corner) {
+                const p = this.hexToPixel(wp);
+                const v = this.nearestVertAtPixel(p.x, p.y);
+                wp.q = v.Q / 3; wp.r = v.R / 3;
+            }
+        }
+    }
+
+    // Segments for one edge-mode leg: route along hex borders between two control-point corners and
+    // emit {from,to,width} in fractional hex coords (rendered through the same hexToPixel).
+    edgeRouteSegments(wpA, wpB, width) {
+        const route = this.routeEdgeVerts(this.wpVert(wpA), this.wpVert(wpB));
+        const segs = [];
+        for (let i = 1; i < route.length; i++) {
+            segs.push({ from: vertFracHex(route[i - 1]), to: vertFracHex(route[i]), width });
+        }
+        return segs;
+    }
+
+    // One edge-mode leg where each end is a NODE: a corner ({vert}) or a hex centre ({center}). A
+    // centre node routes to the corner of that hex nearest the other end, then a straight stub joins
+    // the corner to the centre — this is how a 'center' endpoint dips off the border into a hex.
+    edgeLegSegments(fromNode, toNode, width) {
+        const nodePixel = (n) => n.vert ? this.vertPixel(n.vert) : this.hexToPixel(n.center);
+        const cornerOf = (n, otherPix) => {
+            if (n.vert) return n.vert;
+            let best = null, bd = Infinity;
+            for (const v of hexCornerVerts(n.center)) {
+                const p = this.vertPixel(v);
+                const d = (p.x - otherPix.x) ** 2 + (p.y - otherPix.y) ** 2;
+                if (d < bd) { bd = d; best = v; }
+            }
+            return best;
+        };
+        const cFrom = cornerOf(fromNode, nodePixel(toNode));
+        const cTo = cornerOf(toNode, nodePixel(fromNode));
+        const route = this.routeEdgeVerts(cFrom, cTo);
+        const segs = [];
+        if (fromNode.center) segs.push({ from: { q: fromNode.center.q, r: fromNode.center.r }, to: vertFracHex(cFrom), width });
+        for (let i = 1; i < route.length; i++) segs.push({ from: vertFracHex(route[i - 1]), to: vertFracHex(route[i]), width });
+        if (toNode.center) segs.push({ from: vertFracHex(cTo), to: { q: toNode.center.q, r: toNode.center.r }, width });
+        return segs;
+    }
+
     hexLerp(a, b, t) {
         const q = a.q + (b.q - a.q) * t, r = a.r + (b.r - a.r) * t;
         let rq = Math.round(q), rr = Math.round(r), rs = Math.round(-q-r);
@@ -10218,6 +10488,136 @@ class HexCartographerView extends ItemView {
         if (qd > rd && qd > sd) rq = -rr-rs;
         else if (rd > sd) rr = -rq-rs;
         return { q: rq, r: rr };
+    }
+
+    vertPixel(v) { return this.hexToPixel(vertFracHex(v)); }
+
+    // Snap a world pixel to the nearest hex corner (edge-mode control points). The nearest grid
+    // corner to a point inside a hex is always one of that hex's own 6 corners.
+    nearestVertAtPixel(wx, wy) {
+        const hex = this.pixelToHex(wx, wy);
+        let best = null, bestD = Infinity;
+        for (const v of hexCornerVerts(hex)) {
+            const p = this.vertPixel(v);
+            const d = (p.x - wx) ** 2 + (p.y - wy) ** 2;
+            if (d < bestD) { bestD = d; best = v; }
+        }
+        return best;
+    }
+
+    // Shortest walk along hex borders from corner a to corner b (A* on the corner graph). Edge cost
+    // is the geometric length; ties break toward the straight a->b line so routes stay direct.
+    routeEdgeVerts(a, b) {
+        if (vertKey(a) === vertKey(b)) return [a];
+        const px = {}; const P = (v) => (px[vertKey(v)] || (px[vertKey(v)] = this.vertPixel(v)));
+        const gp = P(b), sp = P(a);
+        const H = (v) => { const p = P(v); return Math.hypot(p.x - gp.x, p.y - gp.y); };
+        const dx = gp.x - sp.x, dy = gp.y - sp.y, len = Math.hypot(dx, dy) || 1;
+        const perp = (v) => { const p = P(v); return Math.abs((p.x - sp.x) * dy - (p.y - sp.y) * dx) / len; };
+        const aKey = vertKey(a), bKey = vertKey(b);
+        const open = [{ v: a, g: 0, f: H(a), perp: 0, key: aKey }];
+        const g = { [aKey]: 0 }, came = {}, closed = new Set();
+        let guard = 0;
+        while (open.length && guard++ < 8000) {
+            open.sort((x, y) => (x.f - y.f) || (x.perp - y.perp));
+            const cur = open.shift();
+            if (cur.key === bKey) break;
+            if (closed.has(cur.key)) continue;
+            closed.add(cur.key);
+            const cp = P(cur.v);
+            for (const nb of vertNeighbors(cur.v)) {
+                const nk = vertKey(nb);
+                if (closed.has(nk)) continue;
+                const np = P(nb);
+                const ng = cur.g + Math.hypot(np.x - cp.x, np.y - cp.y);
+                if (g[nk] === undefined || ng < g[nk] - 1e-6) {
+                    g[nk] = ng; came[nk] = cur.v;
+                    open.push({ v: nb, g: ng, f: ng + H(nb), perp: perp(nb), key: nk });
+                }
+            }
+        }
+        if (came[bKey] === undefined) return [a, b]; // unreachable (should not happen) -> direct
+        const out = []; let cv = b;
+        while (cv) { out.unshift(cv); if (vertKey(cv) === aKey) break; cv = came[vertKey(cv)]; }
+        return out;
+    }
+
+    // The 3 hex centres meeting at corner v (thirds coords).
+    cornerHexes(v) {
+        const out = [];
+        for (const [a, b] of CORNER_OFFSETS) {
+            const hq = (v.Q - a) / 3, hr = (v.R - b) / 3;
+            if (Number.isInteger(hq) && Number.isInteger(hr)) out.push({ q: hq, r: hr });
+        }
+        return out;
+    }
+
+    // 'both' graph neighbours of a node (centre or corner), as fractional hex coords: a corner links
+    // to its 3 adjacent corners + 3 touching centres; a centre links to its 6 corners + 6 neighbours.
+    mixedNeighbors(node) {
+        const out = [];
+        if (!Number.isInteger(node.q) || !Number.isInteger(node.r)) {
+            const v = { Q: Math.round(node.q * 3), R: Math.round(node.r * 3) };
+            for (const nb of vertNeighbors(v)) out.push({ q: nb.Q / 3, r: nb.R / 3 });
+            for (const h of this.cornerHexes(v)) out.push({ q: h.q, r: h.r });
+        } else {
+            for (const c of hexCornerVerts(node)) out.push({ q: c.Q / 3, r: c.R / 3 });
+            for (const [dq, dr] of HEX_DIRS) out.push({ q: node.q + dq, r: node.r + dr });
+        }
+        return out;
+    }
+
+    // Shortest mixed route (centres + corners) between two nodes, A* on geometric length. Both are
+    // fractional hex coords; ties resolve by cost so the path stays as direct as the grid allows.
+    routeMixedNodes(a, b) {
+        const key = (n) => Math.round(n.q * 6) + '_' + Math.round(n.r * 6);
+        const aKey = key(a), bKey = key(b);
+        if (aKey === bKey) return [a];
+        const px = {}; const P = (n) => (px[key(n)] || (px[key(n)] = this.hexToPixel(n)));
+        const gp = P(b);
+        const H = (n) => { const p = P(n); return Math.hypot(p.x - gp.x, p.y - gp.y); };
+        const open = [{ n: a, g: 0, f: H(a), key: aKey }];
+        const g = { [aKey]: 0 }, came = {}, node = { [aKey]: a }, closed = new Set();
+        let guard = 0;
+        while (open.length && guard++ < 20000) {
+            open.sort((x, y) => x.f - y.f);
+            const cur = open.shift();
+            if (cur.key === bKey) break;
+            if (closed.has(cur.key)) continue;
+            closed.add(cur.key);
+            const cp = P(cur.n);
+            for (const nb of this.mixedNeighbors(cur.n)) {
+                const nk = key(nb);
+                if (closed.has(nk)) continue;
+                const np = P(nb);
+                const ng = cur.g + Math.hypot(np.x - cp.x, np.y - cp.y);
+                if (g[nk] === undefined || ng < g[nk] - 1e-6) {
+                    g[nk] = ng; came[nk] = cur.key; node[nk] = nb;
+                    open.push({ n: nb, g: ng, f: ng + H(nb), key: nk });
+                }
+            }
+        }
+        if (came[bKey] === undefined) return [a, b];
+        const out = []; let k = bKey;
+        while (k) { out.unshift(node[k]); if (k === aKey) break; k = came[k]; }
+        return out;
+    }
+
+    // Segments for one 'both' leg between two control points (already fractional hex coords).
+    mixedRouteSegments(wpA, wpB, width) {
+        const route = this.routeMixedNodes({ q: wpA.q, r: wpA.r }, { q: wpB.q, r: wpB.r });
+        const segs = [];
+        for (let i = 1; i < route.length; i++) segs.push({ from: route[i - 1], to: route[i], width });
+        return segs;
+    }
+
+    // The rendered segments for one leg, by the path's route mode (centre/edge/both). Used wherever a
+    // path's actual on-screen line matters (hit-testing, erasing).
+    routeSegments(path, from, to) {
+        const m = routeModeOf(path);
+        return m === 'edge' ? this.edgeRouteSegments(from, to, path.width)
+            : m === 'both' ? this.mixedRouteSegments(from, to, path.width)
+                : this.calculateHexPath(from, to, path.width);
     }
 
     // A user key that cannot be drawn: missing (folder path or file gone) or a
@@ -10341,9 +10741,9 @@ class HexCartographerView extends ItemView {
             if (this.currentToolGroup === 'border') {
                 this.addBorderHex(hex);
             } else if (this.currentToolGroup === 'road' && isInitial) {
-                this.addRoadWaypoint(hex);
+                this.addRoadWaypoint(hex, world.x, world.y);
             } else if (this.currentToolGroup === 'river' && isInitial) {
-                this.addRiverWaypoint(hex);
+                this.addRiverWaypoint(hex, world.x, world.y);
             } else if (!['river', 'road', 'text'].includes(this.currentToolGroup)) {
                 this.paintHex(hex);
             }
@@ -10385,30 +10785,52 @@ class HexCartographerView extends ItemView {
         if (toolbar) this.updateToolbarState(toolbar);
     }
 
-    findRoadAtHex(hex) {
-        if (!this.data.roads) return null;
-        for (const road of this.data.roads) {
-            if (!road.waypoints || road.waypoints.length === 0) continue;
-            if (road.waypoints.some(w => w.q === hex.q && w.r === hex.r)) return road;
-            for (let i = 0; i < road.waypoints.length - 1; i++) {
-                const segs = this.calculateHexPath(road.waypoints[i], road.waypoints[i + 1], road.width);
-                for (const seg of segs) {
-                    if (seg.to.q === hex.q && seg.to.r === hex.r) return road;
-                    if (seg.from.q === hex.q && seg.from.r === hex.r) return road;
-                }
+    // Squared distance from a point to a segment (pixel space).
+    pointSegDist2(px, py, ax, ay, bx, by) {
+        const dx = bx - ax, dy = by - ay;
+        const len2 = dx * dx + dy * dy;
+        let t = len2 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0;
+        t = Math.max(0, Math.min(1, t));
+        const cx = ax + t * dx, cy = ay + t * dy;
+        return (px - cx) ** 2 + (py - cy) ** 2;
+    }
+
+    // Does a click pixel land on `path`? Proximity to any control point or to the rendered polyline
+    // (mode-aware), so both centre and edge (corner) paths can be picked/erased.
+    pathHitByPixel(path, wx, wy) {
+        if (!path.waypoints || path.waypoints.length === 0) return false;
+        const thr = Math.max(this.data.gridSize * 0.5, (path.width || 3) * 1.5);
+        const thr2 = thr * thr;
+        for (const w of path.waypoints) {
+            const p = this.hexToPixel(w);
+            if ((p.x - wx) ** 2 + (p.y - wy) ** 2 <= thr2) return true;
+        }
+        for (let i = 0; i < path.waypoints.length - 1; i++) {
+            if (path.waypoints[i + 1].break) continue;
+            const segs = this.routeSegments(path, path.waypoints[i], path.waypoints[i + 1]);
+            for (const s of segs) {
+                const a = this.hexToPixel(s.from), b = this.hexToPixel(s.to);
+                if (this.pointSegDist2(wx, wy, a.x, a.y, b.x, b.y) <= thr2) return true;
             }
         }
+        return false;
+    }
+
+    findRoadAtHex(hex) {
+        if (!this.data.roads) return null;
+        const pt = this.mouseDownPos || this.hexToPixel(hex);
+        for (const road of this.data.roads) if (this.pathHitByPixel(road, pt.x, pt.y)) return road;
         return null;
     }
 
-    addRoadWaypoint(hex) {
+    addRoadWaypoint(hex, wx, wy) {
         if (!this.data.roads) this.data.roads = [];
 
         let road = this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
-        if (road) { road.gapPercent = this.pathGapPercent || 0; road.dashDensity = this.pathDashDensity || 1; road.endpoint = this.pathEndpoint || 'edge'; }
+        if (road) { road.gapPercent = this.pathGapPercent || 0; road.dashDensity = this.pathDashDensity || 1; } // endpoint is per-end, not overwritten here
         if (!road) {
             const maxId = this.data.roads.reduce((max, r) => Math.max(max, r.id || 0), 0);
-            road = { id: maxId + 1, color: this.masterColor, width: this.roadSettings.width, gapPercent: this.pathGapPercent || 0, dashDensity: this.pathDashDensity || 1, endpoint: this.pathEndpoint || 'edge', waypoints: [] };
+            road = { id: maxId + 1, color: this.masterColor, width: this.roadSettings.width, gapPercent: this.pathGapPercent || 0, dashDensity: this.pathDashDensity || 1, endpoint: this.pathEndpoint || 'edge', routeMode: this.pathRouteMode || PATH_ROUTE_DEFAULT, waypoints: [] };
             this.data.roads.push(road);
             this.roadSettings.activeRoadId = road.id;
             this.roadSettings.editMode = true;
@@ -10421,33 +10843,47 @@ class HexCartographerView extends ItemView {
             }
         }
 
+        // Snap the click to the route mode's target node (centre or corner). Fall back to the raw
+        // hex when no world pixel is given (programmatic calls / tests).
+        const node = (wx == null) ? { q: hex.q, r: hex.r } : this.snapPathHex(road, wx, wy);
+
         if (this.roadSettings.editMode) {
-            const existingIdx = road.waypoints.findIndex(w => w.q === hex.q && w.r === hex.r);
+            const existingIdx = road.waypoints.findIndex(w => w.q === node.q && w.r === node.r);
             if (existingIdx !== -1) {
                 const dragGroup = [];
-                road.waypoints.forEach((wp, i) => { if (wp.q === hex.q && wp.r === hex.r) dragGroup.push(i); });
-                this.roadDragIndex = { idx: existingIdx, origQ: hex.q, origR: hex.r, group: dragGroup };
-                // Prefer a free-endpoint index on this hex (a coord can repeat at a junction).
+                road.waypoints.forEach((wp, i) => { if (wp.q === node.q && wp.r === node.r) dragGroup.push(i); });
+                this.roadDragIndex = { idx: existingIdx, origQ: node.q, origR: node.r, group: dragGroup };
+                // Prefer a free-endpoint index on this node (a coord can repeat at a junction).
                 const ends = this.freeEndpointIndices(road);
-                const endIdx = road.waypoints.findIndex((w, i) => w.q === hex.q && w.r === hex.r && ends.has(i));
-                this.selectedWaypointIdx = endIdx !== -1 ? endIdx : existingIdx;
+                const endIdx = road.waypoints.findIndex((w, i) => w.q === node.q && w.r === node.r && ends.has(i));
+                if (endIdx !== -1) this.selectedWaypointIdx = endIdx; // keep a free end selected; ignore junction clicks
                 return;
             }
 
-            for (let i = 0; i < road.waypoints.length - 1; i++) {
-                const to = road.waypoints[i + 1];
-                if (to.break) continue;
-                const from = road.waypoints[i];
-                const segs = this.calculateHexPath(from, to, road.width);
-                const onSegment = segs.some(s =>
-                    (s.from.q === hex.q && s.from.r === hex.r) ||
-                    (s.to.q === hex.q && s.to.r === hex.r)
-                );
-                if (onSegment) {
-                    road.waypoints.splice(i + 1, 0, { q: hex.q, r: hex.r });
-                    this.roadSettings.insertAfter = i + 1;
-                    this.selectedWaypointIdx = null; // mid-point insert shifts indices -> drop selection
-                    return;
+            // Insert-on-segment: clicking an existing part of the path adds a control point there.
+            // Centre mode matches the hex exactly; edge/both match by proximity to the routed line.
+            {
+                const rmode = routeModeOf(road);
+                const thr2 = (this.data.gridSize * 0.45) ** 2;
+                for (let i = 0; i < road.waypoints.length - 1; i++) {
+                    const to = road.waypoints[i + 1];
+                    if (to.break) continue;
+                    const from = road.waypoints[i];
+                    let onSegment;
+                    if (rmode === 'center') {
+                        onSegment = this.calculateHexPath(from, to, road.width).some(s =>
+                            (s.from.q === node.q && s.from.r === node.r) || (s.to.q === node.q && s.to.r === node.r));
+                    } else if (wx != null) {
+                        const segs = rmode === 'edge' ? this.edgeRouteSegments(from, to, road.width) : this.mixedRouteSegments(from, to, road.width);
+                        onSegment = segs.some(s => { const a = this.hexToPixel(s.from), b = this.hexToPixel(s.to); return this.pointSegDist2(wx, wy, a.x, a.y, b.x, b.y) <= thr2; });
+                    } else onSegment = false;
+                    if (onSegment) {
+                        road.waypoints.splice(i + 1, 0, { q: node.q, r: node.r });
+                        this.roadSettings.insertAfter = i + 1;
+                        this.roadDragIndex = { idx: i + 1, origQ: node.q, origR: node.r, group: [i + 1] }; // allow dragging it right away
+                        this.selectedWaypointIdx = null; // mid-point insert shifts indices -> drop selection
+                        return;
+                    }
                 }
             }
         }
@@ -10456,40 +10892,34 @@ class HexCartographerView extends ItemView {
         if (insertIdx !== null && insertIdx < road.waypoints.length - 1) {
             const bp = road.waypoints[insertIdx];
             road.waypoints.push({ q: bp.q, r: bp.r, break: true });
-            road.waypoints.push({ q: hex.q, r: hex.r });
+            road.waypoints.push({ q: node.q, r: node.r });
             this.roadSettings.insertAfter = road.waypoints.length - 1;
         } else {
-            road.waypoints.push({ q: hex.q, r: hex.r });
+            road.waypoints.push({ q: node.q, r: node.r });
             this.roadSettings.insertAfter = road.waypoints.length - 1;
         }
         this.selectedWaypointIdx = this.roadSettings.insertAfter; // auto-select the freshly drawn end
+        const newIdx = this.roadSettings.insertAfter;
+        this.roadDragIndex = { idx: newIdx, origQ: node.q, origR: node.r, group: [newIdx] }; // place (or branch) and drag in one gesture
     }
 
     findRiverAtHex(hex) {
         if (!this.data.rivers) return null;
-        for (const river of this.data.rivers) {
-            if (!river.waypoints || river.waypoints.length === 0) continue;
-            if (river.waypoints.some(w => w.q === hex.q && w.r === hex.r)) return river;
-            for (let i = 0; i < river.waypoints.length - 1; i++) {
-                const segs = this.calculateHexPath(river.waypoints[i], river.waypoints[i + 1], river.width);
-                for (const seg of segs) {
-                    if (seg.to.q === hex.q && seg.to.r === hex.r) return river;
-                    if (seg.from.q === hex.q && seg.from.r === hex.r) return river;
-                }
-            }
-        }
+        const pt = this.mouseDownPos || this.hexToPixel(hex);
+        for (const river of this.data.rivers) if (this.pathHitByPixel(river, pt.x, pt.y)) return river;
         return null;
     }
 
-    erasePathElement(paths, hex) {
+    erasePathElement(paths, hex, wx, wy) {
         if (!paths) return;
-        const onWaypoint = paths.some(p =>
-            p.waypoints && p.waypoints.some(w => w.q === hex.q && w.r === hex.r)
-        );
+        // Match by pixel proximity so both centre and edge (fractional corner) control points are hit.
+        if (wx == null) { const p = this.hexToPixel(hex); wx = p.x; wy = p.y; }
+        const thr2 = (this.data.gridSize * 0.45) ** 2;
+        const near = (w) => { const p = this.hexToPixel(w); return (p.x - wx) ** 2 + (p.y - wy) ** 2 <= thr2; };
+
+        const onWaypoint = paths.some(p => p.waypoints && p.waypoints.some(near));
         if (onWaypoint) {
-            paths.forEach(p => {
-                p.waypoints = p.waypoints.filter(w => !(w.q === hex.q && w.r === hex.r));
-            });
+            paths.forEach(p => { p.waypoints = p.waypoints.filter(w => !near(w)); });
         } else {
             for (const path of paths) {
                 if (!path.waypoints || path.waypoints.length < 2) continue;
@@ -10497,11 +10927,11 @@ class HexCartographerView extends ItemView {
                     const to = path.waypoints[i + 1];
                     if (to.break) continue;
                     const from = path.waypoints[i];
-                    const segs = this.calculateHexPath(from, to, path.width);
-                    const onSegment = segs.some(s =>
-                        (s.from.q === hex.q && s.from.r === hex.r) ||
-                        (s.to.q === hex.q && s.to.r === hex.r)
-                    );
+                    const segs = this.routeSegments(path, from, to);
+                    const onSegment = segs.some(s => {
+                        const a = this.hexToPixel(s.from), b = this.hexToPixel(s.to);
+                        return this.pointSegDist2(wx, wy, a.x, a.y, b.x, b.y) <= thr2;
+                    });
                     if (onSegment) {
                         to.break = true;
                         break;
@@ -10531,14 +10961,16 @@ class HexCartographerView extends ItemView {
         }
     }
 
-    addRiverWaypoint(hex) {
+    addRiverWaypoint(hex, wx, wy) {
         if (!this.data.rivers) this.data.rivers = [];
 
         let river = this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
-        if (river) river.endpoint = this.pathEndpoint || 'edge'; // rivers are never dashed, but have an endpoint
+        // NOTE: don't overwrite river.endpoint here — endpoint is per-end (waypoint.endpoint); the
+        // path-wide value is only the creation default. Overwriting it on every click leaked the last
+        // toggled mode onto the whole path.
         if (!river) {
             const maxId = this.data.rivers.reduce((max, r) => Math.max(max, r.id || 0), 0);
-            river = { id: maxId + 1, color: this.masterColor, width: this.riverSettings.width, endpoint: this.pathEndpoint || 'edge', waypoints: [] };
+            river = { id: maxId + 1, color: this.masterColor, width: this.riverSettings.width, endpoint: this.pathEndpoint || 'edge', routeMode: this.pathRouteMode || PATH_ROUTE_DEFAULT, waypoints: [] };
             this.data.rivers.push(river);
             this.riverSettings.activeRiverId = river.id;
             this.riverSettings.editMode = true;
@@ -10551,33 +10983,45 @@ class HexCartographerView extends ItemView {
             }
         }
 
+        const node = (wx == null) ? { q: hex.q, r: hex.r } : this.snapPathHex(river, wx, wy);
+
         if (this.riverSettings.editMode) {
-            const existingIdx = river.waypoints.findIndex(w => w.q === hex.q && w.r === hex.r);
+            const existingIdx = river.waypoints.findIndex(w => w.q === node.q && w.r === node.r);
             if (existingIdx !== -1) {
                 const dragGroup = [];
-                river.waypoints.forEach((wp, i) => { if (wp.q === hex.q && wp.r === hex.r) dragGroup.push(i); });
-                this.riverDragIndex = { idx: existingIdx, origQ: hex.q, origR: hex.r, group: dragGroup };
-                // Prefer a free-endpoint index on this hex (a coord can repeat at a junction).
+                river.waypoints.forEach((wp, i) => { if (wp.q === node.q && wp.r === node.r) dragGroup.push(i); });
+                this.riverDragIndex = { idx: existingIdx, origQ: node.q, origR: node.r, group: dragGroup };
+                // Prefer a free-endpoint index on this node (a coord can repeat at a junction).
                 const ends = this.freeEndpointIndices(river);
-                const endIdx = river.waypoints.findIndex((w, i) => w.q === hex.q && w.r === hex.r && ends.has(i));
-                this.selectedWaypointIdx = endIdx !== -1 ? endIdx : existingIdx;
+                const endIdx = river.waypoints.findIndex((w, i) => w.q === node.q && w.r === node.r && ends.has(i));
+                if (endIdx !== -1) this.selectedWaypointIdx = endIdx; // keep a free end selected; ignore junction clicks
                 return;
             }
 
-            for (let i = 0; i < river.waypoints.length - 1; i++) {
-                const to = river.waypoints[i + 1];
-                if (to.break) continue;
-                const from = river.waypoints[i];
-                const segs = this.calculateHexPath(from, to, river.width);
-                const onSegment = segs.some(s =>
-                    (s.from.q === hex.q && s.from.r === hex.r) ||
-                    (s.to.q === hex.q && s.to.r === hex.r)
-                );
-                if (onSegment) {
-                    river.waypoints.splice(i + 1, 0, { q: hex.q, r: hex.r });
-                    this.riverSettings.insertAfter = i + 1;
-                    this.selectedWaypointIdx = null; // mid-point insert shifts indices -> drop selection
-                    return;
+            // Insert-on-segment: clicking an existing part of the path adds a control point there.
+            // Centre mode matches the hex exactly; edge/both match by proximity to the routed line.
+            {
+                const rmode = routeModeOf(river);
+                const thr2 = (this.data.gridSize * 0.45) ** 2;
+                for (let i = 0; i < river.waypoints.length - 1; i++) {
+                    const to = river.waypoints[i + 1];
+                    if (to.break) continue;
+                    const from = river.waypoints[i];
+                    let onSegment;
+                    if (rmode === 'center') {
+                        onSegment = this.calculateHexPath(from, to, river.width).some(s =>
+                            (s.from.q === node.q && s.from.r === node.r) || (s.to.q === node.q && s.to.r === node.r));
+                    } else if (wx != null) {
+                        const segs = rmode === 'edge' ? this.edgeRouteSegments(from, to, river.width) : this.mixedRouteSegments(from, to, river.width);
+                        onSegment = segs.some(s => { const a = this.hexToPixel(s.from), b = this.hexToPixel(s.to); return this.pointSegDist2(wx, wy, a.x, a.y, b.x, b.y) <= thr2; });
+                    } else onSegment = false;
+                    if (onSegment) {
+                        river.waypoints.splice(i + 1, 0, { q: node.q, r: node.r });
+                        this.riverSettings.insertAfter = i + 1;
+                        this.riverDragIndex = { idx: i + 1, origQ: node.q, origR: node.r, group: [i + 1] }; // allow dragging it right away
+                        this.selectedWaypointIdx = null; // mid-point insert shifts indices -> drop selection
+                        return;
+                    }
                 }
             }
         }
@@ -10586,13 +11030,15 @@ class HexCartographerView extends ItemView {
         if (insertIdx !== null && insertIdx < river.waypoints.length - 1) {
             const bp = river.waypoints[insertIdx];
             river.waypoints.push({ q: bp.q, r: bp.r, break: true });
-            river.waypoints.push({ q: hex.q, r: hex.r });
+            river.waypoints.push({ q: node.q, r: node.r });
             this.riverSettings.insertAfter = river.waypoints.length - 1;
         } else {
-            river.waypoints.push({ q: hex.q, r: hex.r });
+            river.waypoints.push({ q: node.q, r: node.r });
             this.riverSettings.insertAfter = river.waypoints.length - 1;
         }
         this.selectedWaypointIdx = this.riverSettings.insertAfter; // auto-select the freshly drawn end
+        const newIdx = this.riverSettings.insertAfter;
+        this.riverDragIndex = { idx: newIdx, origQ: node.q, origR: node.r, group: [newIdx] }; // place (or branch) and drag in one gesture
     }
 
     // texture === null/undefined removes an existing texture instead of keeping it.
@@ -10721,9 +11167,9 @@ class HexCartographerView extends ItemView {
             });
             this.data.borders = this.data.borders.filter(r => r.hexes.length > 0);
         } else if (this.currentToolGroup === 'river') {
-            this.erasePathElement(this.data.rivers, hex);
+            this.erasePathElement(this.data.rivers, hex, x, y);
         } else if (this.currentToolGroup === 'road') {
-            this.erasePathElement(this.data.roads, hex);
+            this.erasePathElement(this.data.roads, hex, x, y);
         } else if (this.currentToolGroup === 'hexcolor') {
             const key = `${hex.q}_${hex.r}`;
             const h = this.data.hexes[key];
@@ -11168,6 +11614,7 @@ class HexCartographerView extends ItemView {
         // Keep the path buttons in sync with the current edit/selection state — updateToolbarState
         // only runs on tool switch, but a path/endpoint becomes editable mid-draw (waypoint click).
         if (this._syncPathOrderBtns) this._syncPathOrderBtns();
+        if (this._syncRouteBtn) this._syncRouteBtn();
         if (this._syncEndpointBtn) this._syncEndpointBtn();
         if (this._syncTaperBtn) this._syncTaperBtn();
     }
@@ -13002,9 +13449,14 @@ class HexCartographerView extends ItemView {
                     if (wps[i + 1] && wps[i + 1].break) currentChain = [];
                 }
             }
+            const mode = routeModeOf(pathObj);
             chains.forEach(chain => {
                 for (let i = 0; i < chain.length - 1; i++) {
-                    const pathSegs = this.calculateHexPath(chain[i], chain[i + 1], pathObj.width);
+                    const pathSegs = mode === 'edge'
+                        ? this.edgeRouteSegments(chain[i], chain[i + 1], pathObj.width)
+                        : mode === 'both'
+                            ? this.mixedRouteSegments(chain[i], chain[i + 1], pathObj.width)
+                            : this.calculateHexPath(chain[i], chain[i + 1], pathObj.width);
                     pathSegs.forEach(seg => {
                         const key = this._segKey(seg.from, seg.to);
                         if (!this.overlapMap[key]) this.overlapMap[key] = { hasRiver: false, hasRoad: false, maxRiverWidth: 0, maxRoadWidth: 0 };
@@ -13063,13 +13515,26 @@ class HexCartographerView extends ItemView {
         return ends;
     }
 
-    // The selected free-endpoint waypoint of the active path, or null (for the endpoint/taper buttons).
-    selectedEndpoint() {
+    // The free end the endpoint/taper buttons act on: the explicit selection when it is a free end,
+    // otherwise a sensible default (the active insert end if free, else the last free end) so the
+    // buttons stay usable while editing without hunting for an end to click.
+    effectiveEndpointIdx() {
         const path = this.activePath();
-        if (!path || this.selectedWaypointIdx == null) return null;
-        if ((path.waypoints || []).length < 3) return null; // 2-point paths: per-end options greyed out
-        if (!this.freeEndpointIndices(path).has(this.selectedWaypointIdx)) return null;
-        return path.waypoints[this.selectedWaypointIdx] || null;
+        if (!path) return null;
+        const ends = this.freeEndpointIndices(path);
+        if (ends.size === 0) return null; // no free end (e.g. a single point) -> nothing to configure
+        if (this.selectedWaypointIdx != null && ends.has(this.selectedWaypointIdx)) return this.selectedWaypointIdx;
+        const rs = this.riverSettings, ro = this.roadSettings;
+        const settings = (rs && rs.editMode) ? rs : ((ro && ro.editMode) ? ro : null);
+        if (settings && ends.has(settings.insertAfter)) return settings.insertAfter;
+        return Math.max(...ends);
+    }
+
+    // The free-endpoint waypoint the option buttons act on, or null.
+    selectedEndpoint() {
+        const idx = this.effectiveEndpointIdx();
+        const path = this.activePath();
+        return idx == null || !path ? null : (path.waypoints[idx] || null);
     }
 
     // Moves the active path one layer up (delta +1) or down (delta -1) through the terrain/symbol
@@ -13092,8 +13557,10 @@ class HexCartographerView extends ItemView {
             const ends = this.freeEndpointIndices(path);
             const activeIdx = settings.insertAfter;
             const activeWp = activeIdx != null ? path.waypoints[activeIdx] : null;
-            // Blue highlight only when the selection is actually actionable (options not greyed out).
-            const selectedIdx = (path === this.activePath() && this.selectedEndpoint()) ? this.selectedWaypointIdx : null;
+            // Blue highlight on the end the option buttons act on (the effective selection).
+            const selectedIdx = (path === this.activePath() && this.selectedEndpoint()) ? this.effectiveEndpointIdx() : null;
+            // Corner control points are stored as fractional coords, so hexToPixel already lands on the
+            // corner; centres land on the centre. One rule covers both modes.
             path.waypoints.forEach((wp, i) => {
                 const pos = this.hexToPixel(wp);
                 // Free endpoints get a ring (they carry the per-end endpoint/taper options); the
@@ -13145,12 +13612,32 @@ class HexCartographerView extends ItemView {
             keys.forEach(k => { junctionCount[k] = (junctionCount[k] || 0) + 1; });
         });
 
+        const edgeMode = routeModeOf(path) === 'edge';
+        const mixedMode = routeModeOf(path) === 'both';
         chains.forEach(chain => {
             const segments = [];
             const pairCount = chain.length - 1;
             const pairSegCounts = [];
+            const startWp = chain[0], endWp = chain[chain.length - 1];
+            const startKey = `${startWp.q}_${startWp.r}`;
+            const endKey = `${endWp.q}_${endWp.r}`;
+            const trimStart = junctionCount[startKey] === 1;
+            const trimEnd = junctionCount[endKey] === 1;
+            // Edge mode: a free end set to 'center' stays a hex centre (not snapped to a corner). The
+            // border line runs to the nearest corner of that hex, then a straight stub into the centre.
+            const startCenterEnd = edgeMode && trimStart && !this.isCornerWp(startWp);
+            const endCenterEnd = edgeMode && trimEnd && !this.isCornerWp(endWp);
             for (let i = 0; i < pairCount; i++) {
-                const pathSegs = this.calculateHexPath(chain[i], chain[i + 1], path.width);
+                let pathSegs;
+                if (edgeMode) {
+                    const fromNode = (i === 0 && startCenterEnd) ? { center: chain[i] } : { vert: this.wpVert(chain[i]) };
+                    const toNode = (i === pairCount - 1 && endCenterEnd) ? { center: chain[i + 1] } : { vert: this.wpVert(chain[i + 1]) };
+                    pathSegs = this.edgeLegSegments(fromNode, toNode, path.width); // along hex borders
+                } else if (mixedMode) {
+                    pathSegs = this.mixedRouteSegments(chain[i], chain[i + 1], path.width); // centres + borders, most direct
+                } else {
+                    pathSegs = this.calculateHexPath(chain[i], chain[i + 1], path.width); // through centres
+                }
                 pairSegCounts.push(pathSegs.length);
                 segments.push(...pathSegs);
             }
@@ -13169,8 +13656,6 @@ class HexCartographerView extends ItemView {
                 });
             }
 
-            const startKey = `${chain[0].q}_${chain[0].r}`;
-            const endKey = `${chain[chain.length - 1].q}_${chain[chain.length - 1].r}`;
             // A terminus RECEDES (endpoint toggle) when it is a free end - not shared with ANOTHER
             // chain (a branch junction). It stays ROUNDED (no taper to a point) when its hex repeats
             // WITHIN its own chain: dragging the endpoint back onto an earlier point is how the user
@@ -13178,32 +13663,30 @@ class HexCartographerView extends ItemView {
             const keysInChain = chain.map(w => `${w.q}_${w.r}`);
             const startRepeats = keysInChain.indexOf(startKey) !== keysInChain.lastIndexOf(startKey);
             const endRepeats = keysInChain.indexOf(endKey) !== keysInChain.lastIndexOf(endKey);
-            const trimStart = junctionCount[startKey] === 1;
-            const trimEnd = junctionCount[endKey] === 1;
 
             // Per-terminus taper: a free end tapers to a point UNLESS its waypoint is flagged round
             // (waypoint.round) or the endpoint was dragged onto an earlier point (endRepeats).
-            const startWp = chain[0], endWp = chain[chain.length - 1];
             const canTaperStart = taper && trimStart && !startRepeats && startWp.round !== true;
             const canTaperEnd = taper && trimEnd && !endRepeats && endWp.round !== true;
-            const canTaper = (canTaperStart || canTaperEnd) && !(pairCount === 1 && trimStart && trimEnd);
+            const canTaper = canTaperStart || canTaperEnd;
             if (canTaper) {
                 // Taper only the last ~2 hex steps (linear, even) so the point looks the same
                 // regardless of how long the segment is, and never drop below ~1 screen pixel so it
-                // ends in a clean rounded point instead of a hair-thin sub-pixel tail.
+                // ends in a clean rounded point instead of a hair-thin sub-pixel tail. A single-segment
+                // path (two points) tapers BOTH ends of the same leg -> a spindle, so short rivers can
+                // still come to a point.
                 const minW = this.taperMinWidth(path.width);
                 const TAPER_SEGS = 2;
                 let offset = 0;
                 for (let i = 0; i < pairCount; i++) {
                     const n = pairSegCounts[i];
-                    if (i === 0 && canTaperStart) {
+                    const doStart = i === 0 && canTaperStart;
+                    const doEnd = i === pairCount - 1 && canTaperEnd;
+                    if (doStart || doEnd) {
                         for (let j = 0; j < n; j++) {
-                            const f = Math.min(1, j / TAPER_SEGS); // 0 at the start tip .. 1 full width
-                            segments[offset + j].width = minW + (path.width - minW) * f;
-                        }
-                    } else if (i === pairCount - 1 && canTaperEnd) {
-                        for (let j = 0; j < n; j++) {
-                            const f = Math.min(1, (n - j) / TAPER_SEGS); // full .. -> minW near the end tip
+                            let f = 1;
+                            if (doStart) f = Math.min(f, Math.min(1, j / TAPER_SEGS));       // 0 at the start tip
+                            if (doEnd) f = Math.min(f, Math.min(1, (n - j) / TAPER_SEGS));   // 0 at the end tip
                             segments[offset + j].width = minW + (path.width - minW) * f;
                         }
                     }
@@ -13218,8 +13701,30 @@ class HexCartographerView extends ItemView {
             // own waypoint.endpoint, falling back to the path-wide path.endpoint. Folds use the path
             // default (they are auto turn-arounds, not user-selectable termini).
             const EDGE_INSET = 0.5; // land exactly on the shared hex edge (midpoint between centres)
-            const insetOf = (wp) => ((wp.endpoint || path.endpoint) === 'center') ? 0 : EDGE_INSET;
-            const insets = { start: insetOf(startWp), end: insetOf(endWp), fold: (path.endpoint === 'center' ? 0 : EDGE_INSET) };
+            // Recede only a CENTRE terminus set to 'edge', to where the path crosses the hex boundary:
+            // the edge midpoint (0.5) when the first hop is to an adjacent centre, or the vertex (1.0)
+            // when it heads to a corner (e.g. a 'both' route leaving through a pointed edge). A corner
+            // terminus already sits on the border, and 'center' means land in the middle -> no recede.
+            const centerEdgeInset = (wp, adj) => {
+                if (edgeMode || this.isCornerWp(wp) || (wp.endpoint || path.endpoint) === 'center') return 0;
+                return (adj && this.isCornerWp(adj)) ? 1 : EDGE_INSET;
+            };
+            const firstAdj = segments.length ? segments[0].to : null;
+            const lastAdj = segments.length ? segments[segments.length - 1].from : null;
+            const insets = { start: centerEdgeInset(startWp, firstAdj), end: centerEdgeInset(endWp, lastAdj), fold: (edgeMode || mixedMode || path.endpoint === 'center') ? 0 : EDGE_INSET };
+            // A CENTRE control point ending on 'edge' (centre or both mode) lands on the hex boundary
+            // along the path's DIRECTION (toward the neighbouring control point), so a diagonal ends on
+            // the edge/vertex it crosses instead of the last route node's edge midpoint. insets > 0
+            // marks exactly those centre 'edge' termini (corner termini and 'center' get 0).
+            // Both centre and 'both' modes snap a centre 'edge' terminus to the nearest hex corner
+            // (a crossing point), like edge mode. 'Both' aims at the real neighbouring route node
+            // (firstAdj/lastAdj); centre mode aims at the neighbouring control point (the diagonal).
+            if (!edgeMode && chain.length >= 2) {
+                const sRef = mixedMode ? firstAdj : chain[1];
+                const eRef = mixedMode ? lastAdj : chain[chain.length - 2];
+                if (insets.start > 0) insets.startPoint = this._edgeTipCorner(startWp, sRef);
+                if (insets.end > 0) insets.endPoint = this._edgeTipCorner(endWp, eRef);
+            }
             this.drawWavyLines(segments, path.color, path.width, trimStart, trimEnd, gapPercent, dashDensity, insets, hasTaper, canTaperEnd);
         });
     }
@@ -13228,6 +13733,48 @@ class HexCartographerView extends ItemView {
     // point, never a sub-pixel hair), and never wider than the path itself.
     taperMinWidth(width) {
         return Math.min(width, Math.max(0.5, 1 / (this.data.zoom || 1)));
+    }
+
+    // Where the ray from centre c in unit direction (dx,dy) crosses the hexagon through `corners`.
+    _hexBoundaryHit(c, dx, dy, corners) {
+        const ordered = corners.slice().sort((a, b) => Math.atan2(a.y - c.y, a.x - c.x) - Math.atan2(b.y - c.y, b.x - c.x));
+        for (let i = 0; i < ordered.length; i++) {
+            const p = ordered[i], q = ordered[(i + 1) % ordered.length];
+            const ex = q.x - p.x, ey = q.y - p.y;
+            const det = ex * dy - dx * ey;
+            if (Math.abs(det) < 1e-9) continue;
+            const t = (-(p.x - c.x) * ey + ex * (p.y - c.y)) / det; // distance along the ray
+            const s = (dx * (p.y - c.y) - dy * (p.x - c.x)) / det;   // position along the edge [0,1]
+            if (t >= 0 && s >= -1e-6 && s <= 1 + 1e-6) return { x: c.x + dx * t, y: c.y + dy * t };
+        }
+        return null;
+    }
+
+    // The point on a centre terminus's hex boundary where the path DIRECTION (from control point
+    // `other` toward the terminus) exits — so a diagonal end lands where its line crosses the edge,
+    // not on the last hex-step's edge midpoint. Falls back to null (use the plain inset) if degenerate.
+    _edgeTipPoint(term, other) {
+        const c = this.hexToPixel(term), o = this.hexToPixel(other);
+        let dx = o.x - c.x, dy = o.y - c.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 1e-9) return null;
+        dx /= d; dy /= d;
+        const corners = hexCornerVerts(term).map(v => this.vertPixel(v));
+        return this._hexBoundaryHit(c, dx, dy, corners);
+    }
+
+    // Like _edgeTipPoint, but snapped to the NEAREST hex corner (vertex) — so a 'both'-mode end lands
+    // exactly on a hex crossing point, matching edge mode (whose control points are corners already).
+    _edgeTipCorner(term, other) {
+        const cross = this._edgeTipPoint(term, other);
+        if (!cross) return null;
+        let best = null, bd = Infinity;
+        for (const v of hexCornerVerts(term)) {
+            const p = this.vertPixel(v);
+            const dd = (p.x - cross.x) ** 2 + (p.y - cross.y) ** 2;
+            if (dd < bd) { bd = dd; best = p; }
+        }
+        return best;
     }
 
     drawWavyLines(lines, color, defaultWidth, trimStart, trimEnd, gapPercent, dashDensity, endInset, taper = false, taperTail = taper) {
@@ -13252,9 +13799,9 @@ class HexCartographerView extends ItemView {
             const reverses = (i, j) => { const a = dirOf(lines[i]), b = dirOf(lines[j]); return a[0] * b[0] + a[1] * b[1] < -0.9; };
             const foldBefore = idx > 0 && reverses(idx - 1, idx);              // reversal at this line's start (tip = p1)
             const foldAfter = idx < lines.length - 1 && reverses(idx, idx + 1); // reversal at this line's end (tip = p2)
-            if (trimStart && idx === 0) p1 = { x: p1.x + (p2.x - p1.x) * ins.start, y: p1.y + (p2.y - p1.y) * ins.start };
+            if (trimStart && idx === 0) p1 = ins.startPoint ? { x: ins.startPoint.x, y: ins.startPoint.y } : { x: p1.x + (p2.x - p1.x) * ins.start, y: p1.y + (p2.y - p1.y) * ins.start };
             else if (foldBefore) { const s = this.hexToPixel(lines[idx - 1].from); p1 = { x: p1.x + (s.x - p1.x) * ins.fold, y: p1.y + (s.y - p1.y) * ins.fold }; }
-            if (trimEnd && idx === lines.length - 1) p2 = { x: p2.x + (p1.x - p2.x) * ins.end, y: p2.y + (p1.y - p2.y) * ins.end };
+            if (trimEnd && idx === lines.length - 1) p2 = ins.endPoint ? { x: ins.endPoint.x, y: ins.endPoint.y } : { x: p2.x + (p1.x - p2.x) * ins.end, y: p2.y + (p1.y - p2.y) * ins.end };
             else if (foldAfter) p2 = { x: p2.x + (p1.x - p2.x) * ins.fold, y: p2.y + (p1.y - p2.y) * ins.fold };
             const fdx = fullP2.x - fullP1.x, fdy = fullP2.y - fullP1.y;
             const fullDist = Math.sqrt(fdx * fdx + fdy * fdy);
@@ -13266,17 +13813,25 @@ class HexCartographerView extends ItemView {
             return { p1, p2, from: l.from, to: l.to, fullDist, width: l.width };
         });
 
+        // Drop fully-receded (zero-length) segments so the LAST VISIBLE segment counts as the terminus
+        // for the noise-fade / taper-tail / width logic. Otherwise a collapsed tail (e.g. a centre
+        // endpoint receded onto its corner) shifts those to the wrong segment, so two paths that draw
+        // the identical line render differently.
+        const drawnLines = computedLines.filter(cl => Math.hypot(cl.p2.x - cl.p1.x, cl.p2.y - cl.p1.y) > 0.01);
+        if (drawnLines.length === 0) return;
+
         const allPts = [];
-        computedLines.forEach((cl, segIdx) => {
+        drawnLines.forEach((cl, segIdx) => {
             const { p1, p2, from, to, width } = cl;
             const dx = p2.x - p1.x, dy = p2.y - p1.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             const curveSegs = Math.max(3, Math.floor(dist / 5));
             const nx = -dy / dist, ny = dx / dist;
-            const nextWidth = segIdx < computedLines.length - 1 ? computedLines[segIdx + 1].width : (taperTail && trimEnd ? this.taperMinWidth(defaultWidth) : width);
+            const nextWidth = segIdx < drawnLines.length - 1 ? drawnLines[segIdx + 1].width : (taperTail && trimEnd ? this.taperMinWidth(defaultWidth) : width);
 
             if (segIdx === 0) allPts.push({ x: p1.x, y: p1.y, w: width });
 
+            const isFirst = segIdx === 0, isLast = segIdx === drawnLines.length - 1;
             for (let i = 1; i < curveSegs; i++) {
                 const t = i / curveSegs;
                 const baseX = p1.x + dx * t;
@@ -13286,7 +13841,12 @@ class HexCartographerView extends ItemView {
                 const seedHash = Math.abs(sf.q * 7 + sf.r * 13 + st.q * 11 + st.r * 17 + i * 3);
                 const seed = seedHash % 10;
                 const sine = Math.sin(t * Math.PI * curveSegs / 2);
-                const amplitude = (this.data.gridSize * 0.09) * (0.4 + seed / 15) * sine;
+                // Fade the wobble to 0 at a free end so the line runs cleanly onto the exact edge point
+                // instead of the noise smearing the tip sideways (which varies by seed = per hex).
+                let endFade = 1;
+                if (isFirst && trimStart) endFade = Math.min(endFade, t);
+                if (isLast && trimEnd) endFade = Math.min(endFade, 1 - t);
+                const amplitude = (this.data.gridSize * 0.09) * (0.4 + seed / 15) * sine * endFade;
                 allPts.push({ x: baseX + nx * amplitude, y: baseY + ny * amplitude, w: width + (nextWidth - width) * t });
             }
 
@@ -13295,12 +13855,12 @@ class HexCartographerView extends ItemView {
 
         if (allPts.length < 2) return;
 
-        if (gapPercent > 0 && computedLines.length > 0) {
+        if (gapPercent > 0 && drawnLines.length > 0) {
             // "dashDensity" dash+gap periods per hex segment (node-aligned), so the look is global
             // and length-independent. gapPercent = the VISIBLE gap as a % of ONE period: 0 % solid,
             // 100 % -> the dash shrinks to a round dot. Ends are always round (see lineCap), so the
             // caps add w back; shorten the dash by w so the visible gap matches gapPercent.
-            const period = computedLines[0].fullDist / Math.max(1, dashDensity || 1);
+            const period = drawnLines[0].fullDist / Math.max(1, dashDensity || 1);
             const w = defaultWidth;
             const visDash = period * (1 - Math.min(100, gapPercent) / 100);
             const dash = Math.max(0.01, visDash - w);   // -> 0.01 renders as a round dot
@@ -13413,6 +13973,7 @@ class HexCartographerView extends ItemView {
                     pathGapPercent: this.pathGapPercent,
                     pathDashDensity: this.pathDashDensity,
                     pathEndpoint: this.pathEndpoint,
+                    pathRouteMode: this.pathRouteMode,
                     masterColor: this.masterColor,
                     editMode: this.editMode,
                     hexColorColor: this.hexColorColor,
@@ -15518,6 +16079,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 ['mouse-pointer', 'guide.paths.pick'],
                 ['text-cursor-input', 'guide.paths.width'],
                 ['text-cursor-input', 'guide.paths.dashes'],
+                ['waypoints', 'guide.paths.route'],
                 ['circle-dot', 'guide.paths.endpoint'],
                 ['arrow-down-to-line', 'guide.paths.order'],
             ]],
