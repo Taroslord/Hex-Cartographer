@@ -10856,7 +10856,8 @@ class HexCartographerView extends ItemView {
                 // Prefer a free-endpoint index on this node (a coord can repeat at a junction).
                 const ends = this.freeEndpointIndices(road);
                 const endIdx = road.waypoints.findIndex((w, i) => w.q === node.q && w.r === node.r && ends.has(i));
-                if (endIdx !== -1) this.selectedWaypointIdx = endIdx; // keep a free end selected; ignore junction clicks
+                // Select the clicked point: a free end enables the endpoint option, a middle/junction disables it.
+                this.selectedWaypointIdx = endIdx !== -1 ? endIdx : existingIdx;
                 return;
             }
 
@@ -10994,7 +10995,8 @@ class HexCartographerView extends ItemView {
                 // Prefer a free-endpoint index on this node (a coord can repeat at a junction).
                 const ends = this.freeEndpointIndices(river);
                 const endIdx = river.waypoints.findIndex((w, i) => w.q === node.q && w.r === node.r && ends.has(i));
-                if (endIdx !== -1) this.selectedWaypointIdx = endIdx; // keep a free end selected; ignore junction clicks
+                // Select the clicked point: a free end enables the endpoint option, a middle/junction disables it.
+                this.selectedWaypointIdx = endIdx !== -1 ? endIdx : existingIdx;
                 return;
             }
 
@@ -13515,19 +13517,20 @@ class HexCartographerView extends ItemView {
         return ends;
     }
 
-    // The free end the endpoint/taper buttons act on: the explicit selection when it is a free end,
-    // otherwise a sensible default (the active insert end if free, else the last free end) so the
-    // buttons stay usable while editing without hunting for an end to click.
+    // The free end the endpoint/taper buttons act on. Only a free end (a chain terminus with a single
+    // neighbour) enables the option; a selected middle/junction point disables it. With no explicit
+    // selection, falls back to the active insert end IF it is a free end (so it works right after drawing).
     effectiveEndpointIdx() {
         const path = this.activePath();
         if (!path) return null;
         const ends = this.freeEndpointIndices(path);
         if (ends.size === 0) return null; // no free end (e.g. a single point) -> nothing to configure
-        if (this.selectedWaypointIdx != null && ends.has(this.selectedWaypointIdx)) return this.selectedWaypointIdx;
+        // Explicit selection: enabled only when the selected point is itself a free end.
+        if (this.selectedWaypointIdx != null) return ends.has(this.selectedWaypointIdx) ? this.selectedWaypointIdx : null;
         const rs = this.riverSettings, ro = this.roadSettings;
         const settings = (rs && rs.editMode) ? rs : ((ro && ro.editMode) ? ro : null);
         if (settings && ends.has(settings.insertAfter)) return settings.insertAfter;
-        return Math.max(...ends);
+        return null;
     }
 
     // The free-endpoint waypoint the option buttons act on, or null.
@@ -13666,35 +13669,12 @@ class HexCartographerView extends ItemView {
 
             // Per-terminus taper: a free end tapers to a point UNLESS its waypoint is flagged round
             // (waypoint.round) or the endpoint was dragged onto an earlier point (endRepeats).
+            // A free end tapers to a point unless flagged round or dragged onto an earlier point. The
+            // actual width ramp is done DISTANCE-based per point in drawWavyLines (see there), so the
+            // point looks the same and equally sharp at both ends regardless of the route's segments.
             const canTaperStart = taper && trimStart && !startRepeats && startWp.round !== true;
             const canTaperEnd = taper && trimEnd && !endRepeats && endWp.round !== true;
-            const canTaper = canTaperStart || canTaperEnd;
-            if (canTaper) {
-                // Taper only the last ~2 hex steps (linear, even) so the point looks the same
-                // regardless of how long the segment is, and never drop below ~1 screen pixel so it
-                // ends in a clean rounded point instead of a hair-thin sub-pixel tail. A single-segment
-                // path (two points) tapers BOTH ends of the same leg -> a spindle, so short rivers can
-                // still come to a point.
-                const minW = this.taperMinWidth(path.width);
-                const TAPER_SEGS = 2;
-                let offset = 0;
-                for (let i = 0; i < pairCount; i++) {
-                    const n = pairSegCounts[i];
-                    const doStart = i === 0 && canTaperStart;
-                    const doEnd = i === pairCount - 1 && canTaperEnd;
-                    if (doStart || doEnd) {
-                        for (let j = 0; j < n; j++) {
-                            let f = 1;
-                            if (doStart) f = Math.min(f, Math.min(1, j / TAPER_SEGS));       // 0 at the start tip
-                            if (doEnd) f = Math.min(f, Math.min(1, (n - j) / TAPER_SEGS));   // 0 at the end tip
-                            segments[offset + j].width = minW + (path.width - minW) * f;
-                        }
-                    }
-                    offset += n;
-                }
-            }
 
-            const hasTaper = canTaper;
             const gapPercent = pathType === 'river' ? 0 : (path.gapPercent || 0); // rivers are never dashed
             const dashDensity = pathType === 'river' ? 1 : (path.dashDensity || 1);
             // Per-terminus endpoint: each free end recedes to the hex edge or centre according to its
@@ -13712,20 +13692,15 @@ class HexCartographerView extends ItemView {
             const firstAdj = segments.length ? segments[0].to : null;
             const lastAdj = segments.length ? segments[segments.length - 1].from : null;
             const insets = { start: centerEdgeInset(startWp, firstAdj), end: centerEdgeInset(endWp, lastAdj), fold: (edgeMode || mixedMode || path.endpoint === 'center') ? 0 : EDGE_INSET };
-            // A CENTRE control point ending on 'edge' (centre or both mode) lands on the hex boundary
-            // along the path's DIRECTION (toward the neighbouring control point), so a diagonal ends on
-            // the edge/vertex it crosses instead of the last route node's edge midpoint. insets > 0
-            // marks exactly those centre 'edge' termini (corner termini and 'center' get 0).
-            // Both centre and 'both' modes snap a centre 'edge' terminus to the nearest hex corner
-            // (a crossing point), like edge mode. 'Both' aims at the real neighbouring route node
-            // (firstAdj/lastAdj); centre mode aims at the neighbouring control point (the diagonal).
+            // A CENTRE control point ending on 'edge' (centre or both mode) lands in the MIDDLE of the
+            // hex edge it crosses. The crossed edge is found along the direction toward the actual
+            // neighbouring route node (firstAdj/lastAdj), so the end sits on the edge midpoint of the
+            // real last hex step. insets > 0 marks those centre 'edge' termini (corners and 'center' get 0).
             if (!edgeMode && chain.length >= 2) {
-                const sRef = mixedMode ? firstAdj : chain[1];
-                const eRef = mixedMode ? lastAdj : chain[chain.length - 2];
-                if (insets.start > 0) insets.startPoint = this._edgeTipCorner(startWp, sRef);
-                if (insets.end > 0) insets.endPoint = this._edgeTipCorner(endWp, eRef);
+                if (insets.start > 0) insets.startPoint = this._edgeTipMid(startWp, firstAdj);
+                if (insets.end > 0) insets.endPoint = this._edgeTipMid(endWp, lastAdj);
             }
-            this.drawWavyLines(segments, path.color, path.width, trimStart, trimEnd, gapPercent, dashDensity, insets, hasTaper, canTaperEnd);
+            this.drawWavyLines(segments, path.color, path.width, trimStart, trimEnd, gapPercent, dashDensity, insets, canTaperStart, canTaperEnd);
         });
     }
 
@@ -13777,8 +13752,31 @@ class HexCartographerView extends ItemView {
         return best;
     }
 
-    drawWavyLines(lines, color, defaultWidth, trimStart, trimEnd, gapPercent, dashDensity, endInset, taper = false, taperTail = taper) {
+    // MIDPOINT of the hex edge that the path DIRECTION (from `other` toward the terminus) crosses — so
+    // a centre 'edge' end (centre/both mode) sits in the MIDDLE of the crossed hex edge, not on a corner.
+    _edgeTipMid(term, other) {
+        const c = this.hexToPixel(term), o = this.hexToPixel(other);
+        let dx = o.x - c.x, dy = o.y - c.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 1e-9) return null;
+        dx /= d; dy /= d;
+        const ordered = hexCornerVerts(term).map(v => this.vertPixel(v))
+            .sort((a, b) => Math.atan2(a.y - c.y, a.x - c.x) - Math.atan2(b.y - c.y, b.x - c.x));
+        for (let i = 0; i < ordered.length; i++) {
+            const p = ordered[i], q = ordered[(i + 1) % ordered.length];
+            const ex = q.x - p.x, ey = q.y - p.y;
+            const det = ex * dy - dx * ey;
+            if (Math.abs(det) < 1e-9) continue;
+            const t = (-(p.x - c.x) * ey + ex * (p.y - c.y)) / det;
+            const s = (dx * (p.y - c.y) - dy * (p.x - c.x)) / det;
+            if (t >= 0 && s >= -1e-6 && s <= 1 + 1e-6) return { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 };
+        }
+        return null;
+    }
+
+    drawWavyLines(lines, color, defaultWidth, trimStart, trimEnd, gapPercent, dashDensity, endInset, taperStart = false, taperEnd = false) {
         if (!lines || lines.length === 0) return;
+        const taper = taperStart || taperEnd;
         this.ctx.strokeStyle = color;
         this.ctx.lineCap = "round";
         this.ctx.lineJoin = "round";
@@ -13827,7 +13825,7 @@ class HexCartographerView extends ItemView {
             const dist = Math.sqrt(dx * dx + dy * dy);
             const curveSegs = Math.max(3, Math.floor(dist / 5));
             const nx = -dy / dist, ny = dx / dist;
-            const nextWidth = segIdx < drawnLines.length - 1 ? drawnLines[segIdx + 1].width : (taperTail && trimEnd ? this.taperMinWidth(defaultWidth) : width);
+            const nextWidth = segIdx < drawnLines.length - 1 ? drawnLines[segIdx + 1].width : width;
 
             if (segIdx === 0) allPts.push({ x: p1.x, y: p1.y, w: width });
 
@@ -13852,6 +13850,24 @@ class HexCartographerView extends ItemView {
 
             allPts.push({ x: p2.x, y: p2.y, w: nextWidth });
         });
+
+        // Taper by PHYSICAL distance from the tip (per point, not per segment): the width ramps
+        // linearly from the full width down to a ~1px minimum over a fixed arc length, so both ends
+        // come to an equally sharp point regardless of how the route's segments are cut, and the width
+        // changes smoothly (no per-segment "staircase").
+        if (taper && allPts.length > 1) {
+            const minW = this.taperMinWidth(defaultWidth);
+            const taperLen = (this.data.gridSize || 30) * 2;
+            const cum = [0];
+            for (let i = 1; i < allPts.length; i++) cum[i] = cum[i - 1] + Math.hypot(allPts[i].x - allPts[i - 1].x, allPts[i].y - allPts[i - 1].y);
+            const total = cum[allPts.length - 1];
+            for (let i = 0; i < allPts.length; i++) {
+                let f = 1;
+                if (taperStart) f = Math.min(f, Math.min(1, cum[i] / taperLen));
+                if (taperEnd) f = Math.min(f, Math.min(1, (total - cum[i]) / taperLen));
+                allPts[i].w = minW + (allPts[i].w - minW) * f;
+            }
+        }
 
         if (allPts.length < 2) return;
 
