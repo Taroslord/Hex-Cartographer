@@ -8640,12 +8640,17 @@ class HexCartographerView extends ItemView {
     // — the native keyboard would otherwise hide the toolbar row, so the user could not see
     // what they type. Either way the value applies through the same 'input' event; the steppers
     // stay for quick nudges.
-    createOptionInput(unit, { value, title, max, min = '1', decimals = 0, stepBy = 1 }) {
+    createOptionInput(unit, { value, title, max, min = '1', decimals = 0, stepBy = 1, wrap = 0 }) {
         const maxN = parseFloat(max), minN = parseFloat(min);
         const round = (v) => { const f = Math.pow(10, decimals); return Math.round(v * f) / f; };
         let input;
         const step = (delta) => {
-            const v = round(Math.min(maxN, Math.max(minN, (parseFloat(input.value) || minN) + delta * stepBy)));
+            let raw = (parseFloat(input.value) || 0) + delta * stepBy;
+            // wrap (e.g. rotation): keep a signed range (-wrap/2, wrap/2] instead of clamping, so
+            // stepping past the half-turn flips sign like the gizmo (181 -> -179) rather than stalling.
+            if (wrap) { raw = ((raw % wrap) + wrap) % wrap; if (raw > wrap / 2) raw -= wrap; }
+            else raw = Math.min(maxN, Math.max(minN, raw));
+            const v = round(raw);
             input.value = v;
             input.dispatchEvent(new Event('input', { bubbles: true }));
         };
@@ -11909,7 +11914,7 @@ class HexCartographerView extends ItemView {
         const p = this.data.projection;
         if (!p) return;
         const ow = this.projOriginWorld();
-        p.rotation = ((deg % 360) + 360) % 360;
+        p.rotation = deg; // keep the value as entered (a typed -20 stays -20, not 340); rotation math wraps anyway
         this._placeCenterForOrigin(ow);
     }
 
@@ -12051,8 +12056,9 @@ class HexCartographerView extends ItemView {
             this._placeCenterForOrigin(d.originWorld); // scale around the origin
         } else if (d.mode === 'rotate') {
             const ang = Math.atan2(world.y - d.originWorld.y, world.x - d.originWorld.x);
-            const deg = d.startRotation + (ang - d.startAngle) * 180 / Math.PI;
-            p.rotation = ((deg % 360) + 360) % 360;
+            let deg = ((d.startRotation + (ang - d.startAngle) * 180 / Math.PI) % 360 + 360) % 360;
+            if (deg > 180) deg -= 360; // signed (-180, 180], same convention as the typed field (-20, not 340)
+            p.rotation = Math.round(deg * 10) / 10;
             this._placeCenterForOrigin(d.originWorld); // rotate around the origin
         } else if (d.mode === 'origin') {
             // Move the origin marker only — the image stays put; recompute normalized u/v.
@@ -12238,14 +12244,15 @@ class HexCartographerView extends ItemView {
 
         // Rotation (degrees, one decimal)
         this.projRotationUnit = this.createOptionUnit('projection.rotation');
-        this.projRotationInput = this.createOptionInput(this.projRotationUnit, { value: '0', title: t('projection.rotation'), min: '0', max: '359.9', decimals: 1, stepBy: 0.1 });
+        this.projRotationInput = this.createOptionInput(this.projRotationUnit, { value: '0', title: t('projection.rotation'), min: '-359.9', max: '359.9', decimals: 1, stepBy: 0.1, wrap: 360 });
         this.projRotationInput.oninput = (e) => {
             const v = parseFloat(e.target.value);
             if (!isFinite(v)) return;
             if (this.data.projection) { this._snapProjectionForEdit(); this._setProjectionRotation(v); this.render(); this.requestSave(); }
         };
         this.projRotationInput.onchange = (e) => {
-            const v = Math.round(((((parseFloat(e.target.value) || 0) % 360) + 360) % 360) * 10) / 10;
+            // Keep the sign the user entered (-20 stays -20); just round and clamp to the field range.
+            const v = Math.max(-359.9, Math.min(359.9, Math.round((parseFloat(e.target.value) || 0) * 10) / 10));
             e.target.value = v;
             if (this.data.projection) { this._setProjectionRotation(v); this.render(); this.requestSave(); }
         };
