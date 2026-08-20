@@ -248,6 +248,10 @@ const PATH_ROUTE_MODES = ['center', 'edge', 'both'];
 const PATH_ROUTE_DEFAULT = 'center';
 const routeModeOf = (p) => (PATH_ROUTE_MODES.includes(p.routeMode) ? p.routeMode : PATH_ROUTE_DEFAULT);
 
+// Effective taper of a river end: the per-end override (waypoint.round) if set, else the path default
+// (path.taper === 'round'). true = round end (no taper to a point), false = pointed ('Spitz', default).
+const taperRoundOf = (path, wp) => (wp && wp.round !== undefined) ? wp.round === true : !!(path && path.taper === 'round');
+
 // Corner (edge) graph. A hex corner is stored in integer "thirds" coords (Q,R): it sits at
 // fractional hex (Q/3, R/3) — the centroid of the 3 hexes meeting there, i.e. the exact corner,
 // so it renders through the same linear hexToPixel. Each hex has 6 corners; corners split into two
@@ -441,6 +445,7 @@ const TRANSLATIONS = {
         'migrate.intro': 'Folgendes wurde migriert, bitte ggf. kontrollieren:',
         'migrate.roads': 'Wege',
         'migrate.symbols': 'Symbole',
+        'migrate.paths': 'Wege/Flüsse (bereinigt)',
 
         // Tooltips — Grenzen
         'tooltip.border': 'Grenz-Werkzeug\nKlick: Grenzwaben zeichnen\nRechtsklick in Karte: Löschen\nDoppelklick Radierer: Zusammenhängende Grenze löschen',
@@ -821,6 +826,7 @@ const TRANSLATIONS = {
         'migrate.intro': 'The following was migrated, please double-check:',
         'migrate.roads': 'Roads',
         'migrate.symbols': 'Symbols',
+        'migrate.paths': 'Paths (cleaned up)',
 
         // Tooltips — Borders
         'tooltip.border': 'Border Tool\nClick: Draw border hexes\nRight-click on map: Delete\nDouble-click Eraser: Delete connected border',
@@ -1189,6 +1195,7 @@ const TRANSLATIONS = {
         'migrate.intro': '已迁移以下内容，请检查：',
         'migrate.roads': '道路',
         'migrate.symbols': '符号',
+        'migrate.paths': '路径（已清理）',
         'tooltip.border': '边界工具\n点击：绘制边界六角格\n右键地图：删除\n双击橡皮擦：删除相连边界',
         'tooltip.borderPicker': '采集边界颜色\n点击：选择已有边界进行编辑',
         'tooltip.borderFinish': '完成\n点击：完成当前边界',
@@ -1541,6 +1548,7 @@ const TRANSLATIONS = {
         'migrate.intro': 'Следующее было перенесено, проверьте:',
         'migrate.roads': 'Дороги',
         'migrate.symbols': 'Символы',
+        'migrate.paths': 'Пути (очищено)',
         'tooltip.border': 'Инструмент «Граница»\nКлик: Рисовать граничные соты\nПравый клик на карте: Удалить\nДвойной клик ластиком: Удалить связанную границу',
         'tooltip.borderPicker': 'Захватить цвет границы\nКлик: Выбрать существующую границу для редактирования',
         'tooltip.borderFinish': 'Завершить\nКлик: Завершить текущую границу',
@@ -1893,6 +1901,7 @@ const TRANSLATIONS = {
         'migrate.intro': '以下が移行されました。ご確認ください：',
         'migrate.roads': '道',
         'migrate.symbols': 'シンボル',
+        'migrate.paths': 'パス（整理済み）',
         'tooltip.border': '境界ツール\nクリック：境界ヘックスを描画\nマップ上で右クリック：削除\nダブルクリック消しゴム：つながった境界を削除',
         'tooltip.borderPicker': '境界色を取得\nクリック：既存の境界を選択して編集',
         'tooltip.borderFinish': '完了\nクリック：現在の境界を確定',
@@ -2245,6 +2254,7 @@ const TRANSLATIONS = {
         'migrate.intro': 'Les éléments suivants ont été migrés, veuillez vérifier :',
         'migrate.roads': 'Routes',
         'migrate.symbols': 'Symboles',
+        'migrate.paths': 'Tracés (nettoyés)',
         'tooltip.border': 'Outil frontière\nClic : Dessiner des hexagones de frontière\nClic droit sur la carte : Supprimer\nDouble-clic gomme : Supprimer la frontière contiguë',
         'tooltip.borderPicker': 'Capturer la couleur de frontière\nClic : Sélectionner une frontière existante pour la modifier',
         'tooltip.borderFinish': 'Terminer\nClic : Finaliser la frontière en cours',
@@ -2597,6 +2607,7 @@ const TRANSLATIONS = {
         'migrate.intro': 'O seguinte foi migrado, verifique:',
         'migrate.roads': 'Estradas',
         'migrate.symbols': 'Símbolos',
+        'migrate.paths': 'Traçados (limpos)',
         'tooltip.border': 'Ferramenta de fronteira\nClique: Desenhar hexágonos de fronteira\nClique direito no mapa: Excluir\nDuplo clique borracha: Apagar fronteira contígua',
         'tooltip.borderPicker': 'Capturar cor da fronteira\nClique: Selecionar fronteira existente para editar',
         'tooltip.borderFinish': 'Finalizar\nClique: Concluir a fronteira atual',
@@ -2949,6 +2960,7 @@ const TRANSLATIONS = {
         'migrate.intro': '다음 항목이 마이그레이션되었습니다. 확인해 주세요:',
         'migrate.roads': '도로',
         'migrate.symbols': '기호',
+        'migrate.paths': '경로 (정리됨)',
         'tooltip.border': '경계 도구\n클릭: 경계 헥스 셀 그리기\n지도에서 우클릭: 삭제\n더블 클릭 지우개: 인접한 경계 지우기',
         'tooltip.borderPicker': '경계 색상 캡처\n클릭: 기존 경계를 선택하여 편집',
         'tooltip.borderFinish': '완료\n클릭: 현재 경계 완성',
@@ -3301,6 +3313,7 @@ const TRANSLATIONS = {
         'migrate.intro': 'Se migró lo siguiente, por favor revísalo:',
         'migrate.roads': 'Caminos',
         'migrate.symbols': 'Símbolos',
+        'migrate.paths': 'Trazados (limpiados)',
         'tooltip.border': 'Herramienta de frontera\nClic: Dibujar celdas de frontera\nClic derecho en mapa: Eliminar\nDoble clic borrador: Borrar frontera contigua',
         'tooltip.borderPicker': 'Capturar color de frontera\nClic: Seleccionar frontera existente para editar',
         'tooltip.borderFinish': 'Finalizar\nClic: Completar frontera actual',
@@ -3653,6 +3666,7 @@ const TRANSLATIONS = {
         'migrate.intro': 'Zmigrowano poniższe, sprawdź:',
         'migrate.roads': 'Drogi',
         'migrate.symbols': 'Symbole',
+        'migrate.paths': 'Ścieżki (oczyszczone)',
         'tooltip.border': 'Narzędzie granicy\nKliknij: Rysuj komórki graniczne\nPrawy klik na mapie: Usuń\nPodwójne kliknięcie gumką: Usuń przyległą granicę',
         'tooltip.borderPicker': 'Pobierz kolor granicy\nKliknij: Wybierz istniejącą granicę do edycji',
         'tooltip.borderFinish': 'Zakończ\nKliknij: Zakończ bieżącą granicę',
@@ -4005,6 +4019,7 @@ const TRANSLATIONS = {
         'migrate.intro': 'Quanto segue è stato migrato, controlla:',
         'migrate.roads': 'Strade',
         'migrate.symbols': 'Simboli',
+        'migrate.paths': 'Tracciati (puliti)',
         'tooltip.border': 'Strumento confine\nClic: Disegna celle di confine\nClic destro sulla mappa: Elimina\nDoppio clic gomma: Cancella confine contiguo',
         'tooltip.borderPicker': 'Acquisisci colore confine\nClic: Seleziona confine esistente per modificare',
         'tooltip.borderFinish': 'Completa\nClic: Completa confine corrente',
@@ -5720,6 +5735,7 @@ class HexCartographerView extends ItemView {
         this.pathDashDensity = DEFAULT_PATH_DASH_DENSITY;
         this.pathEndpoint = 'edge'; // where a path ends/starts: 'edge' (default) or 'center'
         this.pathRouteMode = PATH_ROUTE_DEFAULT; // running route-mode default for new paths
+        this.pathTaper = 'point'; // running taper default for new rivers: 'point' (Spitz) or 'round'
         this.pathPickMode = false;
         this.pathPickPending = null;
         this.lastToolGroup = null;
@@ -6359,6 +6375,9 @@ class HexCartographerView extends ItemView {
                 if (newData.settings.pathRouteMode !== undefined) {
                     this.pathRouteMode = newData.settings.pathRouteMode;
                 }
+                if (newData.settings.pathTaper !== undefined) {
+                    this.pathTaper = newData.settings.pathTaper;
+                }
                 if (newData.settings.hexColorColor) {
                     this.hexColorColor = newData.settings.hexColorColor;
                 }
@@ -6530,32 +6549,47 @@ class HexCartographerView extends ItemView {
                     }
                 }
             }
-            for (const pathArr of [newData.rivers, newData.roads]) {
-                if (pathArr) {
-                    for (const path of pathArr) {
-                        if (path.waypoints) {
-                            path.waypoints = path.waypoints.filter(w => {
-                                if (w.break) return true;
-                                if (!isFinite(w.q) || !isFinite(w.r)) {
-                                    console.warn('Removed corrupted waypoint (non-finite):', w);
-                                    return false;
-                                }
-                                const rq = Math.round(w.q);
-                                const rr = Math.round(w.r);
-                                if (rq < boundsMinQ || rq > boundsMaxQ || rr < boundsMinR || rr > boundsMaxR) {
-                                    console.warn('Removed waypoint outside map bounds:', w);
-                                    return false;
-                                }
-                                return true;
-                            });
-                            for (const w of path.waypoints) {
-                                if (!Number.isInteger(w.q)) { w.q = Math.round(w.q); }
-                                if (!Number.isInteger(w.r)) { w.r = Math.round(w.r); }
+            let cleanedPaths = false;
+            for (const arrName of ['rivers', 'roads']) {
+                const pathArr = newData[arrName];
+                if (!pathArr) continue;
+                for (const path of pathArr) {
+                    // Old-system paths (saved before route modes existed) have no routeMode ->
+                    // convert them to 'Zentrum'. Paths with an explicit mode (edge/both) are kept.
+                    if (!PATH_ROUTE_MODES.includes(path.routeMode)) path.routeMode = 'center';
+                    if (path.waypoints) {
+                        path.waypoints = path.waypoints.filter(w => {
+                            if (w.break) return true;
+                            if (!isFinite(w.q) || !isFinite(w.r)) {
+                                console.warn('Removed corrupted waypoint (non-finite):', w);
+                                return false;
                             }
+                            const rq = Math.round(w.q);
+                            const rr = Math.round(w.r);
+                            if (rq < boundsMinQ || rq > boundsMaxQ || rr < boundsMinR || rr > boundsMaxR) {
+                                console.warn('Removed waypoint outside map bounds:', w);
+                                return false;
+                            }
+                            return true;
+                        });
+                        // Snap to the nearest grid node in THIRDS: integer centres AND corner
+                        // control points (stored as thirds) both stay intact; only genuinely
+                        // off-grid coords get corrected. (Plain Math.round would destroy corners.)
+                        for (const w of path.waypoints) {
+                            if (w.break) continue;
+                            const sq = Math.round(w.q * 3) / 3, sr = Math.round(w.r * 3) / 3;
+                            if (w.q !== sq) w.q = sq;
+                            if (w.r !== sr) w.r = sr;
                         }
+                        // Drop render-junk (duplicate points, zero-length break-chains) left by old edits.
+                        if (this.cleanupPathWaypoints(path)) cleanedPaths = true;
                     }
                 }
+                // A path emptied by cleanup (only junk chains) draws nothing -> remove it.
+                const kept = pathArr.filter(p => p.waypoints && p.waypoints.length >= 2);
+                if (kept.length !== pathArr.length) { newData[arrName] = kept; cleanedPaths = true; }
             }
+            if (cleanedPaths) (this._pendingMigrations = this._pendingMigrations || []).push('paths');
             if (newData.texts) {
                 for (const t of newData.texts) {
                     for (const key of VIEWPORT_KEYS) {
@@ -7452,6 +7486,27 @@ class HexCartographerView extends ItemView {
         el.addEventListener('touchcancel', cancel, { passive: true });
     }
 
+    // Reliable tap for text-labelled option buttons on touch devices: a tap on the centred text label
+    // can swallow the synthesized click (text selection / caret), so it only registered near the edge.
+    // Fire on touchend for a clean tap and suppress the following click; a short guard drops any click
+    // that still slips through so the handler runs exactly once. Mouse/desktop keeps the plain click.
+    _bindOptionTap(el, handler) {
+        let lastTouch = 0, sx = 0, sy = 0, moved = false;
+        el.onclick = (e) => { if (Date.now() - lastTouch < 600) return; handler(e); };
+        el.addEventListener('touchstart', (e) => {
+            const tp = e.touches[0]; sx = tp.clientX; sy = tp.clientY; moved = false;
+        }, { passive: true });
+        el.addEventListener('touchmove', (e) => {
+            const tp = e.touches[0]; if (Math.hypot(tp.clientX - sx, tp.clientY - sy) > 10) moved = true;
+        }, { passive: true });
+        el.addEventListener('touchend', (e) => {
+            if (moved || el.disabled) return;
+            lastTouch = Date.now();
+            e.preventDefault(); // suppress the synthesized click so the handler runs once
+            handler(e);
+        }, { passive: false });
+    }
+
     // Hex button preview: a hex filled with the chosen texture, or — in "Color"
     // mode — a hex in the current hex color. Matches the menu entries.
     // Rebuilds only when something actually changed; updateToolbarState calls this
@@ -8140,7 +8195,7 @@ class HexCartographerView extends ItemView {
             endpointBtn.setText(t(endpointModeOf(wp) === 'center' ? 'endpoint.center' : 'endpoint.edge'));
         };
         this._syncEndpointBtn();
-        endpointBtn.onclick = () => {
+        this._bindOptionTap(endpointBtn, () => {
             const wp = this.selectedEndpoint();
             if (!wp) return;
             this.pushHistory();
@@ -8150,7 +8205,7 @@ class HexCartographerView extends ItemView {
             this._syncEndpointBtn();
             this.render();
             this.requestSave();
-        };
+        });
 
         // Taper (pointed/round) — RIVERS only. Toggles waypoint.round on the selected end waypoint.
         this.pathTaperUnit = this.createOptionUnit('option.taper');
@@ -8158,19 +8213,21 @@ class HexCartographerView extends ItemView {
         this.pathTaperBtn = taperBtn;
         this._syncTaperBtn = () => {
             const wp = this.selectedEndpoint();
+            const round = wp ? taperRoundOf(this.activePath(), wp) : false;
             taperBtn.disabled = !wp; taperBtn.style.opacity = wp ? '1' : '0.4';
-            taperBtn.setText(t(wp && wp.round === true ? 'taper.round' : 'taper.point'));
+            taperBtn.setText(t(round ? 'taper.round' : 'taper.point'));
         };
         this._syncTaperBtn();
-        taperBtn.onclick = () => {
+        this._bindOptionTap(taperBtn, () => {
             const wp = this.selectedEndpoint();
             if (!wp) return;
             this.pushHistory();
-            wp.round = !(wp.round === true);
+            wp.round = !taperRoundOf(this.activePath(), wp); // toggle from the effective state
+            this.pathTaper = wp.round ? 'round' : 'point'; // running default for new rivers
             this._syncTaperBtn();
             this.render();
             this.requestSave();
-        };
+        });
 
         // Verlauf (route mode): how the edited path connects its control points — through hex centres
         // ('Zentrum') or along hex borders ('Kante'). 'Beides' arrives in a later phase. Per path,
@@ -8185,7 +8242,7 @@ class HexCartographerView extends ItemView {
             routeBtn.setText(t(routeLabel[a ? routeModeOf(a) : 'center']));
         };
         this._syncRouteBtn();
-        routeBtn.onclick = () => {
+        this._bindOptionTap(routeBtn, () => {
             const a = this.activePath();
             if (!a) return;
             this.pushHistory();
@@ -8195,7 +8252,7 @@ class HexCartographerView extends ItemView {
             this._syncRouteBtn();
             this.render();
             this.requestSave();
-        };
+        });
 
         // Move the selected path one layer up / down through the terrain-symbol stack. Perceived as
         // "layer": arrow-up-to-line = up (toward the front), arrow-down-to-line = down (toward the
@@ -8299,7 +8356,9 @@ class HexCartographerView extends ItemView {
             // Rivers are never dashed -> no gap input to load.
             this.pathEndpoint = path.endpoint || 'edge';
             this.pathRouteMode = routeModeOf(path);
+            this.pathTaper = path.taper === 'round' ? 'round' : 'point';
             if (this._syncEndpointBtn) this._syncEndpointBtn();
+            if (this._syncTaperBtn) this._syncTaperBtn();
             new Notice(t('notice.riverSelected', { id: path.id }));
         } else {
             this.currentToolGroup = 'road';
@@ -9588,11 +9647,11 @@ class HexCartographerView extends ItemView {
             if (this.isMouseDown && this.mouseDownPos) {
                 if (this.roadDragIndex !== null && this.roadSettings.editMode) {
                     const dist = Math.sqrt((world.x - this.mouseDownPos.x)**2 + (world.y - this.mouseDownPos.y)**2);
+                    const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
                     if (dist < 5) {
-                        const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
-                        if (road) {
-                            this.handleWaypointClick(road, this.roadSettings, this.roadDragIndex.idx);
-                        }
+                        if (road) this.handleWaypointClick(road, this.roadSettings, this.roadDragIndex.idx);
+                    } else if (road) {
+                        this.mergeDraggedPathEnd(road, this.roadSettings, this.roadDragIndex.idx);
                     }
                     this.roadDragIndex = null;
                     this.requestSave();
@@ -9607,11 +9666,11 @@ class HexCartographerView extends ItemView {
 
                 if (this.riverDragIndex !== null && this.riverSettings.editMode) {
                     const dist = Math.sqrt((world.x - this.mouseDownPos.x)**2 + (world.y - this.mouseDownPos.y)**2);
+                    const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
                     if (dist < 5) {
-                        const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
-                        if (river) {
-                            this.handleWaypointClick(river, this.riverSettings, this.riverDragIndex.idx);
-                        }
+                        if (river) this.handleWaypointClick(river, this.riverSettings, this.riverDragIndex.idx);
+                    } else if (river) {
+                        this.mergeDraggedPathEnd(river, this.riverSettings, this.riverDragIndex.idx);
                     }
                     this.riverDragIndex = null;
                     this.requestSave();
@@ -10211,11 +10270,11 @@ class HexCartographerView extends ItemView {
                 if (this.isMouseDown && this.mouseDownPos) {
                     if (this.roadDragIndex !== null && this.roadSettings.editMode) {
                         const dist = Math.sqrt((world.x - this.mouseDownPos.x)**2 + (world.y - this.mouseDownPos.y)**2);
+                        const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
                         if (dist < 5) {
-                            const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
-                            if (road) {
-                                this.handleWaypointClick(road, this.roadSettings, this.roadDragIndex.idx);
-                            }
+                            if (road) this.handleWaypointClick(road, this.roadSettings, this.roadDragIndex.idx);
+                        } else if (road) {
+                            this.mergeDraggedPathEnd(road, this.roadSettings, this.roadDragIndex.idx);
                         }
                         this.roadDragIndex = null;
                         this.requestSave();
@@ -10230,11 +10289,11 @@ class HexCartographerView extends ItemView {
 
                     if (this.riverDragIndex !== null && this.riverSettings.editMode) {
                         const dist = Math.sqrt((world.x - this.mouseDownPos.x)**2 + (world.y - this.mouseDownPos.y)**2);
+                        const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
                         if (dist < 5) {
-                            const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
-                            if (river) {
-                                this.handleWaypointClick(river, this.riverSettings, this.riverDragIndex.idx);
-                            }
+                            if (river) this.handleWaypointClick(river, this.riverSettings, this.riverDragIndex.idx);
+                        } else if (river) {
+                            this.mergeDraggedPathEnd(river, this.riverSettings, this.riverDragIndex.idx);
                         }
                         this.riverDragIndex = null;
                         this.requestSave();
@@ -10427,17 +10486,24 @@ class HexCartographerView extends ItemView {
     }
 
     // Re-snap all control points to the new mode's target type (centre <-> corner). 'both' keeps the
-    // mixed nodes. Lossy by design: a corner rounds to its nearest centre and vice versa.
+    // mixed nodes. Centre<->corner is inherently ambiguous (a centre is equidistant to its 6 corners,
+    // a corner to its 3 centres), so a naive round-trip drifts. To keep mode cycling lossless we
+    // remember the source centre in wp.homeCenter and restore it on the way back - unless the point was
+    // dragged in the meantime (its corner no longer belongs to that centre), then we snap to nearest.
     convertPathNodes(path) {
         const mode = routeModeOf(path);
         if (mode === 'both' || !path.waypoints) return;
         for (const wp of path.waypoints) {
             const corner = this.isCornerWp(wp);
             if (mode === 'center' && corner) {
-                const p = this.hexToPixel(wp);
-                const h = this.pixelToHex(p.x, p.y);
-                wp.q = h.q; wp.r = h.r;
+                const vQ = Math.round(wp.q * 3), vR = Math.round(wp.r * 3);
+                const home = wp.homeCenter;
+                const homeValid = home && hexCornerVerts(home).some(v => v.Q === vQ && v.R === vR);
+                if (homeValid) { wp.q = home.q; wp.r = home.r; }
+                else { const p = this.hexToPixel(wp); const h = this.pixelToHex(p.x, p.y); wp.q = h.q; wp.r = h.r; }
+                delete wp.homeCenter;
             } else if (mode === 'edge' && !corner) {
+                wp.homeCenter = { q: wp.q, r: wp.r }; // remember the source hex for a lossless trip back
                 const p = this.hexToPixel(wp);
                 const v = this.nearestVertAtPixel(p.x, p.y);
                 wp.q = v.Q / 3; wp.r = v.R / 3;
@@ -10971,7 +11037,7 @@ class HexCartographerView extends ItemView {
         // toggled mode onto the whole path.
         if (!river) {
             const maxId = this.data.rivers.reduce((max, r) => Math.max(max, r.id || 0), 0);
-            river = { id: maxId + 1, color: this.masterColor, width: this.riverSettings.width, endpoint: this.pathEndpoint || 'edge', routeMode: this.pathRouteMode || PATH_ROUTE_DEFAULT, waypoints: [] };
+            river = { id: maxId + 1, color: this.masterColor, width: this.riverSettings.width, endpoint: this.pathEndpoint || 'edge', routeMode: this.pathRouteMode || PATH_ROUTE_DEFAULT, taper: this.pathTaper || 'point', waypoints: [] };
             this.data.rivers.push(river);
             this.riverSettings.activeRiverId = river.id;
             this.riverSettings.editMode = true;
@@ -13498,6 +13564,42 @@ class HexCartographerView extends ItemView {
         return null;
     }
 
+    // Remove render-junk from a path's waypoints: collapse consecutive duplicate control points and drop
+    // degenerate zero-length sub-chains (a break-chain sitting on a single hex draws nothing and could
+    // even crash the endpoint snap). Behaviour-neutral - only invisible data goes. Returns true if changed.
+    cleanupPathWaypoints(path) {
+        const wps = path && path.waypoints;
+        if (!Array.isArray(wps) || !wps.length) return false;
+        const before = JSON.stringify(wps);
+        // Split into chains: a break waypoint starts a new chain (and is its first point).
+        const chains = [];
+        for (const w of wps) {
+            if (w.break || chains.length === 0) chains.push([w]); else chains[chains.length - 1].push(w);
+        }
+        const kept = [];
+        for (const chain of chains) {
+            const collapsed = [];
+            for (const w of chain) {
+                const prev = collapsed[collapsed.length - 1];
+                if (prev && prev.q === w.q && prev.r === w.r) { // fold a consecutive duplicate onto its survivor
+                    if (w.round !== undefined && prev.round === undefined) prev.round = w.round;
+                    if (w.endpoint !== undefined && prev.endpoint === undefined) prev.endpoint = w.endpoint;
+                    continue;
+                }
+                collapsed.push(w);
+            }
+            const distinct = new Set(collapsed.map(w => `${w.q}_${w.r}`));
+            if (collapsed.length >= 2 && distinct.size >= 2) kept.push(collapsed); // keep only chains with extent
+        }
+        const out = [];
+        kept.forEach((chain, ci) => chain.forEach((w, wi) => {
+            if (wi === 0 && ci > 0) w.break = true; else delete w.break; // fix break flags after reassembly
+            out.push(w);
+        }));
+        path.waypoints = out;
+        return JSON.stringify(out) !== before;
+    }
+
     // Waypoint indices that are FREE chain termini (where per-endpoint endpoint/round apply).
     // Mirrors drawPathChains' chain building + distinct-chain junction count, on waypoint indices.
     freeEndpointIndices(path) {
@@ -13538,6 +13640,40 @@ class HexCartographerView extends ItemView {
         const idx = this.effectiveEndpointIdx();
         const path = this.activePath();
         return idx == null || !path ? null : (path.waypoints[idx] || null);
+    }
+
+    // Drag-merge: when a free end is dropped exactly onto its neighbour (the second-to-last point of
+    // its chain), fuse the two into ONE point. The surviving neighbour becomes the new end and inherits
+    // the dragged end's per-end status (taper round/point and endpoint edge/centre). Keeps at least two
+    // points in the chain. Returns true if a merge happened. Call on drag release (dragIdx = dragged point).
+    mergeDraggedPathEnd(path, settings, dragIdx) {
+        const wps = path && path.waypoints;
+        if (!wps || dragIdx == null || !wps[dragIdx]) return false;
+        if (!this.freeEndpointIndices(path).has(dragIdx)) return false; // only a real free end merges
+        // Rebuild index chains (a break waypoint starts a new chain), same rule as freeEndpointIndices.
+        const chains = [];
+        let cur = [];
+        for (let i = 0; i < wps.length; i++) {
+            if (wps[i].break) cur = [i]; else cur.push(i);
+            if (i === wps.length - 1 || (wps[i + 1] && wps[i + 1].break)) {
+                if (cur.length >= 2) chains.push(cur);
+                if (wps[i + 1] && wps[i + 1].break) cur = [];
+            }
+        }
+        const chain = chains.find(ch => ch[0] === dragIdx || ch[ch.length - 1] === dragIdx);
+        if (!chain || chain.length < 3) return false; // keep >= 2 points after removing the dragged end
+        const atEnd = chain[chain.length - 1] === dragIdx;
+        const nb = atEnd ? chain[chain.length - 2] : chain[1];
+        const end = wps[dragIdx], other = wps[nb];
+        if (!other || end.q !== other.q || end.r !== other.r) return false; // only when dropped ONTO the neighbour
+        // Neighbour inherits the dragged end's per-end status, then the dragged end is removed.
+        if (end.round !== undefined) other.round = end.round; else delete other.round;
+        if (end.endpoint !== undefined) other.endpoint = end.endpoint; else delete other.endpoint;
+        wps.splice(dragIdx, 1);
+        const newEnd = dragIdx < nb ? nb - 1 : nb;
+        settings.insertAfter = newEnd;
+        this.selectedWaypointIdx = newEnd;
+        return true;
     }
 
     // Moves the active path one layer up (delta +1) or down (delta -1) through the terrain/symbol
@@ -13605,10 +13741,9 @@ class HexCartographerView extends ItemView {
         }
 
         // How many DISTINCT chains touch each hex. A terminus shared with ANOTHER chain is a
-        // junction (branch) and must not recede/taper. A terminus that only repeats WITHIN its own
-        // chain (endpoint dragged back onto an earlier point -> rounded end) is still a free end and
-        // should honor the endpoint toggle, so we count chains, not raw segment hits (which would
-        // double-count a self-overlapping end and wrongly treat it as a junction).
+        // junction (branch) and must not recede/taper. A terminus whose hex only repeats WITHIN its
+        // own chain is still a free end and should honor the endpoint toggle, so we count chains, not
+        // raw segment hits (which would double-count a self-overlapping end and treat it as a junction).
         const junctionCount = {};
         chains.forEach(chain => {
             const keys = new Set(chain.map(w => `${w.q}_${w.r}`));
@@ -13659,21 +13794,13 @@ class HexCartographerView extends ItemView {
                 });
             }
 
-            // A terminus RECEDES (endpoint toggle) when it is a free end - not shared with ANOTHER
-            // chain (a branch junction). It stays ROUNDED (no taper to a point) when its hex repeats
-            // WITHIN its own chain: dragging the endpoint back onto an earlier point is how the user
-            // rounds an end off, so we keep that look and only honor the toggle for where it ends.
-            const keysInChain = chain.map(w => `${w.q}_${w.r}`);
-            const startRepeats = keysInChain.indexOf(startKey) !== keysInChain.lastIndexOf(startKey);
-            const endRepeats = keysInChain.indexOf(endKey) !== keysInChain.lastIndexOf(endKey);
-
-            // Per-terminus taper: a free end tapers to a point UNLESS its waypoint is flagged round
-            // (waypoint.round) or the endpoint was dragged onto an earlier point (endRepeats).
-            // A free end tapers to a point unless flagged round or dragged onto an earlier point. The
-            // actual width ramp is done DISTANCE-based per point in drawWavyLines (see there), so the
-            // point looks the same and equally sharp at both ends regardless of the route's segments.
-            const canTaperStart = taper && trimStart && !startRepeats && startWp.round !== true;
-            const canTaperEnd = taper && trimEnd && !endRepeats && endWp.round !== true;
+            // Per-terminus taper: a free end (not shared with another chain) tapers to a point UNLESS
+            // its waypoint is flagged round (waypoint.round). The pointed/round look is purely the
+            // per-end toggle now — dragging an end onto its neighbour MERGES the two points (see
+            // mergeDraggedPathEnd) instead of silently rounding the end off. The width ramp itself is
+            // DISTANCE-based per point in drawWavyLines, so both ends look equally sharp.
+            const canTaperStart = taper && trimStart && !taperRoundOf(path, startWp);
+            const canTaperEnd = taper && trimEnd && !taperRoundOf(path, endWp);
 
             const gapPercent = pathType === 'river' ? 0 : (path.gapPercent || 0); // rivers are never dashed
             const dashDensity = pathType === 'river' ? 1 : (path.dashDensity || 1);
@@ -13697,8 +13824,8 @@ class HexCartographerView extends ItemView {
             // neighbouring route node (firstAdj/lastAdj), so the end sits on the edge midpoint of the
             // real last hex step. insets > 0 marks those centre 'edge' termini (corners and 'center' get 0).
             if (!edgeMode && chain.length >= 2) {
-                if (insets.start > 0) insets.startPoint = this._edgeTipMid(startWp, firstAdj);
-                if (insets.end > 0) insets.endPoint = this._edgeTipMid(endWp, lastAdj);
+                if (insets.start > 0 && firstAdj) insets.startPoint = this._edgeTipMid(startWp, firstAdj);
+                if (insets.end > 0 && lastAdj) insets.endPoint = this._edgeTipMid(endWp, lastAdj);
             }
             this.drawWavyLines(segments, path.color, path.width, trimStart, trimEnd, gapPercent, dashDensity, insets, canTaperStart, canTaperEnd);
         });
@@ -13729,6 +13856,7 @@ class HexCartographerView extends ItemView {
     // `other` toward the terminus) exits — so a diagonal end lands where its line crosses the edge,
     // not on the last hex-step's edge midpoint. Falls back to null (use the plain inset) if degenerate.
     _edgeTipPoint(term, other) {
+        if (!term || !other) return null; // degenerate chain (no neighbouring node) -> use the plain inset
         const c = this.hexToPixel(term), o = this.hexToPixel(other);
         let dx = o.x - c.x, dy = o.y - c.y;
         const d = Math.hypot(dx, dy);
@@ -13755,6 +13883,7 @@ class HexCartographerView extends ItemView {
     // MIDPOINT of the hex edge that the path DIRECTION (from `other` toward the terminus) crosses — so
     // a centre 'edge' end (centre/both mode) sits in the MIDDLE of the crossed hex edge, not on a corner.
     _edgeTipMid(term, other) {
+        if (!term || !other) return null; // degenerate chain (no neighbouring node) -> use the plain inset
         const c = this.hexToPixel(term), o = this.hexToPixel(other);
         let dx = o.x - c.x, dy = o.y - c.y;
         const d = Math.hypot(dx, dy);
@@ -13990,6 +14119,7 @@ class HexCartographerView extends ItemView {
                     pathDashDensity: this.pathDashDensity,
                     pathEndpoint: this.pathEndpoint,
                     pathRouteMode: this.pathRouteMode,
+                    pathTaper: this.pathTaper,
                     masterColor: this.masterColor,
                     editMode: this.editMode,
                     hexColorColor: this.hexColorColor,
