@@ -6700,7 +6700,11 @@ class HexCartographerView extends ItemView {
             projection: this.data.projection || null,
             // Tool-history slots ride along so that discarding missing graphics (which also prunes
             // those slots) is undoable in one step. Normally unchanged, so undo/redo is a no-op here.
-            toolHistory: this.toolHistory
+            toolHistory: this.toolHistory,
+            // The colour palettes ride along too, so editing a palette swatch is undoable in one step
+            // (it also live-recolours the active element). Unchanged in most steps -> undo/redo no-op.
+            colorPalette: this.colorPalette,
+            colorPalette2: this.colorPalette2
         };
     }
 
@@ -6724,6 +6728,9 @@ class HexCartographerView extends ItemView {
             this.toolHistory = restored.toolHistory;
             if (typeof this.renderToolHistory === 'function') this.renderToolHistory();
         }
+        if (restored.colorPalette) this.colorPalette = restored.colorPalette;
+        if (restored.colorPalette2) this.colorPalette2 = restored.colorPalette2;
+        if (restored.colorPalette || restored.colorPalette2) this.refreshPalette();
         // The snapshot holds x/y from its own time — re-place from the anchor in case the
         // orientation changed since.
         this.applyTextHexPositions();
@@ -7092,6 +7099,7 @@ class HexCartographerView extends ItemView {
         this.masterColorInput = masterColorInput;
 
         masterColorBtn.onclick = () => {
+            this.pendingHistory = true; // one undo entry for recolouring the active element via the picker
             if (this.isTouchDevice) {
                 new ColorPickerModal(this.app, this.masterColor, (color) => {
                     this.masterColor = color;
@@ -7120,7 +7128,10 @@ class HexCartographerView extends ItemView {
         this.colorEyedropperBtn = colorEyedropperBtn;
         colorEyedropperBtn.onclick = () => {
             const wasActive = this.colorPickMode;
-            this.exitPathEditMode();
+            // While a road/river is being edited, keep it selected so the picked colour recolours it
+            // (updateActivePathColor runs on the pick). The colorPickMode intercept swallows the tap,
+            // so no waypoint is added. Otherwise clear the current edit/pick state as before.
+            if (!(this.roadSettings.editMode || this.riverSettings.editMode)) this.exitPathEditMode();
             this.colorPickMode = !wasActive;
             colorEyedropperBtn.style.background = this.colorPickMode ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
             colorEyedropperBtn.style.color = this.colorPickMode ? 'var(--text-on-accent)' : '';
@@ -7959,6 +7970,14 @@ class HexCartographerView extends ItemView {
         this._createPaletteRow(outer, this.colorPalette2, 'colorPalette2');
     }
 
+    // Rebuild the palette swatches from the current arrays (after undo/redo restores a palette).
+    refreshPalette() {
+        if (!this.paletteOuter) return;
+        this.paletteOuter.empty();
+        this._createPaletteRow(this.paletteOuter, this.colorPalette, 'colorPalette');
+        this._createPaletteRow(this.paletteOuter, this.colorPalette2, 'colorPalette2');
+    }
+
     _createPaletteRow(parent, palette, paletteKey) {
         const row = parent.createDiv({ style: 'display: flex; align-items: center; gap: 3px;' });
 
@@ -7989,6 +8008,7 @@ class HexCartographerView extends ItemView {
                 this.masterColor = this[paletteKey][index];
                 if (this.currentToolGroup === 'hexcolor') this.hexColorColor = this.masterColor;
                 this.syncMasterColorInput();
+                this.pendingHistory = true; // one undo entry for recolouring the active element
                 this.updateActivePathColor();
                 this.recordToolSetting(this.currentToolGroup); // colour committed -> remember it
                 const toolbar = this.hexToolbarEl();
@@ -7996,8 +8016,10 @@ class HexCartographerView extends ItemView {
             };
 
             const openPaletteColorPicker = () => {
+                this.pendingHistory = true; // one undo entry per swatch edit (palette + live recolour)
                 if (this.isTouchDevice) {
                     new ColorPickerModal(this.app, this[paletteKey][index], (color) => {
+                        this.pushHistoryIfNeeded(); // snapshot BEFORE the palette array changes
                         this[paletteKey][index] = color;
                         btn.style.backgroundColor = color;
                         hiddenInput.value = color;
@@ -8019,6 +8041,7 @@ class HexCartographerView extends ItemView {
             this.addLongPress(btn, openPaletteColorPicker);
 
             hiddenInput.oninput = (e) => {
+                this.pushHistoryIfNeeded(); // snapshot BEFORE the first change of this swatch-edit gesture
                 this[paletteKey][index] = e.target.value;
                 btn.style.backgroundColor = e.target.value;
                 this.masterColor = e.target.value;
@@ -8431,28 +8454,23 @@ class HexCartographerView extends ItemView {
     updateActivePathColor() {
         // Path/border tools remember their own last colour (like hex/symbol tools), so the
         // next drawn element reuses it — and update the active element if one is being edited.
+        // Recolour the active element undoably: snapshot BEFORE the first change of the gesture
+        // (pushHistoryIfNeeded fires once; the colour entry points set pendingHistory). Only a real
+        // colour change on an existing element pushes, so re-picking the same colour is a no-op.
+        const recolor = (obj) => { if (obj && obj.color !== this.masterColor) { this.pushHistoryIfNeeded(); obj.color = this.masterColor; } };
         if (this.currentToolGroup === 'river') {
             this.riverSettings.color = this.masterColor;
-            if (this.riverSettings.editMode) {
-                const river = this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
-                if (river) river.color = this.masterColor;
-            }
+            if (this.riverSettings.editMode) recolor(this.data.rivers && this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId));
             this.render(); this.requestSave();
         }
         if (this.currentToolGroup === 'road') {
             this.roadSettings.color = this.masterColor;
-            if (this.roadSettings.editMode) {
-                const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
-                if (road) road.color = this.masterColor;
-            }
+            if (this.roadSettings.editMode) recolor(this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId));
             this.render(); this.requestSave();
         }
         if (this.currentToolGroup === 'border') {
             this.borderSettings.color = this.masterColor;
-            if (this.borderSettings.activeRegionId !== null) {
-                const region = this.data.borders && this.data.borders.find(r => r.id === this.borderSettings.activeRegionId);
-                if (region) region.color = this.masterColor;
-            }
+            if (this.borderSettings.activeRegionId !== null) recolor(this.data.borders && this.data.borders.find(r => r.id === this.borderSettings.activeRegionId));
             this.render(); this.requestSave();
         }
         if (this.currentToolGroup === 'hexcolor') {
