@@ -76,8 +76,8 @@ const stableStringify = (v) => {
 };
 
 // Per-tool quick-select history: the drawing tools that get one, and the max slots each keeps.
-const HISTORY_TOOL_GROUPS = ['hexcolor', 'grass', 'tree', 'mountain', 'building'];
-const HISTORY_MAX_SLOTS = 6;
+const HISTORY_TOOL_GROUPS = ['hexcolor', 'grass', 'tree', 'mountain', 'building', 'pattern'];
+const HISTORY_MAX_SLOTS = 8;
 const HISTORY_PREVIEW_SIZE = 80; // hover preview hex size (px)
 // Two history entries are the same setting when their values match (order-free).
 const historyEntrySame = (a, b) => stableStringify(a) === stableStringify(b);
@@ -391,7 +391,7 @@ const TRANSLATIONS = {
         'tooltip.editMode': 'Edit-Modus\nKlick: Werkzeuge ein-/ausblenden',
         'tooltip.hexOrientation': 'Waben Ausrichtung ändern\nKlick: Waben um 90° drehen',
         'tooltip.colorPicker': 'Aktuelle Farbe\nKlick: Farbwähler öffnen',
-        'tooltip.fill': 'Fülleimer\nKlick: Zusammenhängende Fläche füllen\nErneut klicken: Fülleimer ausschalten',
+        'tooltip.fill': 'Füll-Werkzeug\nKlick: Zusammenhängende Fläche füllen\nErneut klicken: Füll-Werkzeug ausschalten',
         'tooltip.text': 'Text-Werkzeug\nKlick auf Karte: Neuen Text erstellen\nKlick auf Text: Text bearbeiten/verschieben\nRechtsklick in Karte auf Text: Text löschen',
         'tooltip.projection': 'Projektion',
         'projection.load': 'Bitmap laden',
@@ -407,7 +407,7 @@ const TRANSLATIONS = {
         'projection.pickTitle': 'Projektionsbild wählen',
         'projection.noImages': 'Keine Bilder im Vault gefunden',
         'notice.projectionLoadFailed': 'Bild konnte nicht geladen werden.',
-        'tooltip.eraser': 'Radierer\nKlick: Wabeninhalt löschen\nDoppelklick: Zusammenhängendes löschen',
+        'tooltip.eraser': 'Radier-Werkzeug\nKlick: Wabeninhalt löschen\nDoppelklick: Zusammenhängendes löschen',
         'tooltip.undo': 'Rückgängig\nStrg+Z: Letzte Aktion rückgängig machen',
         'tooltip.redo': 'Wiederholen\nStrg+Y: Rückgängig gemachte Aktion wiederholen',
         'tooltip.fit': 'Karte einpassen\nKlick: Fenster mit gesamter Karte ausfüllen',
@@ -6870,10 +6870,9 @@ class HexCartographerView extends ItemView {
                The separators (align-self: stretch) span both rows automatically. */
             .hex-tool-cluster { display: inline-flex; flex-direction: column; gap: 3px; }
             .hex-tool-cluster-row { display: inline-flex; align-items: center; gap: 3px; }
-            /* Full tool-row width; the six slots are spread edge-to-edge (space-between).
-               renderToolHistory pads the row to six with INVISIBLE placeholder slots, so with
-               fewer real slots they stay LEFT-aligned at the same fixed gap (the placeholders
-               hold the right-hand positions). */
+            /* Full tool-row width; all HISTORY_MAX_SLOTS slots are shown and spread edge-to-edge
+               (space-between): the used ones fill from the left, remaining ones stay as empty boxes,
+               and the last slot sits flush with the separator on the right. */
             .hex-history-row { display: flex; width: 100%; align-items: center; justify-content: space-between; }
             .hex-history-slot {
                 width: 28px; height: 28px; min-width: 28px; padding: 0;
@@ -6882,6 +6881,9 @@ class HexCartographerView extends ItemView {
                 border-radius: 4px; cursor: pointer; box-sizing: border-box;
             }
             .hex-history-slot:hover { border-color: var(--interactive-accent); }
+            /* Empty (not-yet-used) slot: transparent, non-interactive, with a 50%-black dashed border. */
+            .hex-history-slot-empty { background: transparent; border-style: dashed; border-color: rgba(0, 0, 0, 0.5); cursor: default; }
+            .hex-history-slot-empty:hover { border-color: rgba(0, 0, 0, 0.5); }
             /* Top overlay stacks the warning bar and the options row above the map
                without resizing the canvas. Height = its visible children only. */
             .hex-map-top-overlay {
@@ -7182,20 +7184,24 @@ class HexCartographerView extends ItemView {
         };
         this.addLongPress(hexColorBtn, () => this.showHexTextureMenu(hexColorBtn));
 
-        // Grouped by draw order so the user sees what belongs together and in which order it is
-        // drawn: Terrain (Wabenfarbe/Textur above + Berge + Vegetation) | Geb\u00E4ude | Extras. Each
-        // group is set off by a vertical separator inside the tool row.
+        // Drawing tools in draw order, no separators inside the cluster:
+        // Wabenfarbe/Textur \u00B7 Berge \u00B7 Vegetation \u00B7 Geb\u00E4ude \u00B7 Extras \u00B7 Muster.
         this.createToolGroupButton(clusterTools, 'mountain'); // Berge
         this.createToolGroupButton(clusterTools, 'tree');     // Vegetation
-        clusterTools.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
         this.createToolGroupButton(clusterTools, 'building'); // Geb\u00E4ude
-        clusterTools.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
-        this.createToolGroupButton(clusterTools, 'grass');    // Extras
+        this.createToolGroupButton(clusterTools, 'grass');    // Extras (vor dem Muster-Werkzeug)
+        this.createPatternTool(clusterTools);                 // Muster-Werkzeug + Muster aufnehmen
 
         editContent.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
 
+        // F\u00FCll-Werkzeug \u00B7 Radier-Werkzeug \u00B7 Projektion (Projektion sitzt direkt hinter dem Radierer, kein Trenner).
         this.createDrawModeButton(editContent, 'fill', 'paint-bucket', t('tooltip.fill'));
+        this.createDrawModeButton(editContent, 'eraser', 'eraser', t('tooltip.eraser'));
+        this.createProjectionTool(editContent, toolbar);
 
+        editContent.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
+
+        // Textwerkzeug sitzt direkt vor dem Fluss-Werkzeug.
         const textBtn = this.createToolButton(editContent, { icon: 'type', title: t('tooltip.text'), dataset: { toolGroup: 'text' } });
         textBtn.onclick = () => {
             const needsRender = this.currentToolGroup === 'pattern' || this.borderSettings.pickedHex;
@@ -7206,16 +7212,6 @@ class HexCartographerView extends ItemView {
             if (needsRender) this.render();
             this.requestSave();
         };
-
-        this.createDrawModeButton(editContent, 'eraser', 'eraser', t('tooltip.eraser'));
-
-        editContent.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
-
-        this.createProjectionTool(editContent, toolbar);
-
-        this.createPatternTool(editContent);
-
-        editContent.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
 
         this.createPathToolbar(editContent);
         this.createBorderButton(editContent);
@@ -7704,6 +7700,73 @@ class HexCartographerView extends ItemView {
         image.setAttribute('height', String(target));
         image.setAttribute('preserveAspectRatio', 'xMidYMid meet'); // contain
         svg.appendChild(image);
+        return svg;
+    }
+
+    // Hex preview of a captured pattern: base colour (or texture image) plus its symbols, all clipped
+    // to the hex. Symbols are centred (using each symbol's map offset), so a pattern slot is legible.
+    makePatternPreviewSvg(size, pattern) {
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('viewBox', '0 0 100 100');
+        svg.setAttribute('width', String(size)); svg.setAttribute('height', String(size));
+        svg.style.verticalAlign = 'middle'; svg.style.flex = '0 0 auto';
+        const points = this.hexPreviewPoints();
+        const clipId = `patclip-${Math.random().toString(36).slice(2)}`;
+        const defs = document.createElementNS(NS, 'defs');
+        const clip = document.createElementNS(NS, 'clipPath'); clip.setAttribute('id', clipId);
+        const clipShape = document.createElementNS(NS, 'polygon'); clipShape.setAttribute('points', points);
+        clip.appendChild(clipShape); defs.appendChild(clip); svg.appendChild(defs);
+        const clipped = document.createElementNS(NS, 'g'); clipped.setAttribute('clip-path', `url(#${clipId})`);
+        // Base fill (colour) and, if present, the texture image on top of it.
+        const base = document.createElementNS(NS, 'polygon');
+        base.setAttribute('points', points); base.setAttribute('fill', pattern.color || 'var(--background-primary)');
+        clipped.appendChild(base);
+        const texAsset = pattern.texture ? this.plugin.getUserAsset(pattern.texture) : null;
+        if (texAsset && texAsset.filePath) {
+            const img = document.createElementNS(NS, 'image');
+            img.setAttribute('href', this.app.vault.adapter.getResourcePath(texAsset.filePath));
+            img.setAttribute('x', '0'); img.setAttribute('y', '0'); img.setAttribute('width', '100'); img.setAttribute('height', '100');
+            img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+            clipped.appendChild(img);
+        }
+        // Symbols on top (system SVG paths tinted, or user-asset images).
+        for (const sd of HEX_SYMBOL_SLOTS) {
+            const key = pattern[sd.slot];
+            if (!key) continue;
+            if (isUserAssetKey(key)) {
+                const asset = this.plugin.getUserAsset(key);
+                if (asset && asset.filePath) {
+                    const target = 58, off = (100 - target) / 2;
+                    const img = document.createElementNS(NS, 'image');
+                    img.setAttribute('href', this.app.vault.adapter.getResourcePath(asset.filePath));
+                    img.setAttribute('x', String(off)); img.setAttribute('y', String(off));
+                    img.setAttribute('width', String(target)); img.setAttribute('height', String(target));
+                    img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                    clipped.appendChild(img);
+                }
+            } else {
+                const info = this.svgSymbols[key];
+                if (info) {
+                    const targetW = 54, scale = targetW / info.viewBoxWidth, off = (100 - targetW) / 2;
+                    const cfg = (this.svgSymbolConfig && this.svgSymbolConfig[key]) || null;
+                    const dx = cfg ? (cfg.marginX || 0) * (Math.sqrt(3) / 2) : 0;
+                    const dy = cfg ? (cfg.marginY || 0) : 0;
+                    const g = document.createElementNS(NS, 'g');
+                    g.setAttribute('transform', `translate(${off + dx},${off + dy}) scale(${scale})`);
+                    const path = document.createElementNS(NS, 'path');
+                    path.setAttribute('d', info.pathData);
+                    path.setAttribute('fill', pattern[sd.color] || DEFAULT_MASTER_COLOR);
+                    g.appendChild(path); clipped.appendChild(g);
+                }
+            }
+        }
+        svg.appendChild(clipped);
+        // Border on top of the clipped content.
+        const border = document.createElementNS(NS, 'polygon');
+        border.setAttribute('points', points); border.setAttribute('fill', 'none');
+        border.setAttribute('stroke', 'var(--background-modifier-border)'); border.setAttribute('stroke-width', '4');
+        svg.appendChild(border);
         return svg;
     }
 
@@ -8929,6 +8992,14 @@ class HexCartographerView extends ItemView {
     // colour + texture.
     historyEntryFor(group) {
         if (group === 'hexcolor') return { color: this.hexColorColor, texture: this.hexTexture || null };
+        if (group === 'pattern') {
+            const p = this.patternData;
+            if (!p) return null;
+            // Store the captured hex's paint content (colour/texture + symbol slots), never its q/r.
+            const entry = { color: p.color || null, texture: p.texture || null };
+            for (const sd of HEX_SYMBOL_SLOTS) if (p[sd.slot]) { entry[sd.slot] = p[sd.slot]; entry[sd.color] = p[sd.color] || null; }
+            return entry;
+        }
         const c = this.toolConfigs[group];
         if (!c) return null;
         const entry = { variant: c.currentVariant, backgroundColor: c.backgroundColor, backgroundEnabled: !!c.backgroundEnabled };
@@ -8967,6 +9038,18 @@ class HexCartographerView extends ItemView {
     // Re-apply a stored setting (from a history button): make it the active tool's current
     // setting, switch to that tool, and move it to the front of the history.
     applyHistoryEntry(group, entry) {
+        if (group === 'pattern') {
+            this.patternData = JSON.parse(JSON.stringify(entry)); // re-apply as the active pattern
+            this.currentToolGroup = 'pattern';
+            this.drawMode = 'pen';
+            const keys = [entry.texture, ...HEX_SYMBOL_SLOTS.map(sd => entry[sd.slot])].filter(k => k && isUserAssetKey(k));
+            if (keys.length) this.plugin.ensureUserAssets(keys); // decode any user graphics the pattern uses
+            this.toolHistory[group] = historyMruPush(this.toolHistory[group], entry, HISTORY_MAX_SLOTS);
+            this.updateToolbarState(this.hexToolbarEl());
+            this.render();
+            this.requestSave();
+            return;
+        }
         if (group === 'hexcolor') {
             this.hexColorColor = entry.color;
             this.hexTexture = entry.texture || null;
@@ -9017,7 +9100,10 @@ class HexCartographerView extends ItemView {
         for (const entry of list) {
             const b = row.createEl('button', { cls: 'hex-history-slot' });
             let tip;
-            if (group === 'hexcolor') {
+            if (group === 'pattern') {
+                b.appendChild(this.makePatternPreviewSvg(16, entry)); // base colour/texture + its symbols
+                tip = t('tooltip.historySlot');
+            } else if (group === 'hexcolor') {
                 const asset = entry.texture ? this.plugin.getUserAsset(entry.texture) : null;
                 if (entry.texture) tip = this.assetLabelForKey(entry.texture); // texture name
                 else tip = t('tooltip.color'); // plain colour hex
@@ -9039,10 +9125,12 @@ class HexCartographerView extends ItemView {
             });
             b.onclick = () => { this.hideHistoryPreview(); this.applyHistoryEntry(group, entry); };
         }
-        // Pad to the max with invisible placeholders so the real slots stay left-aligned at the
-        // same fixed gap (space-between then only spreads the full six edge-to-edge).
+        // Pad to the max with VISIBLE but empty slots so the row always shows the full set of
+        // HISTORY_MAX_SLOTS boxes, spread edge-to-edge across the tool-cluster width (space-between)
+        // and flush with the separator on the right. Empty slots carry a tooltip explaining the row;
+        // they have no onclick, so they are inert (but keep pointer events so the tooltip shows).
         for (let i = list.length; i < HISTORY_MAX_SLOTS; i++) {
-            row.createDiv({ cls: 'hex-history-slot', attr: { style: 'visibility: hidden; pointer-events: none;' } });
+            row.createDiv({ cls: 'hex-history-slot hex-history-slot-empty', attr: { title: t('tooltip.historySlot') } });
         }
     }
 
@@ -9127,6 +9215,7 @@ class HexCartographerView extends ItemView {
     // Larger hex preview for a history entry: texture image / colour hex / system- or user-symbol
     // in a hex — mirrors the slot icon at a bigger size.
     historyPreviewHex(group, entry, size) {
+        if (group === 'pattern') return this.makePatternPreviewSvg(size, entry);
         if (group === 'hexcolor') {
             if (entry.texture) {
                 const asset = this.plugin.getUserAsset(entry.texture);
@@ -9468,6 +9557,7 @@ class HexCartographerView extends ItemView {
                 if (hexData) {
                     this.patternData = JSON.parse(JSON.stringify(hexData));
                     this.patternSourceHex = { q: this.startHex.q, r: this.startHex.r };
+                    this.recordToolSetting('pattern'); // remember the captured pattern in the quick-access row
                     new Notice(t('notice.patternPicked'));
                     this.currentToolGroup = 'pattern';
                     this.drawMode = 'pen';
@@ -9915,6 +10005,7 @@ class HexCartographerView extends ItemView {
                             if (hexData) {
                                 this.patternData = JSON.parse(JSON.stringify(hexData));
                                 this.patternSourceHex = { q: this.startHex.q, r: this.startHex.r };
+                                this.recordToolSetting('pattern'); // remember the captured pattern in the quick-access row
                                 new Notice(t('notice.patternPicked'));
                                 this.currentToolGroup = 'pattern';
                                 this.drawMode = 'pen';
@@ -10201,6 +10292,7 @@ class HexCartographerView extends ItemView {
                         if (hexData) {
                             this.patternData = JSON.parse(JSON.stringify(hexData));
                             this.patternSourceHex = { q: this.startHex.q, r: this.startHex.r };
+                            this.recordToolSetting('pattern'); // remember the captured pattern in the quick-access row
                             new Notice(t('notice.patternPicked'));
                             this.currentToolGroup = 'pattern';
                             this.drawMode = 'pen';
