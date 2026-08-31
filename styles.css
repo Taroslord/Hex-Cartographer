@@ -86,6 +86,10 @@
     user-select: none;
 }
 .hex-settings-summary:hover { color: var(--text-accent); }
+/* Page headings (plugin title + "Quick guide") start flush with the setting boxes (donate,
+   export width, …). !important overrides a theme that indents headings (the coloured accent bar),
+   so the bar lines up with the boxes' left edge. The guide arrows keep their own indent. */
+.hex-settings-heading { padding-left: 0 !important; margin-left: 0 !important; text-align: left; }
 /* Indent the section body so its settings read as a sub-menu under the summary. */
 .hex-settings-body { padding-bottom: 0.5em; padding-left: 10px; }
 
@@ -123,3 +127,8 @@
    extension tag), so the plugin inserts the same `.nav-file-tag` element Obsidian uses
    elsewhere, inheriting the active theme. No styling of our own on purpose — overriding
    it here would break third-party themes. */
+
+/* A setting that needs a hover-capable pointer (mouse/trackpad): greyed out and non-interactive on
+   touch-only devices, with an explanatory hint shown below its description. */
+.hex-setting-disabled .setting-item-control { opacity: 0.5; pointer-events: none; }
+.hex-setting-hint { margin-top: 4px; font-size: 12px; font-style: italic; color: var(--text-muted); }

@@ -80,8 +80,13 @@ const HISTORY_TOOL_GROUPS = ['hexcolor', 'grass', 'tree', 'mountain', 'building'
 // Tools the "tool eyedropper" (Werkzeug-Pipette) works in: it picks the current tool's own content
 // from the clicked hex (terrain colour/texture or the tool's symbol slot). Other tools have own pickers.
 const TOOL_PIPETTE_GROUPS = ['hexcolor', 'mountain', 'tree', 'building', 'grass'];
+// Drawing tools whose button shows a hover preview of the currently active graphic (mouse only).
+const TOOL_PREVIEW_GROUPS = ['hexcolor', 'mountain', 'tree', 'building', 'grass', 'pattern'];
 const HISTORY_MAX_SLOTS = 8;
-const HISTORY_PREVIEW_SIZE = 80; // hover preview hex size (px)
+const HISTORY_PREVIEW_SIZE = 80; // hover preview hex size (px) — default
+const PREVIEW_SIZE_MIN = 40;     // smallest configurable hover-preview size
+const PREVIEW_SIZE_MAX = 160;    // largest (about a hex's narrow width)
+const PREVIEW_SIZE_STEP = 10;    // stepper increment
 // Two history entries are the same setting when their values match (order-free).
 const historyEntrySame = (a, b) => stableStringify(a) === stableStringify(b);
 // Most-recently-used insert: an identical entry moves to the front (no duplicate); otherwise
@@ -174,7 +179,7 @@ const BUTTON_BG_DEFAULT = '#ffffff';
 // Hold duration that opens a context menu on touch devices. Our own value, not an
 // OS default: shorter than the usual ~500 ms so the menu feels responsive, but
 // still clearly above a normal tap (~50-150 ms) to avoid accidental triggers.
-const LONG_PRESS_MS = 350;
+const LONG_PRESS_MS = 175;
 
 // === User assets (custom textures & symbols from vault folders) ===
 // Each category has its own folder. The category is part of the key
@@ -586,7 +591,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Benutzergrafiken',
         'settings.userAssetPreview': 'Thumbnails anzeigen',
-        'settings.userAssetPreviewDesc': 'Zeigt im Auswahlmenü Vorschaubilder aller Grafiken, statt nur Namen.',
+        'settings.userAssetPreviewDesc': 'Zeigt im Auswahlmenü Vorschaubilder statt nur Namen. Das Zahlenfeld daneben legt die Größe der Vorschau fest, die beim Überfahren der zuletzt verwendeten Werkzeuge oder des Auswahlmenüs mit der Maus erscheint (in Pixeln).',
+        'settings.previewSize': 'Vorschaugröße',
+        'settings.mouseOnlyHint': 'Nur mit angeschlossener Maus oder Trackpad verfügbar.',
         'settings.userAssetsDesc': 'Jede Symbol-Kategorie nutzt einen eigenen Ordnerpfad in Ihrem Vault. Die Inhalte werden gemeinsam mit den Standard-Grafiken angezeigt. Unterordner werden zu Untermenüs.\nEigene Symbole möglichst auf transparenten Hintergrund setzen, damit Farbe oder Textur der Wabe darunter durchscheint.\nEinfärben geht nur bei SVG-Grafiken, die als „Zusammengesetzter Pfad" abgespeichert wurden.\nUnterstützte Formate: PNG, JPG, WEBP, GIF, AVIF & SVG.',
         'settings.userAssetsPlaceholderHint': 'Kann eine eigene Grafik nicht geladen werden (fehlender Ordnerpfad oder entfernte Datei), zeigt die Wabe ein kleines Ordner-Symbol und oben erscheint ein roter Hinweis, welche Kategorie fehlt. Sie können den Ordnerinhalt oder Pfad prüfen oder mit dem vorhandenen Material weiterarbeiten.',
         'settings.userAssetsPlaceholder': 'z. B. Assets/HexGrafiken',
@@ -702,6 +709,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': 'Zwei-Finger-Pinch = Zoom.',
         'guide.touch.pan': 'Zwei-Finger-Ziehen = Karte verschieben.<br>Edit Modus aus: Auch mit einem Finger ziehen möglich.',
         'guide.touch.undoredo': 'Zwei-Finger-Tipp = Rückgängig.<br>Drei-Finger-Tipp = Wiederherstellen.',
+        'guide.touch.mouse': 'Wenn Maus angeschlossen, dann erweiterte Funktionen, z. B. Vorschauen beim Überfahren von Werkzeugen und Listen.',
 
         // Modal — color picker
         'modal.colorPickerTitle': 'Farbe wählen',
@@ -970,7 +978,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'User graphics',
         'settings.userAssetPreview': 'Show thumbnails',
-        'settings.userAssetPreviewDesc': 'Shows thumbnail previews of all graphics in the selection menu, not just names.',
+        'settings.userAssetPreviewDesc': 'Shows thumbnail previews in the selection menu instead of just names. The number field sets the size of the preview shown when hovering over the recently used tools or the selection menu (in pixels).',
+        'settings.previewSize': 'Preview size',
+        'settings.mouseOnlyHint': 'Only available with a connected mouse or trackpad.',
         'settings.userAssetsDesc': 'Each symbol category uses its own folder path in your vault. Its contents appear alongside the built-in graphics. Subfolders become submenus.\nFor your own symbols, use a transparent background where possible, so the hex\'s color or texture shows through.\nRecoloring only works for SVG graphics saved as a "compound path".\nSupported formats: PNG, JPG, WEBP, GIF, AVIF & SVG.',
         'settings.userAssetsPlaceholderHint': 'If a custom graphic cannot be loaded (missing folder path or a removed file), the hex shows a small folder icon and a red bar at the top names the affected category. Check the folder contents or path, or keep working with what you have.',
         'settings.userAssetsPlaceholder': 'e.g. Assets/HexGraphics',
@@ -1086,6 +1096,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': 'Two-finger pinch = Zoom.',
         'guide.touch.pan': 'Two-finger drag = Pan map.<br>Edit mode off: Also swipe with one finger to pan.',
         'guide.touch.undoredo': 'Two-finger tap = Undo.<br>Three-finger tap = Redo.',
+        'guide.touch.mouse': 'When a mouse is connected, extended features become available, e.g. previews when hovering over tools and lists.',
 
         // Modal — Color picker
         'modal.colorPickerTitle': 'Choose Color',
@@ -1332,7 +1343,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': '用户图形',
         'settings.userAssetPreview': '显示缩略图',
-        'settings.userAssetPreviewDesc': '在选择菜单中显示所有图形的缩略图预览，而不仅是名称。',
+        'settings.userAssetPreviewDesc': '在选择菜单中显示缩略图预览，而不仅是名称。旁边的数字框设置将鼠标悬停在最近使用的工具或选择菜单上时显示的预览大小（以像素为单位）。',
+        'settings.previewSize': '预览大小',
+        'settings.mouseOnlyHint': '仅在连接鼠标或触控板时可用。',
         'settings.userAssetsDesc': '每个符号类别使用您库中的一个专属文件夹路径。其内容与内置图形一同显示。子文件夹会变成子菜单。\n自定义符号尽量使用透明背景，以便六边形的颜色或纹理透出来。\n只有保存为“复合路径”的 SVG 图形才能重新着色。\n支持的格式：PNG、JPG、WEBP、GIF、AVIF 和 SVG。',
         'settings.userAssetsPlaceholderHint': '如果自定义图形无法加载（缺少文件夹路径或文件已删除），六边形会显示一个小文件夹图标，顶部的红色提示会指出缺少的类别。您可以检查文件夹内容或路径，或使用现有素材继续工作。',
         'settings.userAssetsPlaceholder': '例如 Assets/HexGraphics',
@@ -1446,6 +1459,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': '双指捏合 = 缩放。',
         'guide.touch.pan': '双指拖动 = 平移地图。<br>编辑模式关闭时：也可以单指滑动来平移。',
         'guide.touch.undoredo': '双指点按 = 撤销。<br>三指点按 = 重做。',
+        'guide.touch.mouse': '连接鼠标后即可使用更多功能，例如将鼠标悬停在工具和列表上时显示预览。',
         'modal.colorPickerTitle': '选择颜色',
         'modal.colorPickerCancel': '取消',
         'tooltip.colorEyedropper': '取色器\n点击地图以采集任意颜色',
@@ -1688,7 +1702,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Пользовательская графика',
         'settings.userAssetPreview': 'Показывать миниатюры',
-        'settings.userAssetPreviewDesc': 'Показывает миниатюры всех график в меню выбора, а не только имена.',
+        'settings.userAssetPreviewDesc': 'Показывает миниатюры в меню выбора, а не только имена. Числовое поле задаёт размер предпросмотра, появляющегося при наведении на недавно использованные инструменты или меню выбора (в пикселях).',
+        'settings.previewSize': 'Размер предпросмотра',
+        'settings.mouseOnlyHint': 'Доступно только при подключённой мыши или трекпаде.',
         'settings.userAssetsDesc': 'Каждая категория символов использует свою папку в вашем хранилище. Её содержимое отображается вместе со встроенной графикой. Вложенные папки становятся подменю.\nДля собственных символов по возможности используйте прозрачный фон, чтобы сквозь них был виден цвет или текстура соты.\nПерекрашивание работает только для SVG, сохранённых как «составной контур».\nПоддерживаемые форматы: PNG, JPG, WEBP, GIF, AVIF и SVG.',
         'settings.userAssetsPlaceholderHint': 'Если пользовательская графика не загружается (нет пути к папке или файл удалён), сота показывает маленький значок папки, а красная полоса сверху называет затронутую категорию. Проверьте содержимое папки или путь либо продолжайте работать с тем, что есть.',
         'settings.userAssetsPlaceholder': 'напр. Assets/HexGraphics',
@@ -1802,6 +1818,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': 'Сведение двумя пальцами = Масштаб.',
         'guide.touch.pan': 'Перетаскивание двумя пальцами = Перемещение карты.<br>Режим редактирования выключен: Также можно перемещать одним пальцем.',
         'guide.touch.undoredo': 'Касание двумя пальцами = Отменить.<br>Касание тремя пальцами = Повторить.',
+        'guide.touch.mouse': 'Когда подключена мышь, доступны расширенные функции, например предпросмотр при наведении на инструменты и списки.',
         'modal.colorPickerTitle': 'Выбрать цвет',
         'modal.colorPickerCancel': 'Отмена',
         'tooltip.colorEyedropper': 'Пипетка\nНажмите на карту, чтобы захватить любой цвет',
@@ -2044,7 +2061,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'ユーザーグラフィック',
         'settings.userAssetPreview': 'サムネイルを表示',
-        'settings.userAssetPreviewDesc': '選択メニューで、名前だけでなくすべての画像のサムネイルを表示します。',
+        'settings.userAssetPreviewDesc': '選択メニューに名前だけでなくサムネイルを表示します。数値フィールドは、最近使ったツールや選択メニューにマウスを重ねたときに表示されるプレビューのサイズを設定します（ピクセル単位）。',
+        'settings.previewSize': 'プレビューサイズ',
+        'settings.mouseOnlyHint': 'マウスまたはトラックパッド接続時のみ利用できます。',
         'settings.userAssetsDesc': '各シンボルのカテゴリは、保管庫内の専用フォルダーを使います。その内容は内蔵グラフィックと一緒に表示されます。サブフォルダーはサブメニューになります。\n自作シンボルはできるだけ透明な背景にして、ヘクスの色やテクスチャが透けて見えるようにします。\n色の変更は「複合パス」として保存された SVG グラフィックでのみ可能です。\n対応形式：PNG、JPG、WEBP、GIF、AVIF、SVG。',
         'settings.userAssetsPlaceholderHint': 'カスタム画像を読み込めない場合（フォルダーパスがない、またはファイルが削除された）、ヘクスに小さなフォルダーアイコンが表示され、上部の赤いバーに不足しているカテゴリが表示されます。フォルダーの内容やパスを確認するか、手持ちの素材で作業を続けられます。',
         'settings.userAssetsPlaceholder': '例: Assets/HexGraphics',
@@ -2158,6 +2177,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': '2本指ピンチ = ズーム。',
         'guide.touch.pan': '2本指ドラッグ = マップを移動。<br>編集モードオフ時：1本指スワイプでも移動できます。',
         'guide.touch.undoredo': '2本指タップ = 元に戻す。<br>3本指タップ = やり直す。',
+        'guide.touch.mouse': 'マウスを接続すると拡張機能が使えます。例：ツールやリストにマウスを重ねるとプレビューが表示されます。',
         'modal.colorPickerTitle': '色を選択',
         'modal.colorPickerCancel': 'キャンセル',
         'tooltip.colorEyedropper': 'スポイト\nマップをタップして任意の色を取得',
@@ -2400,7 +2420,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Graphiques utilisateur',
         'settings.userAssetPreview': 'Afficher les miniatures',
-        'settings.userAssetPreviewDesc': 'Affiche des miniatures de tous les graphiques dans le menu de sélection, pas seulement les noms.',
+        'settings.userAssetPreviewDesc': 'Affiche des miniatures dans le menu de sélection au lieu des seuls noms. Le champ numérique définit la taille de l’aperçu affiché au survol des outils récemment utilisés ou du menu de sélection (en pixels).',
+        'settings.previewSize': 'Taille de l’aperçu',
+        'settings.mouseOnlyHint': 'Disponible uniquement avec une souris ou un trackpad connecté.',
         'settings.userAssetsDesc': 'Chaque catégorie de symboles utilise son propre dossier dans votre coffre. Son contenu s\'affiche avec les graphiques fournis. Les sous-dossiers deviennent des sous-menus.\nPour vos propres symboles, utilisez si possible un fond transparent, afin que la couleur ou la texture de l\'hexagone transparaisse.\nLa recoloration ne fonctionne que pour les SVG enregistrés en « tracé composé ».\nFormats pris en charge : PNG, JPG, WEBP, GIF, AVIF et SVG.',
         'settings.userAssetsPlaceholderHint': 'Si un graphique personnalisé ne peut pas être chargé (chemin de dossier manquant ou fichier supprimé), l\'hexagone affiche une petite icône de dossier et une barre rouge en haut indique la catégorie concernée. Vérifiez le contenu du dossier ou le chemin, ou continuez avec ce que vous avez.',
         'settings.userAssetsPlaceholder': 'p. ex. Assets/HexGraphics',
@@ -2514,6 +2536,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': 'Pincer à deux doigts = Zoom.',
         'guide.touch.pan': 'Glisser à deux doigts = Déplacer la carte.<br>Mode édition désactivé : Glisser avec un doigt pour déplacer aussi.',
         'guide.touch.undoredo': 'Toucher à deux doigts = Annuler.<br>Toucher à trois doigts = Rétablir.',
+        'guide.touch.mouse': 'Quand une souris est branchée, des fonctions avancées apparaissent, p. ex. des aperçus au survol des outils et des listes.',
         'modal.colorPickerTitle': 'Choisir une couleur',
         'modal.colorPickerCancel': 'Annuler',
         'tooltip.colorEyedropper': 'Pipette\nTouchez la carte pour capturer une couleur',
@@ -2756,7 +2779,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Gráficos do utilizador',
         'settings.userAssetPreview': 'Mostrar miniaturas',
-        'settings.userAssetPreviewDesc': 'Mostra miniaturas de todos os gráficos no menu de seleção, não apenas os nomes.',
+        'settings.userAssetPreviewDesc': 'Mostra miniaturas no menu de seleção, não apenas os nomes. O campo numérico define o tamanho da pré-visualização exibida ao passar o mouse sobre as ferramentas usadas recentemente ou o menu de seleção (em pixels).',
+        'settings.previewSize': 'Tamanho da pré-visualização',
+        'settings.mouseOnlyHint': 'Disponível apenas com um mouse ou trackpad conectado.',
         'settings.userAssetsDesc': 'Cada categoria de símbolos usa a sua própria pasta no seu cofre. O conteúdo é apresentado junto com os gráficos incluídos. As subpastas tornam-se submenus.\nNos seus próprios símbolos, use de preferência um fundo transparente, para que a cor ou textura do hexágono transpareça.\nA recoloração só funciona em SVG guardados como «caminho composto».\nFormatos suportados: PNG, JPG, WEBP, GIF, AVIF e SVG.',
         'settings.userAssetsPlaceholderHint': 'Se um gráfico personalizado não puder ser carregado (caminho da pasta ausente ou ficheiro removido), o hexágono mostra um pequeno ícone de pasta e uma barra vermelha no topo indica a categoria afetada. Verifique o conteúdo da pasta ou o caminho, ou continue a trabalhar com o que tem.',
         'settings.userAssetsPlaceholder': 'ex.: Assets/HexGraphics',
@@ -2870,6 +2895,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': 'Pinça com dois dedos = Zoom.',
         'guide.touch.pan': 'Arrastar com dois dedos = Mover o mapa.<br>Modo de edição desativado: Também deslizar com um dedo para mover.',
         'guide.touch.undoredo': 'Toque com dois dedos = Desfazer.<br>Toque com três dedos = Refazer.',
+        'guide.touch.mouse': 'Quando um mouse está conectado, recursos avançados ficam disponíveis, por exemplo, pré-visualizações ao passar o mouse sobre ferramentas e listas.',
         'modal.colorPickerTitle': 'Escolher cor',
         'modal.colorPickerCancel': 'Cancelar',
         'tooltip.colorEyedropper': 'Conta-gotas\nToque no mapa para capturar uma cor',
@@ -3112,7 +3138,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': '사용자 그래픽',
         'settings.userAssetPreview': '썸네일 표시',
-        'settings.userAssetPreviewDesc': '선택 메뉴에서 이름만이 아니라 모든 그래픽의 미리보기 썸네일을 표시합니다.',
+        'settings.userAssetPreviewDesc': '선택 메뉴에 이름뿐 아니라 썸네일 미리보기를 표시합니다. 숫자 필드는 최근 사용한 도구나 선택 메뉴 위에 마우스를 올렸을 때 표시되는 미리보기 크기를 설정합니다(픽셀).',
+        'settings.previewSize': '미리보기 크기',
+        'settings.mouseOnlyHint': '마우스나 트랙패드가 연결된 경우에만 사용할 수 있습니다.',
         'settings.userAssetsDesc': '각 기호 카테고리는 보관함 안의 전용 폴더 경로를 사용합니다. 그 내용은 기본 제공 그래픽과 함께 표시됩니다. 하위 폴더는 하위 메뉴가 됩니다.\n사용자 기호는 가능하면 투명 배경으로 설정해 헥스의 색상이나 텍스처가 비쳐 보이게 하세요.\n색상 변경은 "컴파운드 패스"로 저장된 SVG 그래픽에서만 가능합니다.\n지원 형식: PNG, JPG, WEBP, GIF, AVIF & SVG.',
         'settings.userAssetsPlaceholderHint': '사용자 그래픽을 불러올 수 없으면(폴더 경로 없음 또는 파일 삭제) 헥스에 작은 폴더 아이콘이 표시되고 상단의 빨간 막대가 해당 카테고리를 알려줍니다. 폴더 내용이나 경로를 확인하거나 있는 자료로 계속 작업할 수 있습니다.',
         'settings.userAssetsPlaceholder': '예: Assets/HexGraphics',
@@ -3226,6 +3254,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': '두 손가락 핀치 = 확대/축소.',
         'guide.touch.pan': '두 손가락 드래그 = 지도 이동.<br>편집 모드 꺼짐: 한 손가락으로도 스와이프하여 이동할 수 있습니다.',
         'guide.touch.undoredo': '두 손가락 탭 = 실행 취소.<br>세 손가락 탭 = 다시 실행.',
+        'guide.touch.mouse': '마우스를 연결하면 확장 기능을 사용할 수 있습니다. 예: 도구와 목록 위에 마우스를 올리면 미리보기가 표시됩니다.',
         'modal.colorPickerTitle': '색상 선택',
         'modal.colorPickerCancel': '취소',
         'tooltip.colorEyedropper': '스포이트\n지도를 탭하여 색상을 캡처합니다',
@@ -3468,7 +3497,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Gráficos del usuario',
         'settings.userAssetPreview': 'Mostrar miniaturas',
-        'settings.userAssetPreviewDesc': 'Muestra miniaturas de todos los gráficos en el menú de selección, no solo los nombres.',
+        'settings.userAssetPreviewDesc': 'Muestra miniaturas en el menú de selección, no solo los nombres. El campo numérico establece el tamaño de la vista previa que aparece al pasar el ratón por las herramientas usadas recientemente o el menú de selección (en píxeles).',
+        'settings.previewSize': 'Tamaño de vista previa',
+        'settings.mouseOnlyHint': 'Solo disponible con un ratón o trackpad conectado.',
         'settings.userAssetsDesc': 'Cada categoría de símbolos usa su propia carpeta en su almacén. Su contenido se muestra junto con los gráficos incluidos. Las subcarpetas se convierten en submenús.\nEn sus propios símbolos, use a ser posible un fondo transparente para que el color o la textura del hexágono se vea a través.\nEl recoloreado solo funciona con SVG guardados como «trazado compuesto».\nFormatos admitidos: PNG, JPG, WEBP, GIF, AVIF y SVG.',
         'settings.userAssetsPlaceholderHint': 'Si un gráfico personalizado no se puede cargar (falta la ruta de la carpeta o se eliminó un archivo), el hexágono muestra un pequeño icono de carpeta y una barra roja en la parte superior indica la categoría afectada. Puede comprobar el contenido de la carpeta o la ruta, o seguir trabajando con lo que tiene.',
         'settings.userAssetsPlaceholder': 'p. ej. Assets/HexGraphics',
@@ -3582,6 +3613,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': 'Pellizcar con dos dedos = Zoom.',
         'guide.touch.pan': 'Arrastrar con dos dedos = Mover mapa.<br>Modo edición desactivado: También deslizar con un dedo para mover el mapa.',
         'guide.touch.undoredo': 'Toque con dos dedos = Deshacer.<br>Toque con tres dedos = Rehacer.',
+        'guide.touch.mouse': 'Cuando hay un ratón conectado, se activan funciones avanzadas, p. ej. vistas previas al pasar el ratón por herramientas y listas.',
         'modal.colorPickerTitle': 'Elegir color',
         'modal.colorPickerCancel': 'Cancelar',
         'tooltip.colorEyedropper': 'Cuentagotas\nToca el mapa para capturar cualquier color',
@@ -3824,7 +3856,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Grafiki użytkownika',
         'settings.userAssetPreview': 'Pokaż miniatury',
-        'settings.userAssetPreviewDesc': 'Pokazuje w menu wyboru miniatury wszystkich grafik, a nie tylko nazwy.',
+        'settings.userAssetPreviewDesc': 'Pokazuje w menu wyboru miniatury zamiast samych nazw. Pole liczbowe ustawia rozmiar podglądu wyświetlanego po najechaniu na ostatnio używane narzędzia lub menu wyboru (w pikselach).',
+        'settings.previewSize': 'Rozmiar podglądu',
+        'settings.mouseOnlyHint': 'Dostępne tylko po podłączeniu myszy lub touchpada.',
         'settings.userAssetsDesc': 'Każda kategoria symboli używa własnego folderu w Twoim sejfie. Jego zawartość jest wyświetlana razem z wbudowanymi grafikami. Podfoldery stają się podmenu.\nWłasne symbole najlepiej ustawić na przezroczystym tle, aby prześwitywał kolor lub tekstura sześciokąta.\nZmiana koloru działa tylko dla grafik SVG zapisanych jako „ścieżka złożona".\nObsługiwane formaty: PNG, JPG, WEBP, GIF, AVIF i SVG.',
         'settings.userAssetsPlaceholderHint': 'Jeśli własnej grafiki nie można wczytać (brak ścieżki folderu lub usunięty plik), sześciokąt pokazuje małą ikonę folderu, a czerwony pasek u góry wskazuje, której kategorii brakuje. Można sprawdzić zawartość folderu lub ścieżkę albo pracować dalej z tym, co jest.',
         'settings.userAssetsPlaceholder': 'np. Assets/HexGraphics',
@@ -3938,6 +3972,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': 'Szczypanie dwoma palcami = Zoom.',
         'guide.touch.pan': 'Przeciąganie dwoma palcami = Przesuwanie mapy.<br>Tryb edycji wyłączony: Również przeciągnij jednym palcem, aby przesunąć mapę.',
         'guide.touch.undoredo': 'Dotknięcie dwoma palcami = Cofnij.<br>Dotknięcie trzema palcami = Ponów.',
+        'guide.touch.mouse': 'Gdy mysz jest podłączona, dostępne są rozszerzone funkcje, np. podglądy po najechaniu na narzędzia i listy.',
         'modal.colorPickerTitle': 'Wybierz kolor',
         'modal.colorPickerCancel': 'Anuluj',
         'tooltip.colorEyedropper': 'Pipeta\nDotknij mapy, aby pobrać dowolny kolor',
@@ -4180,7 +4215,9 @@ const TRANSLATIONS = {
         // Custom graphics (user assets)
         'settings.userAssets': 'Grafiche utente',
         'settings.userAssetPreview': 'Mostra miniature',
-        'settings.userAssetPreviewDesc': 'Mostra le anteprime di tutte le grafiche nel menu di selezione, non solo i nomi.',
+        'settings.userAssetPreviewDesc': 'Mostra le anteprime nel menu di selezione, non solo i nomi. Il campo numerico imposta la dimensione dell’anteprima mostrata al passaggio del mouse sugli strumenti usati di recente o sul menu di selezione (in pixel).',
+        'settings.previewSize': 'Dimensione anteprima',
+        'settings.mouseOnlyHint': 'Disponibile solo con mouse o trackpad collegato.',
         'settings.userAssetsDesc': 'Ogni categoria di simboli usa una propria cartella nel vault. Il suo contenuto viene mostrato insieme alle grafiche incluse. Le sottocartelle diventano sottomenu.\nPer i simboli personali usa se possibile uno sfondo trasparente, così il colore o la texture dell\'esagono traspare.\nLa ricolorazione funziona solo con SVG salvati come «tracciato composto».\nFormati supportati: PNG, JPG, WEBP, GIF, AVIF & SVG.',
         'settings.userAssetsPlaceholderHint': 'Se una grafica personalizzata non può essere caricata (percorso della cartella mancante o file rimosso), l\'esagono mostra una piccola icona di cartella e una barra rossa in alto indica la categoria interessata. È possibile controllare il contenuto della cartella o il percorso, oppure continuare con ciò che si ha.',
         'settings.userAssetsPlaceholder': 'es. Assets/HexGraphics',
@@ -4294,6 +4331,7 @@ const TRANSLATIONS = {
         'guide.touch.zoom': 'Pizzico con due dita = Zoom.',
         'guide.touch.pan': 'Trascinamento con due dita = Spostare mappa.<br>Modalità modifica disattivata: Anche scorrere con un dito per spostare la mappa.',
         'guide.touch.undoredo': 'Tocco con due dita = Annulla.<br>Tocco con tre dita = Ripeti.',
+        'guide.touch.mouse': 'Quando è collegato un mouse, sono disponibili funzioni avanzate, per es. anteprime al passaggio del mouse su strumenti ed elenchi.',
         'modal.colorPickerTitle': 'Scegli colore',
         'modal.colorPickerCancel': 'Annulla',
         'tooltip.colorEyedropper': 'Contagocce\nTocca la mappa per acquisire qualsiasi colore',
@@ -4782,6 +4820,7 @@ function hexMapTitle(basename) {
 
 const DEFAULT_SETTINGS = {
     userAssetPreview: false,
+    previewSize: HISTORY_PREVIEW_SIZE, // hover-preview hex size (px); user-configurable
     undoSteps: MAX_HISTORY, // undo depth; each step is a full map snapshot (RAM cost)
     authorName: '', // written into a map's author/editor; empty -> anonymous device id
     userTexturePath: '',
@@ -7239,6 +7278,7 @@ class HexCartographerView extends ItemView {
         this.toolHistoryRow.addEventListener('pointerleave', () => this.hideHistoryPreview());
 
         const hexColorBtn = this.createToolButton(clusterTools, { icon: 'hexagon', title: this.terrainTooltip(), dataset: { toolGroup: 'hexcolor' } });
+        this.attachToolPreview(hexColorBtn, 'hexcolor'); // hover shows the active terrain colour/texture
         hexColorBtn.onclick = () => {
             const needsRender = this.currentToolGroup === 'pattern' || this.borderSettings.pickedHex;
             this.exitPathEditMode();
@@ -7485,6 +7525,8 @@ class HexCartographerView extends ItemView {
             this.showVariantMenu(groupId, wrapper);
         };
         this.addLongPress(btn, () => this.showVariantMenu(groupId, wrapper));
+
+        if (TOOL_PREVIEW_GROUPS.includes(groupId)) this.attachToolPreview(btn, groupId); // hover shows the active symbol
     }
 
     // Snapshot of the active tool + the settings a picker might disturb. A picker uses
@@ -7517,6 +7559,7 @@ class HexCartographerView extends ItemView {
         const wrapper = toolbar.createDiv({ style: 'display: flex; align-items: center; gap: 4px;' });
 
         const patternBtn = this.createToolButton(wrapper, { icon: 'copy', title: t('tooltip.pattern'), dataset: { toolGroup: 'pattern' } });
+        this.attachToolPreview(patternBtn, 'pattern'); // hover shows the captured pattern (if any)
 
         patternBtn.onclick = () => {
             if (!this.patternData) {
@@ -7951,8 +7994,8 @@ class HexCartographerView extends ItemView {
                 // Resource path resolved lazily (only when a preview is actually shown).
                 this.attachEntryPreview(item,
                     assetKind === 'texture'
-                        ? () => this.makeHexImageSvg(this.app.vault.adapter.getResourcePath(asset.filePath), HISTORY_PREVIEW_SIZE)
-                        : () => this.makeSymbolImageHex(this.app.vault.adapter.getResourcePath(asset.filePath), HISTORY_PREVIEW_SIZE),
+                        ? () => this.makeHexImageSvg(this.app.vault.adapter.getResourcePath(asset.filePath), this.previewSize())
+                        : () => this.makeSymbolImageHex(this.app.vault.adapter.getResourcePath(asset.filePath), this.previewSize()),
                     asset.label);
             });
         });
@@ -8091,7 +8134,7 @@ class HexCartographerView extends ItemView {
                     checked.forEach(c => c.item.setChecked(c.key === null));
                     selectTexture(null);
                 });
-                this.attachEntryPreview(item, () => this.makeHexPreviewSvg(HISTORY_PREVIEW_SIZE, this.hexColorColor, false), t('menu.color'));
+                this.attachEntryPreview(item, () => this.makeHexPreviewSvg(this.previewSize(), this.hexColorColor, false), t('menu.color'));
             });
         };
 
@@ -9318,6 +9361,13 @@ class HexCartographerView extends ItemView {
     }
 
     // --- Hex hover preview (mouse only) ---------------------------------------------------
+    // Configurable hover-preview size (px); clamped to the allowed range with the default as fallback.
+    previewSize() {
+        const s = this.plugin.settings.previewSize;
+        if (typeof s !== 'number' || !isFinite(s)) return HISTORY_PREVIEW_SIZE;
+        return Math.max(PREVIEW_SIZE_MIN, Math.min(PREVIEW_SIZE_MAX, s));
+    }
+
     // One reused overlay: larger hex preview + name. Used below a tool-history slot AND at the
     // cursor over a right-click-menu entry. pointer-events:none so it never blocks the hover;
     // position:fixed + high z-index so toolbar overflow can't clip it and it sits above the menu.
@@ -9346,17 +9396,54 @@ class HexCartographerView extends ItemView {
         card.querySelectorAll('polygon[stroke]').forEach(p => p.setAttribute('stroke-width', '1')); // thin hex outline
         // Name in its own box: wraps within a capped width instead of breaking the hex card.
         const name = el.createDiv({ text: label });
-        name.style.cssText = 'max-width: 160px; padding: 2px 8px; font-size: 12px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); white-space: normal; overflow-wrap: anywhere;';
+        name.style.cssText = 'max-width: 160px; padding: 2px 8px; font-size: 12px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); white-space: pre-line; overflow-wrap: anywhere;';
         return el;
     }
 
     showHistoryPreview(button, group, entry, label) {
-        const el = this.fillPreview(this.historyPreviewHex(group, entry, HISTORY_PREVIEW_SIZE), label);
+        const el = this.fillPreview(this.historyPreviewHex(group, entry, this.previewSize()), label);
         // Below the slot, left-aligned to it (getBoundingClientRect -> viewport -> position:fixed).
         const r = button.getBoundingClientRect();
         el.style.left = `${r.left}px`;
         el.style.top = `${r.bottom + 6}px`;
         el.style.display = 'flex';
+    }
+
+    // Short label for a drawing tool's hover preview: the active graphic's name where useful.
+    toolPreviewLabel(group) {
+        if (group === 'hexcolor') {
+            const asset = this.hexTexture && this.plugin.getUserAsset(this.hexTexture);
+            return asset ? asset.label : t('menu.color');
+        }
+        if (group === 'pattern') return t('tooltip.pattern').split('\n')[0]; // "Muster-Werkzeug"
+        const c = this.toolConfigs[group];
+        return c ? c.name : '';
+    }
+
+    // Live hover preview over a drawing tool's button: shows what that tool currently paints
+    // (its active colour/texture/symbol/pattern). Nothing shown if the tool has no setting yet
+    // (e.g. pattern not captured). Mouse/pen only. The tool's full tooltip text is always shown
+    // under the thumbnail (button._toolTip stashes the title, suppressed as a native tooltip so it
+    // isn't shown twice); toolPreviewLabel is only a fallback if a button has no title.
+    showToolPreview(button, group) {
+        const entry = this.historyEntryFor(group);
+        if (!entry) { this.hideHistoryPreview(); return; }
+        this.showHistoryPreview(button, group, entry, button._toolTip || this.toolPreviewLabel(group));
+    }
+
+    attachToolPreview(button, group) {
+        const restoreTitle = () => {
+            if (button._toolTip !== undefined) { button.title = button._toolTip; button._toolTip = undefined; }
+        };
+        button.addEventListener('pointerenter', (e) => {
+            if (e.pointerType === 'touch') return;
+            // Relocate the tooltip text into the overlay (below the thumbnail) and drop the native
+            // title so it is not shown twice — always, regardless of the thumbnails setting.
+            if (button.title) { button._toolTip = button.title; button.removeAttribute('title'); }
+            this.showToolPreview(button, group);
+        });
+        button.addEventListener('pointerleave', () => { this.hideHistoryPreview(); restoreTitle(); });
+        button.addEventListener('click', () => { this.hideHistoryPreview(); restoreTitle(); }); // toolbar may rebuild
     }
 
     // Right-click-menu hover: show a preview that follows the cursor (offset so it doesn't sit
@@ -9427,7 +9514,7 @@ class HexCartographerView extends ItemView {
     // Larger hex preview for a symbol variant in the right-click menu (system SVG / user symbol /
     // Lucide-icon fallback), mirroring historyPreviewHex's symbol branch.
     previewHexForVariant(config, id) {
-        const size = HISTORY_PREVIEW_SIZE;
+        const size = this.previewSize();
         if (isUserAssetKey(id)) {
             const asset = this.plugin.getUserAsset(id);
             if (asset) return this.makeSymbolImageHex(this.app.vault.adapter.getResourcePath(asset.filePath), size);
@@ -15558,6 +15645,19 @@ class ColorPickerModal extends Modal {
 // Number input with explicit up/down stepper buttons (Obsidian hides the native
 // spin buttons). Returns the <input> so callers read .value as before. `full`
 // makes the input fill its column; otherwise it is a compact fixed-width field.
+// True if any connected input device can hover (mouse/trackpad, also pen-hover). Live: a mouse
+// plugged into an iPad flips this to true. No matchMedia (old hosts) -> assume yes (desktop).
+function hoverCapable() {
+    return !window.matchMedia || window.matchMedia('(any-hover: hover)').matches;
+}
+
+// Add/remove a MediaQueryList change listener across old and new APIs (older iOS lacks addEventListener).
+function onMediaChange(mql, fn, add) {
+    if (!mql) return;
+    if (mql.addEventListener) { add ? mql.addEventListener('change', fn) : mql.removeEventListener('change', fn); }
+    else if (mql.addListener) { add ? mql.addListener(fn) : mql.removeListener(fn); }
+}
+
 function makeNumberInput(parent, value, opts = {}) {
     const { min, max, step = 1, full = false } = opts;
     const wrap = parent.createDiv({ attr: { style: `display: inline-flex; align-items: stretch;${full ? ' width: 100%;' : ''}` } });
@@ -16034,10 +16134,17 @@ class HexCartographerSettingTab extends PluginSettingTab {
         this.plugin = plugin;
     }
 
+    // Settings pane closed: drop the live hover-capability listener.
+    hide() {
+        if (this._hoverMql && this._hoverGate) onMediaChange(this._hoverMql, this._hoverGate, false);
+        this._hoverMql = null;
+        this._hoverGate = null;
+    }
+
     display() {
         const { containerEl } = this;
         containerEl.empty();
-        containerEl.createEl('h2', { text: 'Hex Cartographer' });
+        containerEl.createEl('h2', { text: 'Hex Cartographer', cls: 'hex-settings-heading' });
 
         new Setting(containerEl)
             .setDesc(t('settings.donateText'))
@@ -16104,17 +16211,57 @@ class HexCartographerSettingTab extends PluginSettingTab {
                     });
             });
 
-        // Thumbnails: preview images instead of names in the selection menu.
-        new Setting(containerEl)
-            .setName(t('settings.userAssetPreview'))
-            .setDesc(t('settings.userAssetPreviewDesc'))
-            .addToggle(toggle => {
-                toggle.setValue(this.plugin.settings.userAssetPreview)
-                    .onChange(async (value) => {
-                        this.plugin.settings.userAssetPreview = value;
-                        await this.plugin.saveSettings();
-                    });
+        // Thumbnails + hover-preview size in ONE row: the toggle switches inline thumbnails in the
+        // selection menu; the −/+ stepper after it sets the hover-preview size (px). The shared
+        // description covers both.
+        {
+            let previewToggle;
+            const setting = new Setting(containerEl)
+                .setName(t('settings.userAssetPreview'))
+                .setDesc(t('settings.userAssetPreviewDesc'))
+                .addToggle(toggle => {
+                    previewToggle = toggle;
+                    toggle.setValue(this.plugin.settings.userAssetPreview)
+                        .onChange(async (value) => {
+                            this.plugin.settings.userAssetPreview = value;
+                            await this.plugin.saveSettings();
+                        });
+                });
+
+            // Number field with ▲/▼ steppers (same widget as the export width), 10 px steps.
+            const sizeInput = makeNumberInput(setting.controlEl, this.plugin.settings.previewSize,
+                { min: PREVIEW_SIZE_MIN, max: PREVIEW_SIZE_MAX, step: PREVIEW_SIZE_STEP });
+            sizeInput.setAttribute('title', t('settings.previewSize'));
+            sizeInput.addEventListener('change', async () => {
+                const raw = parseInt(sizeInput.value, 10);
+                const base = isFinite(raw) ? raw : HISTORY_PREVIEW_SIZE;
+                // Snap typed values to the nearest 10 px step, then clamp into range.
+                const num = Math.max(PREVIEW_SIZE_MIN, Math.min(PREVIEW_SIZE_MAX,
+                    Math.round(base / PREVIEW_SIZE_STEP) * PREVIEW_SIZE_STEP));
+                this.plugin.settings.previewSize = num;
+                sizeInput.value = String(num);
+                await this.plugin.saveSettings();
             });
+
+            // Hover-only: this whole row (menu thumbnails + hover-preview size) only makes sense with a
+            // hover-capable pointer. Grey it out on touch-only devices, with a hint. Re-check live so
+            // connecting a mouse (e.g. on an iPad) re-enables it without reopening the settings.
+            const hint = setting.descEl.createDiv({ text: t('settings.mouseOnlyHint'), cls: 'hex-setting-hint' });
+            const mql = window.matchMedia ? window.matchMedia('(any-hover: hover)') : null;
+            const applyGate = () => {
+                const ok = hoverCapable();
+                setting.settingEl.classList.toggle('hex-setting-disabled', !ok);
+                if (previewToggle) previewToggle.setDisabled(!ok);
+                sizeInput.disabled = !ok;
+                hint.style.display = ok ? 'none' : '';
+            };
+            applyGate();
+            // Replace any listener from a previous display() before registering a fresh one.
+            if (this._hoverMql && this._hoverGate) onMediaChange(this._hoverMql, this._hoverGate, false);
+            this._hoverMql = mql;
+            this._hoverGate = applyGate;
+            onMediaChange(mql, applyGate, true);
+        }
 
         // Collapsible settings section: a native <details> with a summary and an indented
         // body. `open` sets the initial state; returns the body element to fill.
@@ -16521,7 +16668,10 @@ class HexCartographerSettingTab extends PluginSettingTab {
     }
 
     buildGuide(containerEl) {
-        containerEl.createEl('h3', { text: t('guide.title') });
+        containerEl.createEl('h3', { text: t('guide.title'), cls: 'hex-settings-heading' });
+        // Indent the entries (not the heading) to line up with the setting boxes above, so the
+        // "Quick guide" heading stands out.
+        const listEl = containerEl.createDiv({ cls: 'hex-guide-list' });
 
         const guide = [
             ['basics', [
@@ -16590,11 +16740,12 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 ['zoom-in', 'guide.touch.zoom'],
                 ['move', 'guide.touch.pan'],
                 ['undo-2', 'guide.touch.undoredo'],
+                ['mouse', 'guide.touch.mouse'],
             ]],
         ];
 
         for (const [key, items] of guide) {
-            const details = containerEl.createEl('details');
+            const details = listEl.createEl('details');
             details.createEl('summary', { text: t(`guide.${key}`), cls: 'hex-guide-summary' });
             const content = details.createEl('div', { cls: 'hex-guide-content' });
             for (const [icon, textKey] of items) {
@@ -16616,6 +16767,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
 
         const style = containerEl.createEl('style');
         style.textContent = `
+            .hex-guide-list { padding-left: 10px; }
             .hex-guide-summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
             .hex-guide-content { padding: 4px 0 8px 12px; }
             .hex-guide-row { display: flex; align-items: flex-start; gap: 8px; padding: 3px 0; }
