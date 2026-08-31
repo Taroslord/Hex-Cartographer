@@ -77,6 +77,9 @@ const stableStringify = (v) => {
 
 // Per-tool quick-select history: the drawing tools that get one, and the max slots each keeps.
 const HISTORY_TOOL_GROUPS = ['hexcolor', 'grass', 'tree', 'mountain', 'building', 'pattern'];
+// Tools the "tool eyedropper" (Werkzeug-Pipette) works in: it picks the current tool's own content
+// from the clicked hex (terrain colour/texture or the tool's symbol slot). Other tools have own pickers.
+const TOOL_PIPETTE_GROUPS = ['hexcolor', 'mountain', 'tree', 'building', 'grass'];
 const HISTORY_MAX_SLOTS = 8;
 const HISTORY_PREVIEW_SIZE = 80; // hover preview hex size (px)
 // Two history entries are the same setting when their values match (order-free).
@@ -408,6 +411,9 @@ const TRANSLATIONS = {
         'projection.noImages': 'Keine Bilder im Vault gefunden',
         'notice.projectionLoadFailed': 'Bild konnte nicht geladen werden.',
         'tooltip.eraser': 'Radier-Werkzeug\nKlick: Wabeninhalt löschen\nDoppelklick: Zusammenhängendes löschen',
+        'tooltip.toolPipette': 'Werkzeug-Pipette\nKlick, dann auf eine Wabe: Inhalt für das aktuelle Werkzeug übernehmen',
+        'notice.nothingToPick': 'Hier gibt es nichts für dieses Werkzeug.',
+        'notice.tapToPickTool': 'Auf eine Wabe tippen, um den Inhalt zu übernehmen.',
         'tooltip.undo': 'Rückgängig\nStrg+Z: Letzte Aktion rückgängig machen',
         'tooltip.redo': 'Wiederholen\nStrg+Y: Rückgängig gemachte Aktion wiederholen',
         'tooltip.fit': 'Karte einpassen\nKlick: Fenster mit gesamter Karte ausfüllen',
@@ -789,6 +795,9 @@ const TRANSLATIONS = {
         'projection.noImages': 'No images found in the vault',
         'notice.projectionLoadFailed': 'Could not load the image.',
         'tooltip.eraser': 'Eraser\nClick: Delete hex content\nDouble-click: Delete connected area',
+        'tooltip.toolPipette': 'Tool eyedropper\nClick, then a hex: pick its content for the current tool',
+        'notice.nothingToPick': 'Nothing here for this tool.',
+        'notice.tapToPickTool': 'Tap a hex to pick its content.',
         'tooltip.undo': 'Undo\nCtrl+Z: Undo last action',
         'tooltip.redo': 'Redo\nCtrl+Y: Redo undone action',
         'tooltip.fit': 'Fit Map\nClick: Fit entire map to window',
@@ -1162,6 +1171,9 @@ const TRANSLATIONS = {
         'projection.noImages': '在库中未找到图像',
         'notice.projectionLoadFailed': '无法加载图像。',
         'tooltip.eraser': '橡皮擦\n点击：删除六角格内容\n双击：删除相连内容',
+        'tooltip.toolPipette': '工具吸管\n点击后再点六角格：为当前工具拾取其内容',
+        'notice.nothingToPick': '这里没有适用于此工具的内容。',
+        'notice.tapToPickTool': '点击六角格以拾取其内容。',
         'tooltip.undo': '撤销\nCtrl+Z：撤销上一步操作',
         'tooltip.redo': '重做\nCtrl+Y：重做已撤销的操作',
         'tooltip.fit': '适应地图\n点击：在窗口中显示整个地图',
@@ -1515,6 +1527,9 @@ const TRANSLATIONS = {
         'projection.noImages': 'В хранилище нет изображений',
         'notice.projectionLoadFailed': 'Не удалось загрузить изображение.',
         'tooltip.eraser': 'Ластик\nКлик: Удалить содержимое соты\nДвойной клик: Удалить связанные элементы',
+        'tooltip.toolPipette': 'Пипетка инструмента\nЩёлкните, затем по соте: взять её содержимое для текущего инструмента',
+        'notice.nothingToPick': 'Здесь нет ничего для этого инструмента.',
+        'notice.tapToPickTool': 'Коснитесь соты, чтобы взять её содержимое.',
         'tooltip.undo': 'Отменить\nCtrl+Z: Отменить последнее действие',
         'tooltip.redo': 'Повторить\nCtrl+Y: Повторить отменённое действие',
         'tooltip.fit': 'Вписать карту\nКлик: Показать всю карту в окне',
@@ -1868,6 +1883,9 @@ const TRANSLATIONS = {
         'projection.noImages': 'Vault に画像が見つかりません',
         'notice.projectionLoadFailed': '画像を読み込めませんでした。',
         'tooltip.eraser': '消しゴム\nクリック：ヘックスの内容を削除\nダブルクリック：つながった要素を削除',
+        'tooltip.toolPipette': 'ツール・スポイト\nクリック後にヘックスを選択：現在のツール用に内容を取得',
+        'notice.nothingToPick': 'このツール用の内容はありません。',
+        'notice.tapToPickTool': 'ヘックスをタップして内容を取得します。',
         'tooltip.undo': '元に戻す\nCtrl+Z：最後の操作を元に戻す',
         'tooltip.redo': 'やり直し\nCtrl+Y：元に戻した操作をやり直す',
         'tooltip.fit': 'マップを合わせる\nクリック：ウィンドウにマップ全体を表示',
@@ -2221,6 +2239,9 @@ const TRANSLATIONS = {
         'projection.noImages': 'Aucune image trouvée dans le coffre',
         'notice.projectionLoadFailed': 'Impossible de charger l\'image.',
         'tooltip.eraser': 'Gomme\nClic : Effacer le contenu de l\'hexagone\nDouble-clic : Effacer les éléments contigus',
+        'tooltip.toolPipette': 'Pipette d’outil\nCliquez, puis sur un hexagone : récupérer son contenu pour l’outil actuel',
+        'notice.nothingToPick': 'Rien ici pour cet outil.',
+        'notice.tapToPickTool': 'Touchez un hexagone pour récupérer son contenu.',
         'tooltip.undo': 'Annuler\nCtrl+Z : Annuler la dernière action',
         'tooltip.redo': 'Rétablir\nCtrl+Y : Rétablir l\'action annulée',
         'tooltip.fit': 'Ajuster la carte\nClic : Afficher toute la carte dans la fenêtre',
@@ -2574,6 +2595,9 @@ const TRANSLATIONS = {
         'projection.noImages': 'Nenhuma imagem encontrada no cofre',
         'notice.projectionLoadFailed': 'Não foi possível carregar a imagem.',
         'tooltip.eraser': 'Borracha\nClique: Apagar conteúdo do hexágono\nDuplo clique: Apagar elementos contíguos',
+        'tooltip.toolPipette': 'Conta-gotas de ferramenta\nClique e depois num hexágono: pega o conteúdo para a ferramenta atual',
+        'notice.nothingToPick': 'Nada aqui para esta ferramenta.',
+        'notice.tapToPickTool': 'Toque num hexágono para pegar o conteúdo.',
         'tooltip.undo': 'Desfazer\nCtrl+Z: Desfazer última ação',
         'tooltip.redo': 'Refazer\nCtrl+Y: Refazer ação desfeita',
         'tooltip.fit': 'Ajustar mapa\nClique: Exibir o mapa inteiro na janela',
@@ -2927,6 +2951,9 @@ const TRANSLATIONS = {
         'projection.noImages': '보관함에서 이미지를 찾을 수 없습니다',
         'notice.projectionLoadFailed': '이미지를 불러올 수 없습니다.',
         'tooltip.eraser': '지우개\n클릭: 헥스 셀 내용 지우기\n더블 클릭: 인접한 요소 지우기',
+        'tooltip.toolPipette': '도구 스포이트\n클릭 후 헥스 선택: 현재 도구용 내용 가져오기',
+        'notice.nothingToPick': '이 도구에 사용할 내용이 없습니다.',
+        'notice.tapToPickTool': '헥스를 탭하여 내용을 가져옵니다.',
         'tooltip.undo': '실행 취소\nCtrl+Z: 마지막 작업 실행 취소',
         'tooltip.redo': '다시 실행\nCtrl+Y: 취소한 작업 다시 실행',
         'tooltip.fit': '지도 맞추기\n클릭: 창에 전체 지도 표시',
@@ -3280,6 +3307,9 @@ const TRANSLATIONS = {
         'projection.noImages': 'No se encontraron imágenes en el almacén',
         'notice.projectionLoadFailed': 'No se pudo cargar la imagen.',
         'tooltip.eraser': 'Borrador\nClic: Borrar contenido de celda\nDoble clic: Borrar elementos contiguos',
+        'tooltip.toolPipette': 'Cuentagotas de herramienta\nHaz clic y luego en un hexágono: toma su contenido para la herramienta actual',
+        'notice.nothingToPick': 'Aquí no hay nada para esta herramienta.',
+        'notice.tapToPickTool': 'Toca un hexágono para tomar su contenido.',
         'tooltip.undo': 'Deshacer\nCtrl+Z: Deshacer última acción',
         'tooltip.redo': 'Rehacer\nCtrl+Y: Rehacer acción deshecha',
         'tooltip.fit': 'Ajustar mapa\nClic: Ajustar ventana al mapa completo',
@@ -3633,6 +3663,9 @@ const TRANSLATIONS = {
         'projection.noImages': 'Nie znaleziono obrazów w skarbcu',
         'notice.projectionLoadFailed': 'Nie udało się wczytać obrazu.',
         'tooltip.eraser': 'Gumka\nKliknij: Usuń zawartość komórki\nPodwójne kliknięcie: Usuń przyległe elementy',
+        'tooltip.toolPipette': 'Pipeta narzędzia\nKliknij, potem heks: pobierz jego zawartość dla bieżącego narzędzia',
+        'notice.nothingToPick': 'Tu nie ma nic dla tego narzędzia.',
+        'notice.tapToPickTool': 'Dotknij heks, aby pobrać jego zawartość.',
         'tooltip.undo': 'Cofnij\nCtrl+Z: Cofnij ostatnią akcję',
         'tooltip.redo': 'Ponów\nCtrl+Y: Ponów cofniętą akcję',
         'tooltip.fit': 'Dopasuj mapę\nKliknij: Dopasuj okno do całej mapy',
@@ -3986,6 +4019,9 @@ const TRANSLATIONS = {
         'projection.noImages': 'Nessuna immagine trovata nel vault',
         'notice.projectionLoadFailed': 'Impossibile caricare l\'immagine.',
         'tooltip.eraser': 'Gomma\nClic: Cancella contenuto cella\nDoppio clic: Cancella elementi contigui',
+        'tooltip.toolPipette': 'Contagocce strumento\nClicca, poi su un esagono: preleva il contenuto per lo strumento attuale',
+        'notice.nothingToPick': 'Qui non c’è nulla per questo strumento.',
+        'notice.tapToPickTool': 'Tocca un esagono per prelevarne il contenuto.',
         'tooltip.undo': 'Annulla\nCtrl+Z: Annulla ultima azione',
         'tooltip.redo': 'Ripeti\nCtrl+Y: Ripeti azione annullata',
         'tooltip.fit': 'Adatta mappa\nClic: Adatta finestra all\'intera mappa',
@@ -4461,6 +4497,34 @@ class UserAssetRegistry {
             this.assets.set(asset.key, asset);
             this.insertIntoTree(asset);
         }
+    }
+
+    // Re-scan the folder and merge the result into the existing registry: newly-added graphics
+    // appear, deleted ones drop out, and already-decoded graphics keep their decoded image (no
+    // re-decode of textures currently on the map). Used when a picker opens, so the list is fresh
+    // even if the vault 'create' event for an externally-added file was missed.
+    async rescan() {
+        if (!this.rootPath) return;
+        const gen = this.generation; // a concurrent full load() wins; bail if one started
+        const files = [];
+        await this.collectFiles(this.rootPath, files);
+        if (gen !== this.generation) return;
+
+        files.sort((a, b) => a.relPath.localeCompare(b.relPath, undefined, { numeric: true, sensitivity: 'base' }));
+        this.truncated = files.length > USER_ASSET_MAX_FILES;
+        if (this.truncated) files.length = USER_ASSET_MAX_FILES;
+
+        const next = new Map();
+        this.tree = { name: this.rootName, folders: [], assets: [] };
+        for (const file of files) {
+            const fresh = this.makeAsset(file);
+            const existing = this.assets.get(fresh.key);
+            // Keep the existing (possibly decoded) asset when the same file is still there.
+            const asset = (existing && existing.filePath === fresh.filePath) ? existing : fresh;
+            next.set(asset.key, asset);
+            this.insertIntoTree(asset);
+        }
+        this.assets = next;
     }
 
     makeAsset(file) {
@@ -5757,6 +5821,9 @@ class HexCartographerView extends ItemView {
         this.activeColorSlot = 0; // Standardfarbe: erste Palettenfarbe
         this.isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         this.colorPickMode = false;
+        this.toolPickMode = false; // tool eyedropper: one-shot pick of the current tool's content from a hex
+        this._editSession = null; // ESC-cancel snapshot for the current path/border editing session
+        this._toolBeforePathEdit = null; // tool state to return to when ESC cancels a path/border edit
 
         this.initToolConfigs();
 
@@ -7140,6 +7207,20 @@ class HexCartographerView extends ItemView {
             if (this.colorPickMode) new Notice(t('notice.tapToPickColor'));
         };
 
+        // Tool eyedropper: one-shot pick of the CURRENT tool's content from a hex (terrain colour/
+        // texture or the tool's symbol). Only for the terrain/symbol drawing tools; disabled otherwise.
+        const toolPipetteBtn = this.createToolButton(editContent, { icon: 'wand-sparkles', title: this._wrapTip(t('tooltip.toolPipette')) });
+        toolPipetteBtn.style.background = BUTTON_BG_DEFAULT;
+        this.toolPipetteBtn = toolPipetteBtn;
+        toolPipetteBtn.onclick = () => {
+            if (!TOOL_PIPETTE_GROUPS.includes(this.currentToolGroup)) return; // only in the drawing tools
+            const wasActive = this.toolPickMode;
+            this.exitPathEditMode(); // clears the other pick modes (and toolPickMode) + their button state
+            this.toolPickMode = !wasActive;
+            this.updateToolbarState(this.hexToolbarEl());
+            if (this.toolPickMode) new Notice(t('notice.tapToPickTool'));
+        };
+
         editContent.createEl('span', { cls: 'hex-toolbar-sep', text: '\u200B' });
 
         this.createColorPalette(editContent);
@@ -7877,12 +7958,13 @@ class HexCartographerView extends ItemView {
         });
     }
 
-    showVariantMenu(groupId, wrapper) {
+    async showVariantMenu(groupId, wrapper) {
         const config = this.toolConfigs[groupId];
         const btn = wrapper.querySelector('.hex-tool-btn');
         // Each tool group has its own folder — without a configured path
         // it stays with this group's system symbols.
         const registry = this.plugin.getRegistryForGroup(groupId);
+        if (registry && registry.isActive) await this._rescanRegistryFolder(registry); // pick up newly-added graphics
         const rect = btn.getBoundingClientRect();
 
         const selectVariant = async (id) => {
@@ -7955,9 +8037,18 @@ class HexCartographerView extends ItemView {
 
     // Right-click on the hex button: "Color" (default) plus custom textures.
     // Without a configured texture folder no menu appears at all.
-    showHexTextureMenu(btn) {
+    // Re-scan a category's folder right before showing its picker, so a graphic just added to the
+    // folder appears immediately — independent of the vault 'create' event, which can be missed or
+    // delayed for externally-added files. Metadata-only (no decode), so it stays cheap.
+    async _rescanRegistryFolder(registry) {
+        if (!registry || !registry.rootPath) return;
+        try { await registry.rescan(); } catch (e) { /* keep the current list on error */ }
+    }
+
+    async showHexTextureMenu(btn) {
         const registry = this.plugin.getRegistry(TEXTURE_CATEGORY);
         if (!registry || !registry.isActive) return;
+        await this._rescanRegistryFolder(registry); // pick up newly-added graphics
 
         const rect = btn.getBoundingClientRect();
 
@@ -8131,6 +8222,7 @@ class HexCartographerView extends ItemView {
                 this.completePathPick(this.pathPickPending.river, 'river');
                 return;
             }
+            if (!['river', 'road', 'border'].includes(this.currentToolGroup)) this._toolBeforePathEdit = this.captureToolState(); // ESC returns here
             const needsRender = this.currentToolGroup === 'pattern' || this.borderSettings.pickedHex;
             this.exitPathEditMode();
             this.currentToolGroup = 'river';
@@ -8149,6 +8241,7 @@ class HexCartographerView extends ItemView {
                 this.completePathPick(this.pathPickPending.road, 'road');
                 return;
             }
+            if (!['river', 'road', 'border'].includes(this.currentToolGroup)) this._toolBeforePathEdit = this.captureToolState(); // ESC returns here
             const needsRender = this.currentToolGroup === 'pattern' || this.borderSettings.pickedHex;
             this.exitPathEditMode();
             this.currentToolGroup = 'road';
@@ -8427,6 +8520,8 @@ class HexCartographerView extends ItemView {
 
     completePathPick(path, type) {
         this.exitPathEditMode();
+        this._toolBeforePathEdit = this._toolStateBeforePick || this._toolBeforePathEdit; // ESC returns here
+        this.beginEditSession(); // snapshot the picked path's original state before any edit
         this.pathPickPending = null;
         this.selectedWaypointIdx = null; // fresh selection when picking a path to edit
         if (path.width > MAX_PATH_WIDTH) path.width = MAX_PATH_WIDTH; // pull legacy over-size down to the hex limit
@@ -8555,8 +8650,42 @@ class HexCartographerView extends ItemView {
         }
     }
 
+    // Snapshot the map + undo-stack length at the first change of a path/border editing session, plus
+    // the tool to return to. cancelEditSession (ESC) reverts all of it; finishing clears it (see below).
+    beginEditSession() {
+        if (this._editSession) return;
+        this._editSession = {
+            snapshot: JSON.stringify(this.historySnapshot()),
+            historyLen: this.history.length,
+            toolBefore: this._toolBeforePathEdit || null,
+        };
+    }
+
+    // ESC-cancel: revert the current editing session (delete a new path/border or restore an edited
+    // one), drop the session's undo entries, leave edit mode and return to the previous tool.
+    cancelEditSession() {
+        const s = this._editSession;
+        if (!s) return false;
+        this._editSession = null;
+        this.applyHistorySnapshot(JSON.parse(s.snapshot)); // restores data + renders + saves
+        if (this.history.length > s.historyLen) this.history.length = s.historyLen; // drop this session's entries
+        this.redoStack = [];
+        this.selectedWaypointIdx = null;
+        this.riverSettings.editMode = false; this.riverSettings.activeRiverId = null; this.riverSettings.insertAfter = null;
+        this.roadSettings.editMode = false; this.roadSettings.activeRoadId = null; this.roadSettings.insertAfter = null;
+        this.borderSettings.activeRegionId = null; this.borderSettings.pickedHex = null;
+        if (s.toolBefore) this.restoreToolState(s.toolBefore); // back to the tool active before editing
+        this.drawMode = 'pen';
+        const toolbar = this.hexToolbarEl();
+        if (toolbar) this.updateToolbarState(toolbar);
+        this.render();
+        this.requestSave();
+        return true;
+    }
+
     exitPathEditMode() {
         let changed = false;
+        this._editSession = null; // finishing keeps the edits -> the ESC-cancel snapshot is no longer needed
         this.selectedWaypointIdx = null; // drop the per-endpoint selection when leaving edit mode
         for (const settings of [this.riverSettings, this.roadSettings]) {
             if (settings.editMode) {
@@ -8597,6 +8726,11 @@ class HexCartographerView extends ItemView {
             this.colorEyedropperBtn.style.background = BUTTON_BG_DEFAULT;
             this.colorEyedropperBtn.style.color = '';
         }
+        this.toolPickMode = false;
+        if (this.toolPipetteBtn) {
+            this.toolPipetteBtn.style.background = BUTTON_BG_DEFAULT;
+            this.toolPipetteBtn.style.color = '';
+        }
         if (this.borderSettings.activeRegionId !== null) {
             this.borderSettings.activeRegionId = null;
             this.borderSettings.pickedHex = null;
@@ -8619,6 +8753,7 @@ class HexCartographerView extends ItemView {
         btn.onclick = () => {
             const wasPatternActive = this.currentToolGroup === 'pattern';
             const wasHidden = !this.borderSettings.visible;
+            if (!['river', 'road', 'border'].includes(this.currentToolGroup)) this._toolBeforePathEdit = this.captureToolState(); // ESC returns here
             this.exitPathEditMode();
             this.borderPickMode = false;
             this.borderSettings.activeRegionId = null;
@@ -8880,6 +9015,16 @@ class HexCartographerView extends ItemView {
         if (this._syncTaperBtn) this._syncTaperBtn();
         if (this._syncPathOrderBtns) this._syncPathOrderBtns();
 
+        // Tool eyedropper: enabled only in the terrain/symbol drawing tools; highlighted while armed.
+        if (this.toolPipetteBtn) {
+            const eligible = TOOL_PIPETTE_GROUPS.includes(this.currentToolGroup);
+            if (!eligible) this.toolPickMode = false;
+            this.toolPipetteBtn.disabled = !eligible;
+            this.toolPipetteBtn.style.opacity = eligible ? '1' : '0.4';
+            this.toolPipetteBtn.style.background = this.toolPickMode ? PICKER_ACTIVE_BG : BUTTON_BG_DEFAULT;
+            this.toolPipetteBtn.style.color = this.toolPickMode ? 'var(--text-on-accent)' : '';
+        }
+
         const activePathSettings = this.currentToolGroup === 'river' ? this.riverSettings : this.roadSettings;
         if (this.pathPickerBtn) {
             if (activePathSettings.editMode) {
@@ -9033,6 +9178,44 @@ class HexCartographerView extends ItemView {
         this.toolHistory[group] = historyMruPush(list, entry, HISTORY_MAX_SLOTS);
         this.renderToolHistory();
         this.requestSave();
+    }
+
+    // Build a history-style entry from a hex's stored content for the given tool (or null if the hex
+    // has nothing for that tool). Terrain picks what is visible: the texture if set, else the colour.
+    hexPickEntryFor(group, data) {
+        if (!data) return null;
+        if (group === 'hexcolor') {
+            if (data.texture) return { color: data.color || DEFAULT_MASTER_COLOR, texture: data.texture };
+            if (data.color) return { color: data.color, texture: null };
+            return null;
+        }
+        const sd = SLOT_BY_GROUP[group];
+        if (!sd || !data[sd.slot]) return null;
+        const c = this.toolConfigs[group];
+        // Hexes store no per-symbol background, so keep the tool's current background; take variant + colour.
+        const entry = { variant: data[sd.slot], backgroundColor: c ? c.backgroundColor : DEFAULT_MASTER_COLOR, backgroundEnabled: !!(c && c.backgroundEnabled) };
+        if (this.isSymbolColorable(data[sd.slot])) entry.symbolColor = data[sd.color] || DEFAULT_MASTER_COLOR;
+        return entry;
+    }
+
+    // Tool eyedropper: take the current tool's content from the clicked hex and select it (moves it to
+    // the front of the quick-access row). Returns false if the hex has nothing for the current tool.
+    pickCurrentToolFromHex(hex) {
+        const group = this.currentToolGroup;
+        if (!hex || !TOOL_PIPETTE_GROUPS.includes(group)) return false;
+        const data = this.data.hexes && this.data.hexes[`${hex.q}_${hex.r}`];
+        const entry = this.hexPickEntryFor(group, data);
+        if (!entry) return false;
+        this.applyHistoryEntry(group, entry); // applies the setting, records it, re-renders and saves
+        return true;
+    }
+
+    // One-shot handler for the tool eyedropper: pick, then leave pick mode (a short notice if empty).
+    handleToolPick() {
+        if (!this.pickCurrentToolFromHex(this.startHex)) new Notice(t('notice.nothingToPick'));
+        this.toolPickMode = false;
+        const toolbar = this.hexToolbarEl();
+        if (toolbar) this.updateToolbarState(toolbar);
     }
 
     // Re-apply a stored setting (from a history button): make it the active tool's current
@@ -9451,9 +9634,13 @@ class HexCartographerView extends ItemView {
     // document, guard it: only the active leaf, only when no modal is open (the modal owns keys then),
     // and never while typing in an input/textarea/contenteditable.
     canHandleUndoShortcut(e) {
-        if (this.app.workspace.activeLeaf !== this.leaf) return false;
-        if (this.containerEl.ownerDocument.querySelector('.modal-container')) return false;
         const el = e && e.target;
+        // Active if this leaf is the workspace's active one, OR the key event belongs to this view's
+        // own DOM. The latter also covers canvas focus, which does NOT reliably update
+        // workspace.activeLeaf — so undo/ESC/RETURN would otherwise die right after a canvas drag.
+        const inThisView = !!(el && this.containerEl.contains(el));
+        if (!inThisView && this.app.workspace.activeLeaf !== this.leaf) return false;
+        if (this.containerEl.ownerDocument.querySelector('.modal-container')) return false;
         if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return false;
         return true;
     }
@@ -9465,6 +9652,22 @@ class HexCartographerView extends ItemView {
         // is not typing in a field. This removes the whole class of "focus lost -> Ctrl+Z dead" bugs;
         // new map-mutating features only need pushHistory(), never a manual re-focus.
         this.registerDomEvent(this.containerEl.ownerDocument, 'keydown', (e) => {
+            // Escape cancels the current path/border editing session (revert + back to the previous
+            // tool). Only when actually editing; otherwise let Escape do its normal thing (close menus).
+            if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                if (this.canHandleUndoShortcut(e) && this.cancelEditSession()) e.preventDefault();
+                return;
+            }
+            // Enter finishes the river/road/border currently being drawn (like the ✓ button). Desktop
+            // only; guarded like undo (active leaf, no modal open, not while typing in a field).
+            if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                if (!this.canHandleUndoShortcut(e)) return;
+                if (this.riverSettings.editMode || this.roadSettings.editMode || this.borderSettings.activeRegionId !== null) {
+                    e.preventDefault();
+                    this.exitPathEditMode();
+                }
+                return;
+            }
             const mod = e.ctrlKey || e.metaKey;
             if (!mod) return;
             const key = e.key.toLowerCase();
@@ -9551,6 +9754,8 @@ class HexCartographerView extends ItemView {
                 return;
             }
 
+            if (this.toolPickMode) { this.handleToolPick(); return; }
+
             if (this.patternPickMode) {
                 const key = `${this.startHex.q}_${this.startHex.r}`;
                 const hexData = this.data.hexes[key];
@@ -9592,6 +9797,7 @@ class HexCartographerView extends ItemView {
                 }
                 if (foundRegion) {
                     this.borderSettings.activeRegionId = foundRegion.id;
+                    this.beginEditSession(); // picked an existing border -> ESC snapshot
                     this.borderSettings.pickedHex = { q: clickedHex.q, r: clickedHex.r };
                     this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
                     if (foundRegion.width > MAX_PATH_WIDTH) { foundRegion.width = MAX_PATH_WIDTH; this.requestSave(); } this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH; // pull legacy over-size down to the hex limit
@@ -9999,6 +10205,8 @@ class HexCartographerView extends ItemView {
                             return;
                         }
 
+                        if (this.toolPickMode) { this.handleToolPick(); return; }
+
                         if (this.patternPickMode) {
                             const key = `${this.startHex.q}_${this.startHex.r}`;
                             const hexData = this.data.hexes[key];
@@ -10041,6 +10249,7 @@ class HexCartographerView extends ItemView {
                             }
                             if (foundRegion) {
                                 this.borderSettings.activeRegionId = foundRegion.id;
+                                this.beginEditSession(); // picked an existing border -> ESC snapshot
                                 this.borderSettings.pickedHex = { q: clickedHex.q, r: clickedHex.r };
                                 this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
                                 if (foundRegion.width > MAX_PATH_WIDTH) { foundRegion.width = MAX_PATH_WIDTH; this.requestSave(); } this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH; // pull legacy over-size down to the hex limit
@@ -10286,6 +10495,8 @@ class HexCartographerView extends ItemView {
                         return;
                     }
 
+                    if (this.toolPickMode) { this.handleToolPick(); return; }
+
                     if (this.patternPickMode) {
                         const key = `${this.startHex.q}_${this.startHex.r}`;
                         const hexData = this.data.hexes[key];
@@ -10329,6 +10540,7 @@ class HexCartographerView extends ItemView {
                         }
                         if (foundRegion) {
                             this.borderSettings.activeRegionId = foundRegion.id;
+                            this.beginEditSession(); // picked an existing border -> ESC snapshot
                             this.borderSettings.pickedHex = { q: clickedHex.q, r: clickedHex.r };
                             this.borderSettings.dashes = foundRegion.dashes || DEFAULT_BORDER_DASHES;
                             if (foundRegion.width > MAX_PATH_WIDTH) { foundRegion.width = MAX_PATH_WIDTH; this.requestSave(); } this.borderSettings.width = foundRegion.width || DEFAULT_BORDER_WIDTH; // pull legacy over-size down to the hex limit
@@ -10607,21 +10819,26 @@ class HexCartographerView extends ItemView {
     // dragged in the meantime (its corner no longer belongs to that centre), then we snap to nearest.
     convertPathNodes(path) {
         const mode = routeModeOf(path);
-        if (mode === 'both' || !path.waypoints) return;
+        if (!path.waypoints) return;
         for (const wp of path.waypoints) {
             const corner = this.isCornerWp(wp);
-            if (mode === 'center' && corner) {
+            if (mode === 'edge') {
+                if (!corner) {
+                    wp.homeCenter = { q: wp.q, r: wp.r }; // remember the source hex for a lossless trip back
+                    const p = this.hexToPixel(wp);
+                    const v = this.nearestVertAtPixel(p.x, p.y);
+                    wp.q = v.Q / 3; wp.r = v.R / 3;
+                }
+            } else if (corner) {
+                // Centre AND 'both': a corner that came from an edge conversion (has a matching
+                // homeCenter) goes back to its exact source centre -> cycling the modes never
+                // re-places the points. Only 'centre' also collapses a genuine corner (no valid
+                // homeCenter) to its nearest centre; 'both' keeps such manually-placed corners.
                 const vQ = Math.round(wp.q * 3), vR = Math.round(wp.r * 3);
                 const home = wp.homeCenter;
                 const homeValid = home && hexCornerVerts(home).some(v => v.Q === vQ && v.R === vR);
-                if (homeValid) { wp.q = home.q; wp.r = home.r; }
-                else { const p = this.hexToPixel(wp); const h = this.pixelToHex(p.x, p.y); wp.q = h.q; wp.r = h.r; }
-                delete wp.homeCenter;
-            } else if (mode === 'edge' && !corner) {
-                wp.homeCenter = { q: wp.q, r: wp.r }; // remember the source hex for a lossless trip back
-                const p = this.hexToPixel(wp);
-                const v = this.nearestVertAtPixel(p.x, p.y);
-                wp.q = v.Q / 3; wp.r = v.R / 3;
+                if (homeValid) { wp.q = home.q; wp.r = home.r; delete wp.homeCenter; }
+                else if (mode === 'center') { const p = this.hexToPixel(wp); const h = this.pixelToHex(p.x, p.y); wp.q = h.q; wp.r = h.r; delete wp.homeCenter; }
             }
         }
     }
@@ -10932,6 +11149,7 @@ class HexCartographerView extends ItemView {
     }
 
     addBorderHex(hex) {
+        this.beginEditSession(); // snapshot before the first change, for ESC-cancel
         if (!this.data.borders) this.data.borders = [];
 
         const hq = Math.round(hex.q);
@@ -11005,6 +11223,7 @@ class HexCartographerView extends ItemView {
     }
 
     addRoadWaypoint(hex, wx, wy) {
+        this.beginEditSession(); // snapshot before the first change, for ESC-cancel
         if (!this.data.roads) this.data.roads = [];
 
         let road = this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
@@ -11144,6 +11363,7 @@ class HexCartographerView extends ItemView {
     }
 
     addRiverWaypoint(hex, wx, wy) {
+        this.beginEditSession(); // snapshot before the first change, for ESC-cancel
         if (!this.data.rivers) this.data.rivers = [];
 
         let river = this.data.rivers.find(r => r.id === this.riverSettings.activeRiverId);
