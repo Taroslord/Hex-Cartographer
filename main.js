@@ -241,6 +241,11 @@ const HEX_SYMBOL_SLOTS = [
     { slot: 'extra',      color: 'extraColor',      group: 'grass' },    // Extras
 ];
 const SLOT_BY_GROUP = Object.fromEntries(HEX_SYMBOL_SLOTS.map(s => [s.group, s]));
+// Terrain choice "empty hex": the hex exists (grid, coordinates, borders, projection clip) but has
+// no fill. Stored as hexTexture so it flows through the same picker/history machinery; the hex gets
+// an `empty: true` marker instead of a color/texture. The sentinel never collides with user keys
+// (those start "user:").
+const EMPTY_HEX_KEY = '__empty__';
 
 // A path (river/road) is drawn in one of these layers, interleaved with the terrain symbol slots:
 // 0 = behind Berge, 1 = behind Vegetation, 2 = default (behind Gebäude), 3 = above Gebäude (behind
@@ -609,6 +614,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': 'Ordner in Ihrem Vault. Leer lassen, um nur die mitgelieferten Symbole zu verwenden.',
         'menu.system': 'System',
         'menu.color': 'Farbe',
+        'menu.emptyHex': 'Leere Wabe',
         'notice.assetMissing': 'Grafik nicht gefunden: {name}',
         'notice.assetsMissing': '{name} fehlen. Ordnerinhalt oder Pfad unter {settings} prüfen!',
         'assetWarning.hideHints': 'Hinweise ausblenden',
@@ -667,6 +673,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': 'Farbpipette: Farbe auf der Karte aufnehmen.',
         'guide.hexcolor.palette': 'Rechtsklick auf Palettenplatz = Farbe neu setzen.',
         'guide.hexcolor.texture': 'Rechtsklick auf den Waben-Button = Farbe oder eigene Textur wählen. Erscheint nur, wenn in den Einstellungen ein Texturordner angegeben ist.',
+        'guide.hexcolor.empty': 'Leere Wabe (unter „System"): zeichnet eine Wabe ohne Füllung – ideal, um eine Projektion als Hintergrund durchscheinen zu lassen. Rahmen, Koordinaten und Grenzen gelten weiterhin.',
         'guide.symbols': 'Symbole',
         'guide.symbols.groups': 'Werkzeuggruppe wählen (Extras, Vegetation, Berg, Gebäude).',
         'guide.symbols.variant': 'Rechtsklick = Auswahl der Symbolvariante.',
@@ -701,6 +708,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': 'Frei verschieben, skalieren und drehen – Ecken ziehen zum Skalieren, Seiten zum Drehen; der Drehpunkt ist verschiebbar.',
         'guide.projection.display': 'Transparenz einstellen, ein-/ausblenden und wählen, ob die Vorlage hinter den Waben oder über deren Füllung liegt (Symbole bleiben immer oben).',
         'guide.projection.export': 'Auf die gezeichneten Waben beschneiden und festlegen, ob die Vorlage in Export und Druck erscheint.',
+        'guide.projection.reset': 'Zurücksetzen: stellt Größe, Drehung, Transparenz und Drehpunkt auf die Standardwerte zurück – die Position bleibt erhalten.',
         'guide.text': 'Text',
         'guide.text.tool': 'Auf Karte klicken um Textinhalt, Größe, Farbe und Format einzustellen.<br>Erneut auf Text klicken, um ihn zu bearbeiten.<br>Zum Verschieben ziehen.',
         'guide.undoredo': 'Rückgängig / Wiederholen',
@@ -1003,6 +1011,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': 'Folder in your vault. Leave empty to use the built-in symbols only.',
         'menu.system': 'System',
         'menu.color': 'Color',
+        'menu.emptyHex': 'Empty hex',
         'notice.assetMissing': 'Graphic not found: {name}',
         'notice.assetsMissing': '{name} missing. Check the folder contents or path in {settings}!',
         'assetWarning.hideHints': 'Hide hints',
@@ -1061,6 +1070,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': 'Color eyedropper: Pick a color from the map.',
         'guide.hexcolor.palette': 'Right-click a palette slot = Set new color.',
         'guide.hexcolor.texture': 'Right-click the hex button = Choose a color or your own texture. Only appears once a texture folder is set in the settings.',
+        'guide.hexcolor.empty': 'Empty hex (under "System"): draws a hex with no fill – ideal for letting a projection show through as a background. Borders, coordinates and region borders still apply.',
         'guide.symbols': 'Symbols',
         'guide.symbols.groups': 'Choose a tool group (Extras, Vegetation, Mountain, Building).',
         'guide.symbols.variant': 'Right-click = Select symbol variant.',
@@ -1095,6 +1105,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': 'Move, scale and rotate it freely – drag corners to scale, sides to rotate; the pivot point is movable.',
         'guide.projection.display': 'Set its transparency, show or hide it, and choose whether it sits behind the hexes or above their fills (symbols always stay on top).',
         'guide.projection.export': 'Clip it to your drawn hexes and decide whether it appears in exports and prints.',
+        'guide.projection.reset': 'Reset: puts size, rotation, transparency and the pivot back to their defaults – the position stays.',
         'guide.text': 'Text',
         'guide.text.tool': 'Click on map to set text content, size, color and format.<br>Click text again to edit.<br>Drag to move.',
         'guide.undoredo': 'Undo / Redo',
@@ -1375,6 +1386,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': '库中的文件夹。留空则仅使用内置符号。',
         'menu.system': '系统',
         'menu.color': '颜色',
+        'menu.emptyHex': '空六角格',
         'notice.assetMissing': '未找到图形：{name}',
         'notice.assetsMissing': '{name}缺失。请在{settings}中检查文件夹内容或路径！',
         'assetWarning.hideHints': '隐藏提示',
@@ -1431,6 +1443,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': '取色器：从地图上采集颜色。',
         'guide.hexcolor.palette': '右键点击调色板位置 = 设置新颜色。',
         'guide.hexcolor.texture': '右键点击六边形按钮 = 选择颜色或自定义纹理。仅在设置中指定了纹理文件夹后才会出现。',
+        'guide.hexcolor.empty': '空六角格（“系统”下）：绘制没有填充的六角格——非常适合让投影作为背景透出。边框、坐标和区域边界仍然有效。',
         'guide.symbols': '符号',
         'guide.symbols.groups': '选择工具组（其他、植被、山脉、建筑）。',
         'guide.symbols.variant': '右键点击 = 选择符号变体。',
@@ -1465,6 +1478,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': '自由移动、缩放和旋转——拖角缩放，拖边旋转；轴心可移动。',
         'guide.projection.display': '设置透明度、显示或隐藏，并选择参考图位于六角格之后还是填充之上（符号始终在最上层）。',
         'guide.projection.export': '裁剪到已绘制的六角格，并决定参考图是否出现在导出和打印中。',
+        'guide.projection.reset': '重置：将大小、旋转、透明度和轴心恢复为默认值——位置保持不变。',
         'guide.text': '文本',
         'guide.text.tool': '点击地图设置文本内容、大小、颜色和格式。<br>再次点击文本进行编辑。<br>拖动可移动文本。',
         'guide.undoredo': '撤销 / 重做',
@@ -1741,6 +1755,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': 'Папка в вашем хранилище. Оставьте пустым, чтобы использовать только встроенные символы.',
         'menu.system': 'Система',
         'menu.color': 'Цвет',
+        'menu.emptyHex': 'Пустая сота',
         'notice.assetMissing': 'Графика не найдена: {name}',
         'notice.assetsMissing': '{name} отсутствуют. Проверьте содержимое папки или путь в разделе «{settings}»!',
         'assetWarning.hideHints': 'Скрыть подсказки',
@@ -1797,6 +1812,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': 'Пипетка: захватить цвет с карты.',
         'guide.hexcolor.palette': 'Правый клик по месту в палитре = Задать новый цвет.',
         'guide.hexcolor.texture': 'Правый клик по кнопке соты = Выбрать цвет или собственную текстуру. Появляется только после указания папки текстур в настройках.',
+        'guide.hexcolor.empty': 'Пустая сота (в разделе «Система»): рисует соту без заливки — удобно, чтобы сквозь неё просвечивала проекция-фон. Рамка, координаты и границы регионов сохраняются.',
         'guide.symbols': 'Символы',
         'guide.symbols.groups': 'Выберите группу инструментов (Прочее, Растительность, Горы, Здания).',
         'guide.symbols.variant': 'Правый клик = Выбор варианта символа.',
@@ -1831,6 +1847,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': 'Свободно перемещайте, масштабируйте и вращайте — углы для масштаба, стороны для поворота; точку вращения можно двигать.',
         'guide.projection.display': 'Настройте прозрачность, показывайте или скрывайте, выберите, за сотами образец или над их заливкой (символы всегда сверху).',
         'guide.projection.export': 'Обрежьте по нарисованным сотам и решите, появляется ли образец в экспорте и печати.',
+        'guide.projection.reset': 'Сброс: возвращает размер, поворот, прозрачность и точку вращения к значениям по умолчанию — положение сохраняется.',
         'guide.text': 'Текст',
         'guide.text.tool': 'Нажмите на карту, чтобы задать содержание, размер, цвет и формат текста.<br>Нажмите на текст снова, чтобы редактировать.<br>Перетащите для перемещения.',
         'guide.undoredo': 'Отменить / Повторить',
@@ -2107,6 +2124,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': '保管庫内のフォルダー。空欄にすると内蔵シンボルのみを使用します。',
         'menu.system': 'システム',
         'menu.color': '色',
+        'menu.emptyHex': '空のヘクス',
         'notice.assetMissing': '画像が見つかりません: {name}',
         'notice.assetsMissing': '{name}がありません。{settings}でフォルダーの内容またはパスを確認してください！',
         'assetWarning.hideHints': 'ヒントを非表示',
@@ -2163,6 +2181,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': 'スポイト：マップから色を取得。',
         'guide.hexcolor.palette': 'パレット枠を右クリック = 色を変更。',
         'guide.hexcolor.texture': 'ヘックスボタンを右クリック = 色またはカスタムテクスチャを選択。設定でテクスチャフォルダを指定した場合のみ表示されます。',
+        'guide.hexcolor.empty': '空のヘクス（「システム」内）：塗りのないヘクスを描きます。投影を背景として透かすのに最適。枠・座標・境界は通常どおり適用されます。',
         'guide.symbols': 'シンボル',
         'guide.symbols.groups': 'ツールグループを選択（その他、植生、山、建物）。',
         'guide.symbols.variant': '右クリック = シンボルバリエーションの選択。',
@@ -2197,6 +2216,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': '自由に移動・拡大縮小・回転できます。角で拡大縮小、辺で回転。回転の中心も動かせます。',
         'guide.projection.display': '透明度を設定し、表示/非表示を切り替え、下絵をヘクスの背面か塗りの上のどちらに置くか選べます（シンボルは常に最前面）。',
         'guide.projection.export': '描いたヘクスに合わせて切り抜き、下絵を書き出しや印刷に含めるかどうかを選べます。',
+        'guide.projection.reset': 'リセット：サイズ・回転・透明度・回転の中心を初期値に戻します。位置はそのままです。',
         'guide.text': 'テキスト',
         'guide.text.tool': 'マップをクリックしてテキストの内容、サイズ、色、書式を設定。<br>テキストを再度クリックして編集。<br>ドラッグで移動。',
         'guide.undoredo': '元に戻す / やり直し',
@@ -2473,6 +2493,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': 'Dossier dans votre coffre. Laissez vide pour n\'utiliser que les symboles fournis.',
         'menu.system': 'Système',
         'menu.color': 'Couleur',
+        'menu.emptyHex': 'Hexagone vide',
         'notice.assetMissing': 'Graphique introuvable : {name}',
         'notice.assetsMissing': '{name} manquants. Vérifiez le contenu du dossier ou le chemin dans {settings} !',
         'assetWarning.hideHints': 'Masquer les indications',
@@ -2529,6 +2550,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': 'Pipette : Capturer une couleur sur la carte.',
         'guide.hexcolor.palette': 'Clic droit sur un emplacement de palette = Définir une nouvelle couleur.',
         'guide.hexcolor.texture': 'Clic droit sur le bouton hexagone = Choisir une couleur ou votre propre texture. N\'apparaît qu\'une fois un dossier de textures défini dans les paramètres.',
+        'guide.hexcolor.empty': 'Hexagone vide (sous « Système ») : dessine un hexagone sans remplissage – idéal pour laisser transparaître une projection en fond. Bordures, coordonnées et frontières restent actives.',
         'guide.symbols': 'Symboles',
         'guide.symbols.groups': 'Choisir un groupe d\'outils (Extras, Végétation, Montagne, Bâtiment).',
         'guide.symbols.variant': 'Clic droit = Choisir la variante du symbole.',
@@ -2563,6 +2585,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': 'Déplacez, redimensionnez et faites-la pivoter librement – coins pour l’échelle, côtés pour la rotation ; le pivot est déplaçable.',
         'guide.projection.display': 'Réglez la transparence, affichez ou masquez, et choisissez si la référence est derrière les hexagones ou au-dessus de leur remplissage (les symboles restent toujours au-dessus).',
         'guide.projection.export': 'Rognez-la sur les hexagones dessinés et décidez si elle apparaît à l’export et à l’impression.',
+        'guide.projection.reset': 'Réinitialiser : remet la taille, la rotation, la transparence et le pivot à leurs valeurs par défaut – la position est conservée.',
         'guide.text': 'Texte',
         'guide.text.tool': 'Cliquer sur la carte pour définir le contenu, la taille, la couleur et le format du texte.<br>Cliquer à nouveau sur le texte pour le modifier.<br>Glisser pour déplacer.',
         'guide.undoredo': 'Annuler / Rétablir',
@@ -2839,6 +2862,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': 'Pasta no seu cofre. Deixe vazio para usar apenas os símbolos incluídos.',
         'menu.system': 'Sistema',
         'menu.color': 'Cor',
+        'menu.emptyHex': 'Hexágono vazio',
         'notice.assetMissing': 'Gráfico não encontrado: {name}',
         'notice.assetsMissing': '{name} ausentes. Verifique o conteúdo da pasta ou o caminho em {settings}!',
         'assetWarning.hideHints': 'Ocultar avisos',
@@ -2895,6 +2919,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': 'Conta-gotas: Capturar cor do mapa.',
         'guide.hexcolor.palette': 'Clique direito no espaço da paleta = Definir nova cor.',
         'guide.hexcolor.texture': 'Clique direito no botão do hexágono = Escolher uma cor ou a sua própria textura. Só aparece depois de definir uma pasta de texturas nas definições.',
+        'guide.hexcolor.empty': 'Hexágono vazio (em “Sistema”): desenha um hexágono sem preenchimento – ideal para deixar uma projeção aparecer como fundo. Bordas, coordenadas e limites continuam válidos.',
         'guide.symbols': 'Símbolos',
         'guide.symbols.groups': 'Escolher grupo de ferramentas (Extras, Vegetação, Montanha, Edifício).',
         'guide.symbols.variant': 'Clique direito = Escolher variante do símbolo.',
@@ -2929,6 +2954,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': 'Mova, redimensione e gire livremente – cantos para escalar, lados para girar; o pivô é móvel.',
         'guide.projection.display': 'Ajuste a transparência, mostre ou oculte e escolha se a referência fica atrás dos hexágonos ou acima do preenchimento (os símbolos ficam sempre por cima).',
         'guide.projection.export': 'Recorte nos hexágonos desenhados e decida se ela aparece na exportação e na impressão.',
+        'guide.projection.reset': 'Redefinir: devolve tamanho, rotação, transparência e o pivô aos valores padrão – a posição permanece.',
         'guide.text': 'Texto',
         'guide.text.tool': 'Clicar no mapa para definir conteúdo, tamanho, cor e formato do texto.<br>Clicar novamente no texto para editá-lo.<br>Arrastar para mover.',
         'guide.undoredo': 'Desfazer / Refazer',
@@ -3205,6 +3231,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': '보관함 안의 폴더. 비워 두면 기본 제공 심볼만 사용합니다.',
         'menu.system': '시스템',
         'menu.color': '색상',
+        'menu.emptyHex': '빈 육각형',
         'notice.assetMissing': '그래픽을 찾을 수 없습니다: {name}',
         'notice.assetsMissing': '{name}이(가) 없습니다. {settings}에서 폴더 내용 또는 경로를 확인하세요!',
         'assetWarning.hideHints': '힌트 숨기기',
@@ -3261,6 +3288,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': '스포이트: 지도에서 색상을 캡처합니다.',
         'guide.hexcolor.palette': '팔레트 자리 우클릭 = 새 색상 설정.',
         'guide.hexcolor.texture': '헥스 버튼 우클릭 = 색상 또는 사용자 텍스처 선택. 설정에서 텍스처 폴더를 지정해야 표시됩니다.',
+        'guide.hexcolor.empty': '빈 육각형(“시스템” 아래): 채움이 없는 육각형을 그립니다 – 투영을 배경으로 비쳐 보이게 할 때 유용합니다. 테두리, 좌표, 경계는 그대로 적용됩니다.',
         'guide.symbols': '기호',
         'guide.symbols.groups': '도구 그룹 선택 (기타, 식생, 산, 건물).',
         'guide.symbols.variant': '우클릭 = 기호 변형 선택.',
@@ -3295,6 +3323,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': '자유롭게 이동·확대·회전 – 모서리로 크기 조절, 변으로 회전; 회전 중심점도 옮길 수 있습니다.',
         'guide.projection.display': '투명도를 설정하고 표시/숨김을 전환하며, 참고 이미지를 육각형 뒤에 둘지 채움 위에 둘지 선택합니다(기호는 항상 맨 위).',
         'guide.projection.export': '그린 육각형에 맞춰 잘라내고, 참고 이미지를 내보내기와 인쇄에 포함할지 결정합니다.',
+        'guide.projection.reset': '초기화: 크기, 회전, 투명도, 회전 중심을 기본값으로 되돌립니다 – 위치는 그대로 유지됩니다.',
         'guide.text': '텍스트',
         'guide.text.tool': '지도를 클릭하여 텍스트 내용, 크기, 색상 및 서식을 설정합니다.<br>텍스트를 다시 클릭하여 편집합니다.<br>드래그하여 이동합니다.',
         'guide.undoredo': '실행 취소 / 다시 실행',
@@ -3571,6 +3600,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': 'Carpeta en su almacén. Déjelo vacío para usar solo los símbolos incluidos.',
         'menu.system': 'Sistema',
         'menu.color': 'Color',
+        'menu.emptyHex': 'Hexágono vacío',
         'notice.assetMissing': 'Gráfico no encontrado: {name}',
         'notice.assetsMissing': 'Faltan {name}. Comprueba el contenido de la carpeta o la ruta en {settings}!',
         'assetWarning.hideHints': 'Ocultar avisos',
@@ -3627,6 +3657,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': 'Cuentagotas: Capturar color del mapa.',
         'guide.hexcolor.palette': 'Clic derecho en lugar de paleta = Cambiar color.',
         'guide.hexcolor.texture': 'Clic derecho en el botón del hexágono = Elegir un color o tu propia textura. Solo aparece si has indicado una carpeta de texturas en los ajustes.',
+        'guide.hexcolor.empty': 'Hexágono vacío (en “Sistema”): dibuja un hexágono sin relleno, ideal para dejar que una proyección se vea de fondo. Bordes, coordenadas y límites siguen aplicándose.',
         'guide.symbols': 'Símbolos',
         'guide.symbols.groups': 'Elegir grupo de herramientas (Extras, Vegetación, Montaña, Edificio).',
         'guide.symbols.variant': 'Clic derecho = Selección de variante de símbolo.',
@@ -3661,6 +3692,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': 'Muévela, escálala y gírala libremente: esquinas para escalar, lados para girar; el pivote es móvil.',
         'guide.projection.display': 'Ajusta la transparencia, muéstrala u ocúltala y elige si la referencia va detrás de los hexágonos o sobre su relleno (los símbolos siempre quedan encima).',
         'guide.projection.export': 'Recórtala a los hexágonos dibujados y decide si aparece en exportaciones e impresiones.',
+        'guide.projection.reset': 'Restablecer: devuelve el tamaño, la rotación, la transparencia y el pivote a sus valores predeterminados; la posición se mantiene.',
         'guide.text': 'Texto',
         'guide.text.tool': 'Clic en el mapa para configurar contenido, tamaño, color y formato del texto.<br>Clic de nuevo en el texto para editarlo.<br>Arrastrar para mover.',
         'guide.undoredo': 'Deshacer / Rehacer',
@@ -3937,6 +3969,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': 'Folder w sejfie. Pozostaw puste, aby używać tylko wbudowanych symboli.',
         'menu.system': 'System',
         'menu.color': 'Kolor',
+        'menu.emptyHex': 'Pusty heks',
         'notice.assetMissing': 'Nie znaleziono grafiki: {name}',
         'notice.assetsMissing': 'Brak: {name}. Sprawdź zawartość folderu lub ścieżkę w {settings}!',
         'assetWarning.hideHints': 'Ukryj wskazówki',
@@ -3993,6 +4026,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': 'Pipeta: Pobierz kolor z mapy.',
         'guide.hexcolor.palette': 'Prawy przycisk na miejsce palety = Ustaw nowy kolor.',
         'guide.hexcolor.texture': 'Prawy klik na przycisk komórki = Wybierz kolor lub własną teksturę. Pojawia się dopiero po wskazaniu folderu tekstur w ustawieniach.',
+        'guide.hexcolor.empty': 'Pusty heks (w „System"): rysuje heks bez wypełnienia – idealny, by przez niego prześwitywała projekcja w tle. Ramka, współrzędne i granice nadal działają.',
         'guide.symbols': 'Symbole',
         'guide.symbols.groups': 'Wybierz grupę narzędzi (Dodatki, Roślinność, Góra, Budynek).',
         'guide.symbols.variant': 'Prawy przycisk = Wybór wariantu symbolu.',
@@ -4027,6 +4061,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': 'Dowolnie przesuwaj, skaluj i obracaj – rogi skalują, boki obracają; punkt obrotu można przesuwać.',
         'guide.projection.display': 'Ustaw przezroczystość, pokaż lub ukryj oraz wybierz, czy wzór jest za heksami, czy nad ich wypełnieniem (symbole zawsze na wierzchu).',
         'guide.projection.export': 'Przytnij do narysowanych heksów i zdecyduj, czy wzór pojawia się w eksporcie i druku.',
+        'guide.projection.reset': 'Resetuj: przywraca rozmiar, obrót, przezroczystość i punkt obrotu do wartości domyślnych – pozycja pozostaje.',
         'guide.text': 'Tekst',
         'guide.text.tool': 'Kliknij na mapę, aby ustawić treść, rozmiar, kolor i format tekstu.<br>Kliknij ponownie na tekst, aby go edytować.<br>Przeciągnij, aby przesunąć.',
         'guide.undoredo': 'Cofnij / Ponów',
@@ -4303,6 +4338,7 @@ const TRANSLATIONS = {
         'settings.userSymbolPathDesc': 'Cartella nel vault. Lasciare vuoto per usare solo i simboli inclusi.',
         'menu.system': 'Sistema',
         'menu.color': 'Colore',
+        'menu.emptyHex': 'Esagono vuoto',
         'notice.assetMissing': 'Grafica non trovata: {name}',
         'notice.assetsMissing': '{name} mancanti. Controlla il contenuto della cartella o il percorso in {settings}!',
         'assetWarning.hideHints': 'Nascondi avvisi',
@@ -4359,6 +4395,7 @@ const TRANSLATIONS = {
         'guide.hexcolor.eyedropper': 'Contagocce: Acquisisci colore dalla mappa.',
         'guide.hexcolor.palette': 'Clic destro su posto tavolozza = Imposta nuovo colore.',
         'guide.hexcolor.texture': 'Clic destro sul pulsante esagono = Scegli un colore o una texture personale. Compare solo dopo aver indicato una cartella texture nelle impostazioni.',
+        'guide.hexcolor.empty': 'Esagono vuoto (in “Sistema”): disegna un esagono senza riempimento – ideale per far trasparire una proiezione sullo sfondo. Bordi, coordinate e confini restano validi.',
         'guide.symbols': 'Simboli',
         'guide.symbols.groups': 'Scegli gruppo strumenti (Extra, Vegetazione, Montagna, Edificio).',
         'guide.symbols.variant': 'Clic destro = Selezione variante simbolo.',
@@ -4393,6 +4430,7 @@ const TRANSLATIONS = {
         'guide.projection.transform': 'Sposta, ridimensiona e ruota liberamente – angoli per scalare, lati per ruotare; il perno è spostabile.',
         'guide.projection.display': 'Imposta la trasparenza, mostrala o nascondila e scegli se il riferimento sta dietro gli esagoni o sopra il loro riempimento (i simboli restano sempre in cima).',
         'guide.projection.export': 'Ritagliala sugli esagoni disegnati e decidi se compare nell’esportazione e nella stampa.',
+        'guide.projection.reset': 'Reimposta: riporta dimensione, rotazione, trasparenza e perno ai valori predefiniti – la posizione resta invariata.',
         'guide.text': 'Testo',
         'guide.text.tool': 'Clicca sulla mappa per impostare contenuto, dimensione, colore e formato del testo.<br>Clicca di nuovo sul testo per modificarlo.<br>Trascina per spostare.',
         'guide.undoredo': 'Annulla / Ripeti',
@@ -4962,6 +5000,7 @@ const CHANGELOG = [
                 `Move, scale, and rotate it freely – drag the corners to scale, the sides to rotate – with a movable pivot point for precise placement.`,
                 `Set its transparency, show or hide it, and choose whether it sits behind your hexes or above their fills (your symbols always stay on top).`,
                 `Clip it to your drawn hexes, and decide whether it appears in exports and prints.`,
+                `New "empty hex" fill (under System, next to Color): draw hexes with no fill so a background projection shows through and only your symbols sit on top — borders, coordinates and region borders still apply.`,
             ] },
             { h: `🌊 Rivers & roads – more control over their course` },
             { ul: [
@@ -7735,7 +7774,9 @@ class HexCartographerView extends ItemView {
         btn._hexIconKey = key;
 
         btn.innerHTML = '';
-        if (asset) {
+        if (this.hexTexture === EMPTY_HEX_KEY) {
+            btn.appendChild(this.makeEmptyHexSvg(16));
+        } else if (asset) {
             const src = this.app.vault.adapter.getResourcePath(asset.filePath);
             btn.appendChild(this.makeHexImageSvg(src, 16));
         } else {
@@ -7850,6 +7891,50 @@ class HexCartographerView extends ItemView {
         return svg;
     }
 
+    // Hex preview for the "empty hex" choice: the classic grey/white transparency checkerboard,
+    // clipped to the hex shape. Signals "no fill — background shows through".
+    makeEmptyHexSvg(size) {
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('viewBox', '0 0 100 100');
+        svg.setAttribute('width', String(size));
+        svg.setAttribute('height', String(size));
+        svg.style.verticalAlign = 'middle';
+        svg.style.flex = '0 0 auto';
+
+        const uid = 'emptypat-' + Math.random().toString(36).slice(2);
+        const defs = document.createElementNS(NS, 'defs');
+        const pat = document.createElementNS(NS, 'pattern');
+        pat.setAttribute('id', uid);
+        pat.setAttribute('width', '24');
+        pat.setAttribute('height', '24');
+        pat.setAttribute('patternUnits', 'userSpaceOnUse');
+        const bg = document.createElementNS(NS, 'rect');
+        bg.setAttribute('width', '24');
+        bg.setAttribute('height', '24');
+        bg.setAttribute('fill', '#ffffff');
+        pat.appendChild(bg);
+        for (const [x, y] of [[0, 0], [12, 12]]) {
+            const sq = document.createElementNS(NS, 'rect');
+            sq.setAttribute('x', String(x));
+            sq.setAttribute('y', String(y));
+            sq.setAttribute('width', '12');
+            sq.setAttribute('height', '12');
+            sq.setAttribute('fill', '#bdbdbd');
+            pat.appendChild(sq);
+        }
+        defs.appendChild(pat);
+        svg.appendChild(defs);
+
+        const hex = document.createElementNS(NS, 'polygon');
+        hex.setAttribute('points', this.hexPreviewPoints());
+        hex.setAttribute('fill', `url(#${uid})`);
+        hex.setAttribute('stroke', 'var(--background-modifier-border)');
+        hex.setAttribute('stroke-width', '4');
+        svg.appendChild(hex);
+        return svg;
+    }
+
     // DOM entry for the "Color" system entry: a hex filled with the current hex
     // color, so it reads like the other previews.
     makeColorPreviewLabel(color, label) {
@@ -7858,6 +7943,19 @@ class HexCartographerView extends ItemView {
         wrap.style.alignItems = 'center';
         wrap.style.gap = '8px';
         wrap.appendChild(this.makeHexPreviewSvg(22, color || DEFAULT_MASTER_COLOR));
+        const span = document.createElement('span');
+        span.textContent = label;
+        wrap.appendChild(span);
+        return wrap;
+    }
+
+    // DOM entry for the "Empty hex" system entry: checkerboard hex + name.
+    makeEmptyHexLabel(label) {
+        const wrap = document.createElement('div');
+        wrap.style.display = 'flex';
+        wrap.style.alignItems = 'center';
+        wrap.style.gap = '8px';
+        wrap.appendChild(this.makeEmptyHexSvg(22));
         const span = document.createElement('span');
         span.textContent = label;
         wrap.appendChild(span);
@@ -8174,14 +8272,16 @@ class HexCartographerView extends ItemView {
     }
 
     async showHexTextureMenu(btn) {
+        // The System entries (Color · Empty hex) are always available; the texture submenu only
+        // when a texture folder with graphics is configured.
         const registry = this.plugin.getRegistry(TEXTURE_CATEGORY);
-        if (!registry || !registry.isActive) return;
-        await this._rescanRegistryFolder(registry); // pick up newly-added graphics
+        const hasTextures = !!(registry && registry.isActive);
+        if (hasTextures) await this._rescanRegistryFolder(registry); // pick up newly-added graphics
 
         const rect = btn.getBoundingClientRect();
 
         const selectTexture = async (key) => {
-            if (key) await this.plugin.ensureUserAssets([key]);
+            if (key && key !== EMPTY_HEX_KEY) await this.plugin.ensureUserAssets([key]);
 
             this.hexTexture = key;
             this.currentToolGroup = 'hexcolor';
@@ -8191,7 +8291,7 @@ class HexCartographerView extends ItemView {
             // texture has alpha and, if the texture goes missing, keeps the hexes of
             // different textures visually distinct behind the folder icon. Plain color
             // (no texture) keeps the normal color.
-            this.masterColor = key ? this.colorForTexture(key) : this.hexColorColor;
+            this.masterColor = (key && key !== EMPTY_HEX_KEY) ? this.colorForTexture(key) : this.hexColorColor;
             if (this.masterColorInput) {
                 this.masterColorInput.value = this.masterColor;
                 if (this.masterColorBtn) this.masterColorBtn.style.backgroundColor = this.masterColor;
@@ -8222,20 +8322,39 @@ class HexCartographerView extends ItemView {
                 this.attachEntryPreview(item, () => this.makeHexPreviewSvg(this.previewSize(), this.hexColorColor, false), t('menu.color'));
             });
         };
+        // Empty hex: draws a hex with no fill (projection shows through). Checkerboard preview.
+        const addEmptyEntry = (target) => {
+            target.addItem(item => {
+                if (previewKind) item.setTitle(this.makeEmptyHexLabel(t('menu.emptyHex')));
+                else item.setTitle(t('menu.emptyHex'));
+                item.setChecked(this.hexTexture === EMPTY_HEX_KEY);
+                checked.push({ item, key: EMPTY_HEX_KEY });
+                item.onClick(() => {
+                    checked.forEach(c => c.item.setChecked(c.key === EMPTY_HEX_KEY));
+                    selectTexture(EMPTY_HEX_KEY);
+                });
+                this.attachEntryPreview(item, () => this.makeEmptyHexSvg(this.previewSize()), t('menu.emptyHex'));
+            });
+        };
+        const addSystemEntries = (target) => { addColorEntry(target); addEmptyEntry(target); };
 
         if (!this.supportsSubmenus()) {
-            addColorEntry(menu);
-            menu.addSeparator();
-            this.buildAssetMenu(menu, registry.tree, this.hexTexture, selectTexture, previewKind, '', checked, 'texture');
+            addSystemEntries(menu);
+            if (hasTextures) {
+                menu.addSeparator();
+                this.buildAssetMenu(menu, registry.tree, this.hexTexture, selectTexture, previewKind, '', checked, 'texture');
+            }
         } else {
             menu.addItem(item => {
                 item.setTitle(t('menu.system'));
-                addColorEntry(this.tagScrollableMenu(item.setSubmenu()));
+                addSystemEntries(this.tagScrollableMenu(item.setSubmenu()));
             });
-            menu.addItem(item => {
-                item.setTitle(registry.rootName);
-                this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, this.hexTexture, selectTexture, previewKind, '', checked, 'texture');
-            });
+            if (hasTextures) {
+                menu.addItem(item => {
+                    item.setTitle(registry.rootName);
+                    this.buildAssetMenu(this.tagScrollableMenu(item.setSubmenu()), registry.tree, this.hexTexture, selectTexture, previewKind, '', checked, 'texture');
+                });
+            }
         }
 
         // Return keyboard focus to the canvas so Ctrl+Z/Y (bound on containerEl) work again after
@@ -8795,6 +8914,7 @@ class HexCartographerView extends ItemView {
         const s = this._editSession;
         if (!s) return false;
         this._editSession = null;
+        this._borderAutoHexes = null; // snapshot restore removes them anyway
         this.applyHistorySnapshot(JSON.parse(s.snapshot)); // restores data + renders + saves
         if (this.history.length > s.historyLen) this.history.length = s.historyLen; // drop this session's entries
         this.redoStack = [];
@@ -8814,6 +8934,7 @@ class HexCartographerView extends ItemView {
     exitPathEditMode() {
         let changed = false;
         this._editSession = null; // finishing keeps the edits -> the ESC-cancel snapshot is no longer needed
+        this._borderAutoHexes = null; // pass over: hexes it laid are normal hexes now, erase them by hand
         this.selectedWaypointIdx = null; // drop the per-endpoint selection when leaving edit mode
         for (const settings of [this.riverSettings, this.roadSettings]) {
             if (settings.editMode) {
@@ -9107,7 +9228,8 @@ class HexCartographerView extends ItemView {
     // Tooltip template + fields for the Terrain (hex colour) tool: group name "Terrain", the chosen
     // texture (or "Farbe") as the variant, and the variant line only when textures exist.
     terrainTooltip() {
-        const name = this.hexTexture ? this.assetLabelForKey(this.hexTexture) : t('tooltip.color');
+        const name = this.hexTexture === EMPTY_HEX_KEY ? t('menu.emptyHex')
+            : this.hexTexture ? this.assetLabelForKey(this.hexTexture) : t('tooltip.color');
         const key = this.hasTerrainVariants() ? 'tooltip.toolGroupVariant' : 'tooltip.toolGroupNoVariant';
         return t(key, { group: t('tool.terrain'), label: name });
     }
@@ -9313,6 +9435,7 @@ class HexCartographerView extends ItemView {
     hexPickEntryFor(group, data) {
         if (!data) return null;
         if (group === 'hexcolor') {
+            if (data.empty) return { color: this.hexColorColor, texture: EMPTY_HEX_KEY };
             if (data.texture) return { color: data.color || DEFAULT_MASTER_COLOR, texture: data.texture };
             if (data.color) return { color: data.color, texture: null };
             return null;
@@ -9415,11 +9538,16 @@ class HexCartographerView extends ItemView {
                 b.appendChild(this.makePatternPreviewSvg(16, entry)); // base colour/texture + its symbols
                 tip = t('tooltip.historySlot');
             } else if (group === 'hexcolor') {
-                const asset = entry.texture ? this.plugin.getUserAsset(entry.texture) : null;
-                if (entry.texture) tip = this.assetLabelForKey(entry.texture); // texture name
-                else tip = t('tooltip.color'); // plain colour hex
-                if (asset) b.appendChild(this.makeHexImageSvg(this.app.vault.adapter.getResourcePath(asset.filePath), 16));
-                else b.appendChild(this.makeHexPreviewSvg(16, entry.color || DEFAULT_MASTER_COLOR, false));
+                if (entry.texture === EMPTY_HEX_KEY) {
+                    b.appendChild(this.makeEmptyHexSvg(16));
+                    tip = t('menu.emptyHex');
+                } else {
+                    const asset = entry.texture ? this.plugin.getUserAsset(entry.texture) : null;
+                    if (entry.texture) tip = this.assetLabelForKey(entry.texture); // texture name
+                    else tip = t('tooltip.color'); // plain colour hex
+                    if (asset) b.appendChild(this.makeHexImageSvg(this.app.vault.adapter.getResourcePath(asset.filePath), 16));
+                    else b.appendChild(this.makeHexPreviewSvg(16, entry.color || DEFAULT_MASTER_COLOR, false));
+                }
             } else {
                 const cfg = this.toolConfigs[group];
                 b.style.background = symbolPreviewBg(entry.symbolColor, entry.backgroundEnabled ? entry.backgroundColor : BUTTON_BG_DEFAULT);
@@ -9497,6 +9625,7 @@ class HexCartographerView extends ItemView {
     // Short label for a drawing tool's hover preview: the active graphic's name where useful.
     toolPreviewLabel(group) {
         if (group === 'hexcolor') {
+            if (this.hexTexture === EMPTY_HEX_KEY) return t('menu.emptyHex');
             const asset = this.hexTexture && this.plugin.getUserAsset(this.hexTexture);
             return asset ? asset.label : t('menu.color');
         }
@@ -9528,7 +9657,9 @@ class HexCartographerView extends ItemView {
             this.showToolPreview(button, group);
         });
         button.addEventListener('pointerleave', () => { this.hideHistoryPreview(); restoreTitle(); });
-        button.addEventListener('click', () => { this.hideHistoryPreview(); restoreTitle(); }); // toolbar may rebuild
+        // Any button press hides the preview at once — before a left-click rebuilds the toolbar or a
+        // right-click opens the variant/texture menu (the overlay must not cover that menu).
+        button.addEventListener('pointerdown', () => { this.hideHistoryPreview(); restoreTitle(); });
     }
 
     // Right-click-menu hover: show a preview that follows the cursor (offset so it doesn't sit
@@ -9572,6 +9703,7 @@ class HexCartographerView extends ItemView {
     historyPreviewHex(group, entry, size) {
         if (group === 'pattern') return this.makePatternPreviewSvg(size, entry);
         if (group === 'hexcolor') {
+            if (entry.texture === EMPTY_HEX_KEY) return this.makeEmptyHexSvg(size);
             if (entry.texture) {
                 const asset = this.plugin.getUserAsset(entry.texture);
                 if (asset) return this.makeHexImageSvg(this.app.vault.adapter.getResourcePath(asset.filePath), size);
@@ -9619,6 +9751,7 @@ class HexCartographerView extends ItemView {
     // Display name of a user-asset key (texture/symbol): the registry label if loaded, else the
     // name derived from the key. Mirrors variantLabelFor's user-asset fallback.
     assetLabelForKey(key) {
+        if (key === EMPTY_HEX_KEY) return t('menu.emptyHex');
         const asset = this.plugin.getUserAsset(key);
         if (asset && asset.label) return asset.label;
         return key.slice(key.indexOf(':', USER_ASSET_PREFIX.length) + 1);
@@ -11351,9 +11484,39 @@ class HexCartographerView extends ItemView {
         if (!exists) {
             region.hexes.push({ q: hq, r: hr });
         }
+        // A border needs a hex to sit on: if there is none underneath, lay an empty hex there
+        // (so the grid/border render and it counts as drawn). Existing hexes stay untouched.
+        // Remember the ones this pass created — erasing the border takes them away again while the
+        // pass is still running, so a drawn-then-erased border leaves the map as it was.
+        if (!this.data.hexes) this.data.hexes = {};
+        const hexKey = `${hq}_${hr}`;
+        if (!this.data.hexes[hexKey]) {
+            this.data.hexes[hexKey] = { q: hq, r: hr, empty: true };
+            if (!this._borderAutoHexes) this._borderAutoHexes = new Set();
+            this._borderAutoHexes.add(hexKey);
+        }
 
         const toolbar = this.hexToolbarEl();
         if (toolbar) this.updateToolbarState(toolbar);
+    }
+
+    // Erasing a border takes back the empty hex this pass laid under it — but only that one.
+    // Kept: hexes that existed before, hexes the user painted on meanwhile, and hexes another
+    // border region still sits on (those stay marked, so a later erase can still free them).
+    _dropAutoBorderHex(q, r) {
+        const qq = Math.round(q), rr = Math.round(r);
+        const key = `${qq}_${rr}`;
+        if (!this._borderAutoHexes || !this._borderAutoHexes.has(key)) return;
+
+        const h = this.data.hexes[key];
+        if (!h || !h.empty || h.color || h.texture || HEX_SYMBOL_SLOTS.some(sd => h[sd.slot])) {
+            this._borderAutoHexes.delete(key); // no longer "just a border base" — it is the user's hex now
+            return;
+        }
+        if ((this.data.borders || []).some(reg => reg.hexes.some(b => b.q === qq && b.r === rr))) return;
+
+        delete this.data.hexes[key];
+        this._borderAutoHexes.delete(key);
     }
 
     // Squared distance from a point to a segment (pixel space).
@@ -11665,8 +11828,16 @@ class HexCartographerView extends ItemView {
         }
 
         if (this.currentToolGroup === 'hexcolor') {
+            if (this.hexTexture === EMPTY_HEX_KEY) {
+                // Empty hex: present but no fill (projection shows through, symbols still paint on top).
+                h.empty = true;
+                delete h.color;
+                delete h.texture;
+                return;
+            }
             // Color is always set: it sits under the texture, acts as fallback
             // when a graphic is missing and keeps the hex readable for older plugin versions.
+            delete h.empty;
             h.color = this.masterColor;
             this.applyTexture(h, this.hexTexture);
             return;
@@ -11741,6 +11912,7 @@ class HexCartographerView extends ItemView {
                 r.hexes = r.hexes.filter(b => !(b.q === hex.q && b.r === hex.r));
             });
             this.data.borders = this.data.borders.filter(r => r.hexes.length > 0);
+            this._dropAutoBorderHex(hex.q, hex.r);
         } else if (this.currentToolGroup === 'river') {
             this.erasePathElement(this.data.rivers, hex, x, y);
         } else if (this.currentToolGroup === 'road') {
@@ -11751,6 +11923,7 @@ class HexCartographerView extends ItemView {
             if (h) {
                 delete h.color;
                 delete h.texture;
+                delete h.empty; // erasing removes the "empty hex" marker too
                 if (!this.hexHasContent(h)) delete this.data.hexes[key];
             }
         } else if (this.currentToolGroup === 'pattern') {
@@ -11769,10 +11942,11 @@ class HexCartographerView extends ItemView {
                         if (!this.hexHasContent(h)) delete this.data.hexes[key];
                     }
                 } else if (this.currentToolGroup === null) {
-                    if (h.color || h.backgroundColor || h.texture) {
+                    if (h.color || h.backgroundColor || h.texture || h.empty) {
                         delete h.color;
                         delete h.backgroundColor;
                         delete h.texture;
+                        delete h.empty;
                         if (!this.hexHasContent(h)) delete this.data.hexes[key];
                     }
                 }
@@ -11909,6 +12083,12 @@ class HexCartographerView extends ItemView {
         if (region.hexes.length === 0) {
             this.data.borders = this.data.borders.filter(r => r.id !== regionId);
         }
+
+        // Take back the empty hexes this pass laid under the erased stretch.
+        for (const key of toRemove) {
+            const [q, r] = key.split('_').map(Number);
+            this._dropAutoBorderHex(q, r);
+        }
     }
 
     hexMatchesPattern(hex, pattern) {
@@ -11936,7 +12116,8 @@ class HexCartographerView extends ItemView {
             this.floodFillPattern(startHex, this.hexGraphicsSnapshot(startData));
         }
         else if (this.currentToolGroup === 'hexcolor') {
-            this.floodFillColor(startHex, startData.color, this.masterColor, startData.texture, this.hexTexture);
+            if (this.hexTexture === EMPTY_HEX_KEY) this.floodFillEmptyHex(startHex, startData.color, startData.texture, startData.empty);
+            else this.floodFillColor(startHex, startData.color, this.masterColor, startData.texture, this.hexTexture);
         }
         else if (this.currentToolGroup === null) {
             // The palette tool only colors — existing textures stay untouched.
@@ -11986,6 +12167,31 @@ class HexCartographerView extends ItemView {
 
             const neighbors = this.getHexNeighbors(hex);
             neighbors.forEach(n => queue.push(n));
+        }
+    }
+
+    // Turns the connected region that looks like the start hex (same color + texture) into empty
+    // hexes — the "empty hex" counterpart of floodFillColor. An already-empty start is a no-op.
+    floodFillEmptyHex(startHex, targetColor, targetTexture, targetEmpty) {
+        if (targetEmpty) return;
+        const visited = new Set();
+        const queue = [startHex];
+        while (queue.length > 0) {
+            const hex = queue.shift();
+            const key = `${hex.q}_${hex.r}`;
+            if (visited.has(key)) continue;
+            visited.add(key);
+
+            const h = this.data.hexes[key];
+            const hColor = h ? h.color : null;
+            const hTexture = h ? (h.texture || null) : null;
+            if (hColor !== targetColor) continue;
+            if (hTexture !== (targetTexture || null)) continue;
+
+            if (h) { h.empty = true; delete h.color; delete h.texture; }
+            else this.data.hexes[key] = { q: hex.q, r: hex.r, empty: true };
+
+            this.getHexNeighbors(hex).forEach(n => queue.push(n));
         }
     }
 
@@ -12124,12 +12330,12 @@ class HexCartographerView extends ItemView {
                 if (this.patternData.color) nh.color = this.patternData.color;
                 this.applyPatternGraphics(nh, this.patternData);
             } else if (this.currentToolGroup === 'hexcolor') {
-                this.data.hexes[key] = {
-                    q: hex.q,
-                    r: hex.r,
-                    color: this.masterColor
-                };
-                this.applyTexture(this.data.hexes[key], this.hexTexture);
+                if (this.hexTexture === EMPTY_HEX_KEY) {
+                    this.data.hexes[key] = { q: hex.q, r: hex.r, empty: true };
+                } else {
+                    this.data.hexes[key] = { q: hex.q, r: hex.r, color: this.masterColor };
+                    this.applyTexture(this.data.hexes[key], this.hexTexture);
+                }
             } else if (this.currentToolGroup === null) {
                 this.data.hexes[key] = {
                     q: hex.q,
@@ -13737,7 +13943,7 @@ class HexCartographerView extends ItemView {
 
     // Whether a hex still holds anything (terrain base or any symbol slot). Empty hexes are removed.
     hexHasContent(h) {
-        return !!(h && (h.color || h.texture || HEX_SYMBOL_SLOTS.some(sd => h[sd.slot])));
+        return !!(h && (h.color || h.texture || h.empty || HEX_SYMBOL_SLOTS.some(sd => h[sd.slot])));
     }
 
     // Unresolved user graphics on a hex (missing texture + missing symbol slots), as key list.
@@ -16774,6 +16980,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 ['pipette', 'guide.hexcolor.eyedropper'],
                 [null, 'guide.hexcolor.palette'],
                 [null, 'guide.hexcolor.texture'],
+                ['grid-2x2', 'guide.hexcolor.empty'],
             ]],
             ['symbols', [
                 ['pine', 'guide.symbols.groups'],
@@ -16798,6 +17005,7 @@ class HexCartographerSettingTab extends PluginSettingTab {
                 ['move', 'guide.projection.transform'],
                 ['eye', 'guide.projection.display'],
                 ['scissors', 'guide.projection.export'],
+                ['refresh-ccw-dot', 'guide.projection.reset'],
             ]],
             ['text', [
                 ['type', 'guide.text.tool'],
