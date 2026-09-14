@@ -1,5 +1,5 @@
 # Hex Cartographer
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/Taroslord?logo=github&label=Sponsor)](https://github.com/sponsors/Taroslord)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/Taroslord?logo=github&label=Sponsor&style=for-the-badge)](https://github.com/sponsors/Taroslord)
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/christophwerner)
 
 **Bring Your Fantasy Worlds to Life**
