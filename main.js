@@ -87,6 +87,12 @@ const HISTORY_PREVIEW_SIZE = 80; // hover preview hex size (px) — default
 const PREVIEW_SIZE_MIN = 40;     // smallest configurable hover-preview size
 const PREVIEW_SIZE_MAX = 160;    // largest (about a hex's narrow width)
 const PREVIEW_SIZE_STEP = 10;    // stepper increment
+// Extra pixels rendered around the viewport into the pan snapshot, so edges revealed while
+// dragging are already drawn. Past this the snapshot is rebuilt.
+const PAN_CACHE_MARGIN = 256;
+// Idle time after the last drag step before one full render settles the view (fills anything
+// outside the snapshot). Input-agnostic, so touch needs no separate end handler.
+const PAN_SETTLE_MS = 120;
 // Two history entries are the same setting when their values match (order-free).
 const historyEntrySame = (a, b) => stableStringify(a) === stableStringify(b);
 // Most-recently-used insert: an identical entry moves to the front (no duplicate); otherwise
@@ -10181,7 +10187,7 @@ class HexCartographerView extends ItemView {
             if (this.isDraggingMap) {
                 this.data.offX += e.movementX;
                 this.data.offY += e.movementY;
-                this.render();
+                this.schedulePanBlit();
             } else if (this.draggedText) {
                 const off = this.textDragOffset || { x: 0, y: 0 };
                 this.draggedText.x = world.x + off.x;
@@ -10198,7 +10204,7 @@ class HexCartographerView extends ItemView {
                 if (!this.editMode) {
                     this.data.offX += e.movementX;
                     this.data.offY += e.movementY;
-                    this.render();
+                    this.schedulePanBlit();
                 } else if (this.roadDragIndex !== null && this.roadSettings.editMode) {
                     const road = this.data.roads && this.data.roads.find(r => r.id === this.roadSettings.activeRoadId);
                     if (road) {
@@ -10328,7 +10334,7 @@ class HexCartographerView extends ItemView {
             }
             // Content edits save the file; a pure map pan only persists the per-device viewport.
             if (this.isMouseDown || this.draggedText) this.requestSave();
-            else if (this.isDraggingMap) this.persistViewport();
+            else if (this.isDraggingMap) { this.persistViewport(); this.render(); }
             this.isMouseDown = false;
             this.isDraggingMap = false;
             this.draggedText = null;
@@ -10619,7 +10625,7 @@ class HexCartographerView extends ItemView {
                 this.data.offY += t0.clientY - this.touchState.lastTouchY;
                 this.touchState.lastTouchX = t0.clientX;
                 this.touchState.lastTouchY = t0.clientY;
-                this.render();
+                this.schedulePanBlit();
                 return;
             }
             if (e.touches.length === 2 && this.touchState.isTwoFingerGesture) {
@@ -10659,7 +10665,7 @@ class HexCartographerView extends ItemView {
                         if (this.touchState.lastTouchX !== undefined) {
                             this.data.offX += touch.clientX - this.touchState.lastTouchX;
                             this.data.offY += touch.clientY - this.touchState.lastTouchY;
-                            this.render();
+                            this.schedulePanBlit();
                         }
                         this.touchState.lastTouchX = touch.clientX;
                         this.touchState.lastTouchY = touch.clientY;
@@ -10697,7 +10703,7 @@ class HexCartographerView extends ItemView {
                         if (this.touchState.lastTouchX !== undefined) {
                             this.data.offX += touch.clientX - this.touchState.lastTouchX;
                             this.data.offY += touch.clientY - this.touchState.lastTouchY;
-                            this.render();
+                            this.schedulePanBlit();
                         }
                         this.touchState.lastTouchX = touch.clientX;
                         this.touchState.lastTouchY = touch.clientY;
@@ -12357,8 +12363,105 @@ class HexCartographerView extends ItemView {
         return filled;
     }
 
-    render() {
-        if (!this.ctx) return;
+    // One Path2D per path string, reused across hexes and frames. They are only filled, never
+    // mutated, so sharing is safe; rebuilding them per hex per frame was a large share of the cost.
+    pathFor(d) {
+        if (!this._pathCache) this._pathCache = new Map();
+        const key = d || ''; // empty path fills nothing - same as the old new Path2D(undefined)
+        let p = this._pathCache.get(key);
+        if (!p) { p = new Path2D(key); this._pathCache.set(key, p); }
+        return p;
+    }
+
+    // While the map is dragged its picture does not change - only the offset. Render it once into
+    // an offscreen canvas with a margin, then only copy that during the drag: thousands of clipped
+    // image draws collapse into one copy. The margin keeps newly revealed edges filled.
+    // World area that actually holds drawn content (hexes plus any projection), padded a little
+    // for symbols that may overhang their hex. Null when the map is empty.
+    _panContentBounds() {
+        const b = this.hexesBoundingBox();
+        const p = this.projectionWorldBounds ? this.projectionWorldBounds() : null;
+        if (!b && !p) return null;
+        const pad = this.data.gridSize || 30;
+        const u = !b ? p : !p ? b : {
+            minX: Math.min(b.minX, p.minX), minY: Math.min(b.minY, p.minY),
+            maxX: Math.max(b.maxX, p.maxX), maxY: Math.max(b.maxY, p.maxY),
+        };
+        return { minX: u.minX - pad, minY: u.minY - pad, maxX: u.maxX + pad, maxY: u.maxY + pad };
+    }
+
+    // The snapshot only needs rebuilding when the view moves onto content it does NOT hold.
+    // Panning across empty space - e.g. the whole map already fits in the snapshot - needs none.
+    _panNeedsRebuild() {
+        const ref = this._panCacheRef;
+        if (!ref) return true;
+        if (!ref.content) return false; // nothing drawn -> an empty snapshot stays valid
+        const z = this.data.zoom || 1;
+        const vx0 = (0 - this.data.offX) / z, vy0 = (0 - this.data.offY) / z;
+        const vx1 = (this.canvas.width - this.data.offX) / z, vy1 = (this.canvas.height - this.data.offY) / z;
+        const b = ref.content;
+        const ix0 = Math.max(vx0, b.minX), iy0 = Math.max(vy0, b.minY);
+        const ix1 = Math.min(vx1, b.maxX), iy1 = Math.min(vy1, b.maxY);
+        if (ix0 >= ix1 || iy0 >= iy1) return false; // no content in view
+        const c = ref.world;
+        return ix0 < c.minX || iy0 < c.minY || ix1 > c.maxX || iy1 > c.maxY;
+    }
+
+    _buildPanCache() {
+        this._panCacheRef = null;
+        if (!this.ctx || !this.canvas.width || !this.canvas.height) return;
+        const m = PAN_CACHE_MARGIN;
+        const w = this.canvas.width + 2 * m, h = this.canvas.height + 2 * m;
+        const c = this._panCanvas || (this._panCanvas = document.createElement('canvas'));
+        if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+
+        const oCanvas = this.canvas, oCtx = this.ctx, ox = this.data.offX, oy = this.data.offY;
+        this.canvas = c;
+        this.ctx = c.getContext('2d');
+        this.data.offX = ox + m;
+        this.data.offY = oy + m;
+        try { this.drawMainCanvas(); }
+        finally { this.canvas = oCanvas; this.ctx = oCtx; this.data.offX = ox; this.data.offY = oy; }
+        const z = this.data.zoom || 1;
+        this._panCacheRef = {
+            x: ox, y: oy, m,
+            // World rectangle the snapshot holds, and where drawn content actually sits.
+            world: { minX: (0 - (ox + m)) / z, minY: (0 - (oy + m)) / z, maxX: (w - (ox + m)) / z, maxY: (h - (oy + m)) / z },
+            content: this._panContentBounds(),
+        };
+    }
+
+    // Copy the snapshot at the current offset; rebuild once the drag leaves the cached margin.
+    // Without a usable snapshot it falls back to a full redraw.
+    _blitPanCache() {
+        if (this._panNeedsRebuild()) this._buildPanCache();
+        const ref = this._panCacheRef;
+        if (!ref) { this.render(); return; }
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.drawImage(this._panCanvas, this.data.offX - ref.x - ref.m, this.data.offY - ref.y - ref.m);
+        this.renderTexts();
+    }
+
+    // Redraw while dragging the map: one snapshot copy per displayed frame instead of a full render.
+    schedulePanBlit() {
+        if (!this._panCacheRef) this._buildPanCache();
+        if (this._panSettle) clearTimeout(this._panSettle);
+        this._panSettle = setTimeout(() => {
+            this._panSettle = null;
+            if (this._panNeedsRebuild()) this.render(); // copy was already the full picture otherwise
+        }, PAN_SETTLE_MS);
+        if (this._panScheduled) return;
+        this._panScheduled = true;
+        const win = (this.containerEl && this.containerEl.ownerDocument.defaultView) || window;
+        win.requestAnimationFrame(() => {
+            this._panScheduled = false;
+            this._blitPanCache();
+        });
+    }
+
+    // Everything that goes onto the MAIN canvas, in draw order. Split out so the pan cache can
+    // render the identical picture into an offscreen canvas.
+    drawMainCanvas() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.save();
         this.ctx.translate(this.data.offX, this.data.offY);
@@ -12389,8 +12492,14 @@ class HexCartographerView extends ItemView {
 
         this.renderCrosshair();
         this.renderProjectionHandles(); // move/scale/rotate handles, only in the projection tool
-        this.renderTexts();
         this.renderHexNumbering();
+    }
+
+    render() {
+        if (!this.ctx) return;
+        this._panCacheRef = null; // any full redraw makes a pan snapshot stale
+        this.drawMainCanvas();
+        this.renderTexts(); // own canvas, cheap - drawn live even while panning
         this.updateAssetWarningBar();
         // Keep the path buttons in sync with the current edit/selection state — updateToolbarState
         // only runs on tool switch, but a path/endpoint becomes editable mid-draw (waypoint click).
@@ -13764,7 +13873,7 @@ class HexCartographerView extends ItemView {
         this.ctx.save();
         this.ctx.translate(pos.x - size / 2 + offsetX, pos.y - size / 2 + offsetY);
         this.ctx.scale(scale, scale);
-        const path = new Path2D(svgData.pathData);
+        const path = this.pathFor(svgData.pathData);
         this.ctx.fillStyle = color || '#228B22';
         this.ctx.fill(path);
         this.ctx.restore();
@@ -13858,7 +13967,7 @@ class HexCartographerView extends ItemView {
             this.ctx.translate(pos.x - (vw * scale) / 2, pos.y - (vh * scale) / 2);
             this.ctx.scale(scale, scale);
             this.ctx.fillStyle = color || DEFAULT_MASTER_COLOR;
-            this.ctx.fill(new Path2D(asset.pathData));
+            this.ctx.fill(this.pathFor(asset.pathData));
             this.ctx.restore();
             return;
         }
