@@ -90,6 +90,12 @@ const PREVIEW_SIZE_STEP = 10;    // stepper increment
 // Extra pixels rendered around the viewport into the pan snapshot, so edges revealed while
 // dragging are already drawn. Past this the snapshot is rebuilt.
 const PAN_CACHE_MARGIN = 256;
+// Pre-masked graphic tiles: one ready-clipped, ready-scaled copy per graphic, reused by every
+// hex showing it. Zoom is bucketed so a nudge does not rebuild; the cache is capped and filled
+// on demand, because the user can add or delete graphics at any time.
+const TILE_ZOOM_STEP = 0.125;
+const TILE_MAX_PX = 512;   // skip tiling above this hex size - a direct draw is cheap there
+const TILE_CACHE_MAX = 120;
 // Idle time after the last drag step before one full render settles the view (fills anything
 // outside the snapshot). Input-agnostic, so touch needs no separate end handler.
 const PAN_SETTLE_MS = 120;
@@ -8274,7 +8280,7 @@ class HexCartographerView extends ItemView {
     // delayed for externally-added files. Metadata-only (no decode), so it stays cheap.
     async _rescanRegistryFolder(registry) {
         if (!registry || !registry.rootPath) return;
-        try { await registry.rescan(); } catch (e) { /* keep the current list on error */ }
+        try { await registry.rescan(); this._clearTileCache(); } catch (e) { /* keep the current list on error */ }
     }
 
     async showHexTextureMenu(btn) {
@@ -11353,6 +11359,7 @@ class HexCartographerView extends ItemView {
     // After the asset folders were re-scanned (path change or disk watcher). On a real
     // disk change the texture-derived hex colors are refreshed from the new average.
     async handleAssetsReloaded(syncColors) {
+        this._clearTileCache();
         this.rebuildToolbar();
         if (syncColors) await this.refreshDerivedTextureColors();
         this.render();
@@ -12371,6 +12378,68 @@ class HexCartographerView extends ItemView {
         let p = this._pathCache.get(key);
         if (!p) { p = new Path2D(key); this._pathCache.set(key, p); }
         return p;
+    }
+
+    // Bucketed zoom for the tile cache. Null when a tile would exceed the size cap.
+    _tileScale() {
+        const z = this.data.zoom || 1;
+        const s = Math.ceil(z / TILE_ZOOM_STEP) * TILE_ZOOM_STEP;
+        if ((this.data.gridSize || 30) * 2 * s > TILE_MAX_PX) return null;
+        return Math.round(s * 1000) / 1000;
+    }
+
+    // A graphic already scaled to the hex and clipped to its shape, at the current on-screen size.
+    // The caller draws it at WORLD size, so the canvas zoom cancels out: 1:1 pixels, no clip() per
+    // hex and no repeated downscaling of the full-size asset. Null -> caller draws directly.
+    _hexTile(asset, radius, clip) {
+        const img = asset && asset.image;
+        if (!img) return null;
+        const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+        if (!iw || !ih) return null;
+        const scale = this._tileScale();
+        if (!scale) return null;
+
+        const key = asset.key + '|' + scale + '|' + (this.hexOrientation ? 1 : 0) + '|' + (clip ? 1 : 0);
+        if (!this._tileCache) this._tileCache = new Map();
+        const hit = this._tileCache.get(key);
+        if (hit) return hit;
+
+        // Geometry inside the tile is radius-independent (the hex always fills it), so one tile
+        // per zoom bucket serves every hex. Clipped -> the tile is the hex box; unclipped -> the
+        // graphic's own extent, which may be larger than the hex and must not be cut off.
+        const box = this.hexBounds(radius);
+        const fit = this.hexGraphicScale(radius, iw, ih);
+        const w = clip ? box.w : iw * fit;
+        const h = clip ? box.h : ih * fit;
+        const tw = Math.max(1, Math.round(w * scale));
+        const th = Math.max(1, Math.round(h * scale));
+        const c = document.createElement('canvas');
+        c.width = tw;
+        c.height = th;
+        const tctx = c.getContext('2d');
+        if (clip) {
+            const r = radius * scale, ao = this.hexAngleOffset();
+            tctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const a = (Math.PI / 180) * (60 * i + ao);
+                tctx.lineTo(tw / 2 + r * Math.cos(a), th / 2 + r * Math.sin(a));
+            }
+            tctx.closePath();
+            tctx.clip();
+        }
+        const dw = iw * fit * scale, dh = ih * fit * scale;
+        tctx.drawImage(img, tw / 2 - dw / 2, th / 2 - dh / 2, dw, dh);
+
+        if (this._tileCache.size >= TILE_CACHE_MAX) this._tileCache.clear(); // refilled on demand
+        const tile = { c, w, h };
+        this._tileCache.set(key, tile);
+        return tile;
+    }
+
+    // Graphics can be added, overwritten or deleted at any time - often outside Obsidian - so every
+    // asset change drops the tiles. A tile must never outlive its asset; refilling is cheap.
+    _clearTileCache() {
+        if (this._tileCache) this._tileCache.clear();
     }
 
     // While the map is dragged its picture does not change - only the offset. Render it once into
@@ -13956,6 +14025,18 @@ class HexCartographerView extends ItemView {
         }
 
         const clip = this.plugin.settings.clipUserGraphics !== false;
+
+        // Pixel graphics (and multi-shape SVGs, which are rasterised on load) carry the same cost
+        // as a texture - serve them from a ready-made tile. Colourable SVGs below stay on the
+        // cheap vector path.
+        if (!asset.colorable) {
+            const tile = this._hexTile(asset, radius, clip);
+            if (tile) {
+                this.ctx.drawImage(tile.c, pos.x - tile.w / 2, pos.y - tile.h / 2, tile.w, tile.h);
+                return;
+            }
+        }
+
         const angleOffset = this.hexAngleOffset();
         this.ctx.save();
         if (clip) { this.tracehexPath(pos, radius, angleOffset); this.ctx.clip(); }
@@ -14199,6 +14280,13 @@ class HexCartographerView extends ItemView {
         // Not decoded yet -> draw nothing, the color underneath remains.
         // After reloading it is redrawn anyway.
         if (this.isAssetPending(asset)) return;
+
+        // Ready-made tile: one copy instead of clip + full-size downscale per hex.
+        const tile = this._hexTile(asset, radius, true);
+        if (tile) {
+            this.ctx.drawImage(tile.c, pos.x - tile.w / 2, pos.y - tile.h / 2, tile.w, tile.h);
+            return;
+        }
 
         this.ctx.save();
         this.tracehexPath(pos, radius, angleOffset);
