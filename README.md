@@ -83,6 +83,17 @@ Choose a coordinate position for the hexes and color
 3. Place the downloaded files inside
 4. Restart Obsidian and enable the plugin
 
+> **A note on the `main` branch**
+>
+> `main` is the development branch and may contain unfinished work. Its
+> `manifest.json` is not kept in step with the published version number, so
+> Obsidian treats a copy taken from `main` as if it were the last release — it
+> offers no update, and reinstalling silently puts the released version back in
+> its place. Maps you created in the meantime will then tell you that they need
+> a newer plugin version.
+>
+> Always take the files from [Releases](https://github.com/Taroslord/Hex-Cartographer/releases).
+
 ## Getting Started
 
 1. Right-click a folder in the file explorer and select **Create new Hex Cartographer Map**
