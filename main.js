@@ -5156,13 +5156,14 @@ function hexMapFrontmatter(existing) {
     const m = /^---\r?\n((?:[\s\S]*?\r?\n)?)---[ \t]*(?:\r?\n|$)/.exec(existing || '');
     const lines = m ? m[1].split(/\r?\n/).filter((l, i, a) => i < a.length - 1 || l !== '') : [];
     const today = new Date().toISOString().split('T')[0];
-    if (!lines.some(l => /^type\s*:/.test(l))) lines.unshift('type: hexcartographer');
-    if (!lines.some(l => /^created\s*:/.test(l))) {
-        lines.splice(lines.findIndex(l => /^type\s*:/.test(l)) + 1, 0, `created: ${today}`);
-    }
-    const mod = lines.findIndex(l => /^modified\s*:/.test(l));
+    // Keeps the order the user wrote: what is already there stays put, what is missing is
+    // appended. Inserting in between would shuffle their own properties around.
+    const at = (key) => lines.findIndex(l => new RegExp('^' + key + '\\s*:').test(l));
+    if (at('type') < 0) lines.push('type: hexcartographer');
+    if (at('created') < 0) lines.push(`created: ${today}`);
+    const mod = at('modified');
     if (mod >= 0) lines[mod] = `modified: ${today}`;
-    else lines.splice(lines.findIndex(l => /^created\s*:/.test(l)) + 1, 0, `modified: ${today}`);
+    else lines.push(`modified: ${today}`);
     return `---\n${lines.join('\n')}\n---\n\n`;
 }
 
