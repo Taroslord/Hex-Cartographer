@@ -5148,6 +5148,24 @@ function hexMapTitle(basename) {
     return basename.replace(HEX_EXT_MARK, '').replace(LEGACY_EXT_MARK, '');
 }
 
+// Frontmatter for saving a map over `existing` (the file's current text). The user's own
+// properties (tags, aliases, ...) are kept as written; `type` and `created` are only added
+// when missing, so `created` keeps the date the map was first saved. `modified` is always
+// set to today.
+function hexMapFrontmatter(existing) {
+    const m = /^---\r?\n((?:[\s\S]*?\r?\n)?)---[ \t]*(?:\r?\n|$)/.exec(existing || '');
+    const lines = m ? m[1].split(/\r?\n/).filter((l, i, a) => i < a.length - 1 || l !== '') : [];
+    const today = new Date().toISOString().split('T')[0];
+    if (!lines.some(l => /^type\s*:/.test(l))) lines.unshift('type: hexcartographer');
+    if (!lines.some(l => /^created\s*:/.test(l))) {
+        lines.splice(lines.findIndex(l => /^type\s*:/.test(l)) + 1, 0, `created: ${today}`);
+    }
+    const mod = lines.findIndex(l => /^modified\s*:/.test(l));
+    if (mod >= 0) lines[mod] = `modified: ${today}`;
+    else lines.splice(lines.findIndex(l => /^created\s*:/.test(l)) + 1, 0, `modified: ${today}`);
+    return `---\n${lines.join('\n')}\n---\n\n`;
+}
+
 const DEFAULT_SETTINGS = {
     userAssetPreview: false,
     previewSize: HISTORY_PREVIEW_SIZE, // hover-preview hex size (px); user-configurable
@@ -5557,8 +5575,7 @@ class HexCartographerPlugin extends Plugin {
         // stacks behind the rename dialog. It is shown once that dialog closes.
         this._suppressChangelog = true;
         try {
-            const now = new Date().toISOString().split('T')[0];
-            const frontmatter = `---\ntype: hexcartographer\ncreated: ${now}\n---\n\n`;
+            const frontmatter = hexMapFrontmatter('');
             const jsonData = serializeMapMultiline(initialData); // one line per element (see saveData)
             const mapTitle = fileName.replace(HEX_EXT_FULL, '');
             const content = `${frontmatter}# ${mapTitle}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
@@ -15393,8 +15410,6 @@ class HexCartographerView extends ItemView {
                     hexOrientation: this.hexOrientation
                 };
 
-                const now = new Date().toISOString().split('T')[0];
-                const frontmatter = `---\ntype: hexcartographer\ncreated: ${now}\n---\n\n`;
                 const title = hexMapTitle(this.file.basename);
 
                 // Change detection compares the BODY only — the payload WITHOUT the device-local
@@ -15423,6 +15438,8 @@ class HexCartographerView extends ItemView {
                 // One line per hex/element: short lines (no editor freeze) + merge-safe (see
                 // serializeMapMultiline). Small objects stay compact.
                 const jsonData = serializeMapMultiline(toSave);
+                // Re-read just before writing so properties added since the last save survive.
+                const frontmatter = hexMapFrontmatter(await this.app.vault.read(this.file));
                 const content = `${frontmatter}# ${title}\n\n\`\`\`json\n${jsonData}\n\`\`\`\n`;
 
                 // Remember body + full content: the body skips no-op saves; the full content lets
